@@ -38,6 +38,12 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
 	private static final URI STUB_NEED_URI = URI.create("http://example.com/content");
     private static final URI STUB_SHAPES_URI = URI.create("http://example.com/shapes");
 
+    private static final String OPENING_MSG = "Hello low-order creature! "
+    		+ "I am the mighty Paypal Bot. "
+    		+ "You awakened me from my sleep. "
+    		+ "My destiny is to satisfy your commercial necessities. "
+    		+ "So you want to receive some money from an other poor soul..?";
+    
     private static final String goalString;
 
     static {
@@ -73,7 +79,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
             logger.debug("factoryoffer creation successful, new need URI is {}", factoryOfferURI);
             //publish connect between the specific offer and the requester need
             ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryNeedURIOfferRelation(factoryOfferURI, factoryHintEvent.getFactoryNeedURI());
-            bus.publish(new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI()));
+            bus.publish(new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG));
         };
 
         EventListener failureCallback = failureEvent -> {
@@ -104,7 +110,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         DefaultNeedModelWrapper needModelWrapper = new DefaultNeedModelWrapper(ctx.getWonNodeInformationService().generateNeedURI(ctx.getNodeURISource().getNodeURI()).toString());
 
         needModelWrapper.setTitle(NeedContentPropertyType.IS, connectTitle);
-        needModelWrapper.setDescription(NeedContentPropertyType.IS, "This is a automatically created need by the TaxiBot");
+        needModelWrapper.setDescription(NeedContentPropertyType.IS, "This is a automatically created need by the PaypalBot");
         needModelWrapper.addFlag(WON.NO_HINT_FOR_COUNTERPART);
         needModelWrapper.addFlag(WON.NO_HINT_FOR_ME);
         needModelWrapper.setShapesGraphReference(STUB_SHAPES_URI);

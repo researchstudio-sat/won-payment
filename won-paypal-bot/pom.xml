@@ -60,5 +60,12 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
+		
+		<!-- Paypal -->
+        <dependency>
+            <groupId>com.paypal.sdk</groupId>
+            <artifactId>adaptivepaymentssdk</artifactId>
+            <version>2.7.117</version>
+        </dependency>
 	</dependencies>
 </project>
