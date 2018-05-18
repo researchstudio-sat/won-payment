@@ -1,0 +1,102 @@
+@prefix msg:   <http://purl.org/webofneeds/message#> .
+@prefix conn:  <https://localhost:8443/won/resource/connection/> .
+@prefix need:  <https://localhost:8443/won/resource/need/> .
+@prefix woncrypt: <http://purl.org/webofneeds/woncrypt#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix cert:  <http://www.w3.org/ns/auth/cert#> .
+@prefix local: <https://localhost:8443/won/resource/> .
+@prefix geo:   <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix sig:   <http://icp.it-risk.iwvi.uni-koblenz.de/ontologies/signature.owl#> .
+@prefix s:     <http://schema.org/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix won:   <http://purl.org/webofneeds/model#> .
+@prefix ldp:   <http://www.w3.org/ns/ldp#> .
+@prefix event: <https://localhost:8443/won/resource/event/> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix sioc:  <http://rdfs.org/sioc/ns#> .
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex1: <http://example.org/1/> .
+@prefix ex2: <http://example.org/2/> .
+@prefix taxi: <http://example.org/taxi/> .
+
+@prefix olntest:   <http://sat.researchstudio.at/oln/test/> .
+
+{
+    olntest:taxiService1
+		a             won:Need ;
+		won:hasFlag   won:NoHintForCounterpart ;
+		won:is     [ dc:description   "next 10 minutes" ;
+						dc:title "Paypal Payment Endpoint"@en ;
+						dc:description "Offering Payments via Paypal"@en ;
+						won:hasTag "Paypal", "Paypal Zahlung"@de, "Paypal Payment"@en ;
+						won:hasLocation  [ a                   s:Place ;
+										   won:hasBoundingBox  [ won:hasNorthWestCorner  [ a            s:GeoCoordinates ;
+																						   s:latitude   "48.199528" ;
+																						   s:longitude  "16.355209"
+																						 ] ;
+																 won:hasSouthEastCorner  [ a            s:GeoCoordinates ;
+																						   s:latitude   "48.218489" ;
+																						   s:longitude  "16.384895"
+																						 ]
+															   ] ;
+										   s:geo               [ a            s:GeoCoordinates ;
+																 s:latitude   "48.209269" ;
+																 s:longitude  "16.370831"
+															   ] ;
+										   s:name              "Wien, Österreich"@de;
+										   s:name              "Vienna, Austria"@en
+										 ]
+					  ] ;
+		won:seeks [
+            won:seeks [
+                dc:title "Paypal";
+                won:hasLocation [
+                    s:geo [
+                      a s:GeoCoordinates ;
+                      s:latitude   "48.209269" ;
+                      s:longitude  "16.370831"
+                    ] ;
+                    s:name "Wien"
+                ];
+			]
+		];
+		won:seeks [
+            won:seeks [
+              dc:description "Paypal";
+              won:hasLocation [
+                s:geo [
+                  a s:GeoCoordinates ;
+                  s:latitude   "48.209269" ;
+                  s:longitude  "16.370831"
+                ] ;
+                s:name "Wien"
+              ];
+            ]
+		];
+		won:seeks [
+            won:seeks [
+                won:hasTag "Paypal";
+                won:hasLocation [
+                s:geo [
+                  a s:GeoCoordinates ;
+                  s:latitude   "48.209269" ;
+                  s:longitude  "16.370831"
+                ] ;
+                s:name "Wien"
+                ];
+		    ]
+		];
+		won:seeks [
+            won:seeks [
+              dc:title "Paypal"
+            ]
+		];
+		won:seeks [
+            won:seeks [
+              dc:description "Paypal"
+            ]
+		].
+}

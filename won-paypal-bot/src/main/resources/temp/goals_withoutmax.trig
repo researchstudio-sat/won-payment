@@ -1,0 +1,51 @@
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix s:     <http://schema.org/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex2: <http://example.org/2/> .
+@prefix taxi: <http://example.org/taxi/> .
+@prefix won:   <http://purl.org/webofneeds/model#> .
+
+@prefix olntest:   <http://sat.researchstudio.at/oln/test/> .
+
+
+ex2:p2g-shapes {
+    <http://example.org/2/SelfShape>
+            a   sh:NodeShape ;
+            sh:targetNode   s:Place ;
+            sh:property [
+                            sh:path [ sh:inversePath rdf:type ];
+                            sh:minCount 1 ;
+                        ] .
+    <http://example.org/2/TaxiRideShape>
+            a                     sh:NodeShape ;
+            sh:closed             false ;
+            sh:ignoredProperties  ( rdf:type ) ;
+            sh:property [
+                            sh:path (won:hasBoundingBox won:hasSouthEastCorner);
+                            sh:class s:GeoCoordinates ;
+                            sh:minCount 0;
+                        ] ;
+            sh:property [
+                            sh:path (won:hasBoundingBox won:hasNorthWestCorner);
+                            sh:class s:GeoCoordinates ;
+                            sh:minCount 1;
+                        ] ;
+            sh:targetClass       s:Place .
+
+    <http://example.org/2/GeoCoordinateShape>
+        a sh:NodeShape;
+        sh:targetClass s:GeoCoordinates ;
+        sh:property [
+            sh:path s:latitude ;
+            sh:minCount 1 ;
+            sh:maxCount 1 ;
+        ] ;
+        sh:property [
+            sh:path s:longitude ;
+            sh:minCount 1 ;
+            sh:maxCount 1 ;
+        ] ;
+        sh:ignoredProperties ( rdf:type ) ;
+        sh:closed true .
+}
