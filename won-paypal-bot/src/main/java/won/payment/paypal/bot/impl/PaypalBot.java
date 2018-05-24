@@ -46,7 +46,7 @@ public class PaypalBot extends FactoryBot {
 				new ActionOnEventListener(ctx, "FactoryHintEvent", new CreateFactoryOfferAction(ctx, openBridges)));
 
 		// Broker for Merchant and Buyer Messages
-		EventBotAction merchantAction = new MerchantMessageReceiverAction(ctx);
+		EventBotAction merchantAction = new MerchantMessageReceiverAction(ctx, openBridges);
 		EventBotAction buyerAction = new BuyerMessageReceiverAction(ctx, openBridges);
 		EventListener broker = new ActionOnEventListener(ctx, new MessageBrokerAction(ctx, openBridges, 
 				merchantAction, buyerAction));

@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.util;
+package won.payment.paypal.bot.scheduler;
 
 import java.net.URI;
 import java.util.LinkedList;
@@ -10,13 +10,13 @@ import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.payment.paypal.service.impl.PaypalPaymentStatus;
 
-public class PaymentStatusCheckSchedule implements Runnable {
+public class PaypalPaymentStatusCheckSchedule implements Runnable {
 
 	private PaypalPaymentService paypalService;
 	private EventListenerContext ctx;
 	private Map<URI, PaymentBridge> openBridges;
 	
-	public PaymentStatusCheckSchedule(EventListenerContext ctx, Map<URI, PaymentBridge> openBridges) {
+	public PaypalPaymentStatusCheckSchedule(EventListenerContext ctx, Map<URI, PaymentBridge> openBridges) {
 		this.ctx = ctx;
 		this.openBridges = openBridges;
 	}

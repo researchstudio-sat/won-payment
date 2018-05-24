@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.util;
+package won.payment.paypal.bot.validator;
 
 import java.util.regex.Pattern;
 

@@ -7,7 +7,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -25,14 +30,15 @@ import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.EventCrawler;
-import won.payment.paypal.bot.util.PaymentModelValidator;
 import won.payment.paypal.bot.util.WonPaymentRdfUtils;
+import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.agreement.ConversationMessage;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
 import won.protocol.util.WonConversationUtils;
 import won.protocol.util.WonRdfUtils;
+import won.protocol.vocabulary.WONAGR;
 import won.protocol.vocabulary.WONPAY;
 
 public class MerchantMessageReceiverAction extends BaseEventBotAction {
@@ -66,7 +72,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			WonMessage msg = ((MessageEvent) messageEvent).getWonMessage();
 
 			if (WonPaymentRdfUtils.isAcceptMessage(msg)) {
-				handleAccept(con, bus);
+				handleAccept(msg, con, bus);
 			} else {
 				handleMessage(msg, con, bus);
 			}
@@ -102,7 +108,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 		PaymentStatus status = openPayments.get(con.getNeedURI()).getStatus();
 		String msg = WonRdfUtils.MessageUtils.getTextMessage(wonMsg).trim();
 
-		if (status == PaymentStatus.UNPUBLISHED) {
+		if (status == PaymentStatus.UNPUBLISHED || status == PaymentStatus.DENIED) {
 			if ("help".equals(msg)) {
 				printHelp(con);
 			} else if ("payment validate".equals(msg)) {
@@ -131,12 +137,12 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 
 	}
 
-	private void handleAccept(Connection con, EventBus bus) {
+	private void handleAccept(WonMessage msg, Connection con, EventBus bus) {
 
 		PaymentStatus status = openPayments.get(con.getNeedURI()).getStatus();
 
 		if (status == PaymentStatus.UNPUBLISHED || status == PaymentStatus.DENIED) {
-			// Check if the accept was a payment
+			// TODO: Check if the acceptMessage was a payment
 			Resource payment = EventCrawler.getLastPaymentEvent(con, getEventListenerContext());
 			if (payment != null) {
 				generate(payment, con, bus);
@@ -232,6 +238,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 				+ payment.getProperty(WONPAY.HAS_SECRET).getObject().asLiteral().getString() + "  \n\n"
 				+ "Type 'accept' or 'denie'.";
 		try {
+			openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.PUBLISHED);
 			bus.publish(new ConnectCommandEvent(con.getNeedURI(), new URI(needUri), msg));
 			makeTextMsg("Proposed payment. Waiting for counterpart need to accept ...", con);
 		} catch (URISyntaxException e) {
