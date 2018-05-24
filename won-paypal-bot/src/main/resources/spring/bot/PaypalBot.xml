@@ -51,4 +51,14 @@
             <bean class="won.bot.framework.component.needproducer.impl.TrigFileNeedProducer"/>
         </property>
     </bean>
+    
+    <!-- 
+    <bean id="paypalconfig" class="won.payment.paypal.service.util.Config">
+        <property name="mode" value="${paypal.api.mode}" />
+        <property name="username" value="${paypal.api.acct1.UserName}" />
+        <property name="password" value="${paypal.api.acct1.Password}" />
+        <property name="signature" value="${paypal.api.acct1.Signature}" />
+        <property name="appId" value="${paypal.api.acct1.AppId}" />
+    </bean>
+     -->
 </beans>

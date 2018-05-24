@@ -2,6 +2,7 @@ package won.payment.paypal.bot.action;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.Dataset;
@@ -20,6 +21,7 @@ import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandEvent
 import won.bot.framework.eventbot.event.impl.factory.FactoryHintEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.FailureResponseEvent;
 import won.bot.framework.eventbot.listener.EventListener;
+import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.util.ResourceManager;
 import won.protocol.exception.WonMessageBuilderException;
 import won.protocol.message.WonMessage;
@@ -45,13 +47,16 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
     		+ "So you want to receive some money from an other poor soul..?";
     
     private static final String goalString;
+    
+    private Map<URI, PaymentBridge> openBridges;
 
     static {
         goalString = ResourceManager.getResourceAsString("/temp/goals_withoutmax.trig");
     }
 	
-	public CreateFactoryOfferAction(EventListenerContext eventListenerContext, URI... facets) {
+	public CreateFactoryOfferAction(EventListenerContext eventListenerContext, Map<URI, PaymentBridge> openBridges, URI... facets) {
         super(eventListenerContext, (eventListenerContext.getBotContextWrapper()).getNeedCreateListName(), false, true, facets);
+        this.openBridges = openBridges;
     }
 	
 	@Override
@@ -79,6 +84,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
             logger.debug("factoryoffer creation successful, new need URI is {}", factoryOfferURI);
             //publish connect between the specific offer and the requester need
             ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryNeedURIOfferRelation(factoryOfferURI, factoryHintEvent.getFactoryNeedURI());
+            openBridges.put(factoryOfferURI, new PaymentBridge());
             bus.publish(new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG));
         };
 

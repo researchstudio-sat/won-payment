@@ -1,8 +1,9 @@
 package won.payment.paypal.service.util;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
 
 import com.paypal.svcs.services.AdaptivePaymentsService;
 import com.paypal.svcs.types.common.DetailLevelCode;
@@ -11,34 +12,54 @@ import com.paypal.svcs.types.common.RequestEnvelope;
 public final class Config {
 
 	private static AdaptivePaymentsService aps = null;
-	
+
+	@Value("${paypal.api.mode}")
+	private String mode;
+	@Value("${paypal.api.acct1.UserName}")
+	private String username;
+	@Value("${paypal.api.acct1.Password}")
+	private String password;
+	@Value("${paypal.api.acct1.Signature}")
+	private String signature;
+	@Value("${paypal.api.acct1.AppId}")
+	private String appId;
+
+	private Config() {
+	}
+
 	public static final AdaptivePaymentsService getAPS() {
-		//AdaptivePaymentsService aps = new AdaptivePaymentsService(Config.getAccountConfig());
-		//return aps;
-		
+		// AdaptivePaymentsService aps = new
+		// AdaptivePaymentsService(Config.getAccountConfig());
+		// return aps;
+
 		if (aps != null) {
 			return aps;
 		}
-		
-		try {
-			aps = new AdaptivePaymentsService(Config.class.getClassLoader().getResourceAsStream("payment/paypal.properties"));
-			return aps;
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+
+		Config config = new Config();
+		aps = new AdaptivePaymentsService(config.getConfig());
+		return aps;
+
 	}
-	
+
 	public static final RequestEnvelope getEnvelope() {
 		RequestEnvelope envelope = new RequestEnvelope("en_US");
 		envelope.setDetailLevel(DetailLevelCode.RETURNALL);
 		return envelope;
 	}
-	
-	public static final Map<String, String> getAccountConfig() {
+
+	public final Map<String, String> getConfig() {
 		Map<String, String> configMap = new HashMap<String, String>();
-		configMap.putAll(getConfig());
 
 		// Account Credential
+//		configMap.put("mode", mode);
+//		configMap.put("acct1.UserName", username);
+//		configMap.put("acct1.Password", password);
+//		configMap.put("acct1.Signature", signature);
+//		configMap.put("acct1.AppId", appId);
+		
+		// TODO: Change to config file properties
+		configMap.put("mode", "sandbox");
 		configMap.put("acct1.UserName", "test_api1.won.org");
 		configMap.put("acct1.Password", "RY9LWMA5CYA8GF5V");
 		configMap.put("acct1.Signature", "AovEzlPCsQMDpmPF8wyyNnan-Or2ACAcja7JlneaFv2yA2.SHCHe18ci");
@@ -53,18 +74,5 @@ public final class Config {
 
 		return configMap;
 	}
-	
-	public static final Map<String,String> getConfig(){
-		Map<String,String> configMap = new HashMap<String,String>();
-		
-		// Endpoints are varied depending on whether sandbox OR live is chosen for mode
-		configMap.put("mode", "sandbox");
-		
-		// These values are defaulted in SDK. If you want to override default values, uncomment it and add your value.
-		// configMap.put("http.ConnectionTimeOut", "5000");
-		// configMap.put("http.Retry", "2");
-		// configMap.put("http.ReadTimeOut", "30000");
-		// configMap.put("http.MaxConnection", "100");
-		return configMap;
-	}
+
 }

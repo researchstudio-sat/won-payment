@@ -25,6 +25,9 @@ public class WONPAY {
 	
 	public static Property HAS_PAYPAL_TX_KEY = m.createProperty(BASE_URI + "hasPaypalTxKey");
 	
+	public static Property HAS_SECRET = m.createProperty(BASE_URI + "hasSecret");
+	public static Property HAS_NEED_COUNTERPART = m.createProperty(BASE_URI + "hasNeedCounterpart");
+	
 	
 	// PaymentStates
 	public static final Resource PAYMENT_STATE_CANCELED = m.createResource(MODEL_URI + "Canceled");
@@ -39,6 +42,10 @@ public class WONPAY {
 	// PaymentFeePayer
 	public static final Resource FEE_PAYER_SENDER = m.createResource(MODEL_URI + "Sender");
 	public static final Resource FEE_PAYER_RECEIVER = m.createResource(MODEL_URI + "Receiver");
+	
+	// Channels
+	public static final Resource BOT_CHANNEL_MERCHANT = m.createResource(MODEL_URI + "MerchantChannel");
+	public static final Resource BOT_CHANNEL_BUYER = m.createResource(MODEL_URI + "BuyerChannel");
 	
 	/**
 	 * RDFS

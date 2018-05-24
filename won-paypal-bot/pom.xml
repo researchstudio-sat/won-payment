@@ -67,5 +67,6 @@
             <artifactId>adaptivepaymentssdk</artifactId>
             <version>2.7.117</version>
         </dependency>
+        
 	</dependencies>
 </project>
