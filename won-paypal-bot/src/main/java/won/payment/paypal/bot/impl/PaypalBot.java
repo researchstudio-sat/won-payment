@@ -3,6 +3,8 @@ package won.payment.paypal.bot.impl;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import won.bot.framework.bot.base.FactoryBot;
 import won.bot.framework.eventbot.EventListenerContext;
@@ -24,12 +26,16 @@ import won.payment.paypal.bot.action.ConnectionDenyerAction;
 import won.payment.paypal.bot.action.CreateFactoryOfferAction;
 import won.payment.paypal.bot.action.MessageBrokerAction;
 import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
 import won.payment.paypal.bot.action.MerchantMessageReceiverAction;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 
 public class PaypalBot extends FactoryBot {
 
+	private static final Long SCHEDULER_INTERVAL = 60 * 1000L;
+	
 	private Map<URI, PaymentBridge> openBridges = new HashMap<>();
+	private Timer paymentCheckTimer;
 	
 	@Override
 	protected void initializeFactoryEventListeners() {
@@ -57,6 +63,12 @@ public class PaypalBot extends FactoryBot {
 		// Need then send a deny message and close the connection
 		bus.subscribe(ConnectFromOtherNeedEvent.class, 
 				new ActionOnEventListener(ctx, new ConnectionDenyerAction(ctx)));
+		
+		
+		// Start PaypalPaymentStatusCheckScheduler
+		PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(getEventListenerContext(), openBridges);
+		paymentCheckTimer = new Timer(true);
+		paymentCheckTimer.scheduleAtFixedRate(statusScheduler, SCHEDULER_INTERVAL, SCHEDULER_INTERVAL);
 	}
 
 }

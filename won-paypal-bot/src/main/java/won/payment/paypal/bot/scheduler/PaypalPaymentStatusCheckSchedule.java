@@ -4,15 +4,25 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TimerTask;
+
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 
 import won.bot.framework.eventbot.EventListenerContext;
+import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentStatus;
+import won.payment.paypal.bot.util.EventCrawler;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.payment.paypal.service.impl.PaypalPaymentStatus;
+import won.protocol.model.Connection;
+import won.protocol.util.WonRdfUtils;
+import won.protocol.vocabulary.WONPAY;
 
-public class PaypalPaymentStatusCheckSchedule implements Runnable {
+public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 
-	private PaypalPaymentService paypalService;
+	private PaypalPaymentService paypalService = new PaypalPaymentService();
 	private EventListenerContext ctx;
 	private Map<URI, PaymentBridge> openBridges;
 	
@@ -23,43 +33,47 @@ public class PaypalPaymentStatusCheckSchedule implements Runnable {
 	
 	@Override
 	public void run() {
-		
-		List<URI> completedPayments = new LinkedList<>(); 
-		
+				
 		for (PaymentBridge bridge: openBridges.values()) {
-			if (bridge.getMerchantConnection() != null &&
-					bridge.getBuyerConnection() != null) {
+			if (bridge.getStatus() == PaymentStatus.CREATED) {
 				String payKey = lookForOpenPayment(bridge);
 				if (payKey != null) {
-					if (checkPayment(payKey)) {
-						completedPayments.add(bridge.getMerchantConnection().getNeedURI());
-					}
+					checkPayment(payKey, bridge);
 				}
 			}
 		}
-		
-		// Remove completed payments
-		for (URI uri : completedPayments) {
-			openBridges.remove(uri);
-		}
-		
+				
+	}
+	
+	private void makeTextMsg(String msg, Connection con) {
+		Model model = WonRdfUtils.MessageUtils.textMessage(msg);
+		ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}
 	
 	private String lookForOpenPayment(PaymentBridge bridge) {
-		
-		return null;
+		Resource baseRes = EventCrawler.getLatestPaymentPayKey(bridge.getBuyerConnection(), ctx);
+		if (baseRes == null) {
+			return null;
+		}
+		String payKey = baseRes.getProperty(WONPAY.HAS_PAYPAL_TX_KEY).getObject().asLiteral().getString();
+		return payKey;
 	}
 	
-	private boolean checkPayment(String payKey) {
+	private void checkPayment(String payKey, PaymentBridge bridge) {
 		try {
 			PaypalPaymentStatus status = paypalService.validate(payKey);
-			if (status == PaypalPaymentStatus.COMPLETED) {
-				return true;
-			}
-		} catch (Exception e) {
 
+			if (status == PaypalPaymentStatus.COMPLETED) {
+				bridge.setStatus(PaymentStatus.COMPLETED);
+				makeTextMsg("The payment is completed! You can now close the connection.", bridge.getBuyerConnection());
+				makeTextMsg("The payment is completed! You can now close the connection.", bridge.getMerchantConnection());
+			} else if (status == PaypalPaymentStatus.EXPIRED) {
+				// TODO: Set payment as expired
+			}
+
+		} catch (Exception e) {
+			// LOG IT
 		}
-		return false;
 	}
 
 }
