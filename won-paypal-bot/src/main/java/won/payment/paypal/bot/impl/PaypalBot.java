@@ -16,13 +16,15 @@ import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAccep
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalSentEvent;
 import won.bot.framework.eventbot.event.impl.factory.FactoryHintEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
 import won.payment.paypal.bot.action.BuyerMessageReceiverAction;
-import won.payment.paypal.bot.action.ConnectionDenyerAction;
+import won.payment.paypal.bot.action.ConnectionCloseAction;
+import won.payment.paypal.bot.action.ConnectionDenierAction;
 import won.payment.paypal.bot.action.CreateFactoryOfferAction;
 import won.payment.paypal.bot.action.MessageBrokerAction;
 import won.payment.paypal.bot.model.PaymentBridge;
@@ -39,7 +41,7 @@ public class PaypalBot extends FactoryBot {
 	
 	@Override
 	protected void initializeFactoryEventListeners() {
-		
+				
 		EventBus bus = getEventBus();
 		EventListenerContext ctx = getEventListenerContext();
 
@@ -59,10 +61,13 @@ public class PaypalBot extends FactoryBot {
 		bus.subscribe(MessageFromOtherNeedEvent.class, broker);
 		bus.subscribe(OpenFromOtherNeedEvent.class, broker);
 		
+		// Client closes the connection
+		bus.subscribe(CloseFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionCloseAction(ctx, openBridges)));
+		
 		// If someone wants to connect to a instance
 		// Need then send a deny message and close the connection
 		bus.subscribe(ConnectFromOtherNeedEvent.class, 
-				new ActionOnEventListener(ctx, new ConnectionDenyerAction(ctx)));
+				new ActionOnEventListener(ctx, new ConnectionDenierAction(ctx)));
 		
 		
 		// Start PaypalPaymentStatusCheckScheduler

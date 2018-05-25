@@ -13,19 +13,11 @@ public final class Config {
 
 	private static AdaptivePaymentsService aps = null;
 
-	@Value("${paypal.api.mode}")
-	private String mode;
-	@Value("${paypal.api.acct1.UserName}")
-	private String username;
-	@Value("${paypal.api.acct1.Password}")
-	private String password;
-	@Value("${paypal.api.acct1.Signature}")
-	private String signature;
-	@Value("${paypal.api.acct1.AppId}")
-	private String appId;
-
-	private Config() {
-	}
+	private static final String MODE = "paypal.api.mode";
+	private static final String USERNAME = "paypal.api.acct1.UserName";
+	private static final String PASSWORD = "paypal.api.acct1.Password";
+	private static final String SIGNATURE = "paypal.api.acct1.Signature";
+	private static final String APPID = "paypal.api.acct1.AppId";
 
 	public static final AdaptivePaymentsService getAPS() {
 		// AdaptivePaymentsService aps = new
@@ -36,8 +28,7 @@ public final class Config {
 			return aps;
 		}
 
-		Config config = new Config();
-		aps = new AdaptivePaymentsService(config.getConfig());
+		aps = new AdaptivePaymentsService(getConfig());
 		return aps;
 
 	}
@@ -48,17 +39,27 @@ public final class Config {
 		return envelope;
 	}
 
-	public final Map<String, String> getConfig() {
+	public static final Map<String, String> getConfig() {
 		Map<String, String> configMap = new HashMap<String, String>();
-
+/*
 		// Account Credential
-//		configMap.put("mode", mode);
-//		configMap.put("acct1.UserName", username);
-//		configMap.put("acct1.Password", password);
-//		configMap.put("acct1.Signature", signature);
-//		configMap.put("acct1.AppId", appId);
+		if (System.getProperty(MODE) != null) {
+			configMap.put("mode", System.getProperty(MODE));
+		}
+		if (System.getProperty(USERNAME) != null) {
+			configMap.put("acct1.UserName", System.getProperty(USERNAME));
+		}
+		if (System.getProperty(PASSWORD) != null) {
+			configMap.put("acct1.Password", System.getProperty(PASSWORD));
+		}
+		if (System.getProperty(SIGNATURE) != null) {
+			configMap.put("acct1.Signature", System.getProperty(SIGNATURE));
+		}
+		if (System.getProperty(APPID) != null) {
+			configMap.put("acct1.AppId", System.getProperty(APPID));
+		}*/
 		
-		// TODO: Change to config file properties
+		// Change to config file properties
 		configMap.put("mode", "sandbox");
 		configMap.put("acct1.UserName", "test_api1.won.org");
 		configMap.put("acct1.Password", "RY9LWMA5CYA8GF5V");
@@ -74,5 +75,6 @@ public final class Config {
 
 		return configMap;
 	}
+	
 
 }

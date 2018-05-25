@@ -21,11 +21,11 @@ import won.protocol.util.WonRdfUtils;
  * @author Andreas
  *
  */
-public class ConnectionDenyerAction extends BaseEventBotAction {
+public class ConnectionDenierAction extends BaseEventBotAction {
 
 	private static final Long WAITING_TIME = 5000L;
 
-	public ConnectionDenyerAction(EventListenerContext eventListenerContext) {
+	public ConnectionDenierAction(EventListenerContext eventListenerContext) {
 		super(eventListenerContext);
 	}
 
