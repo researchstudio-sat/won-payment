@@ -8,6 +8,8 @@ import java.util.TimerTask;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
@@ -22,6 +24,8 @@ import won.protocol.vocabulary.WONPAY;
 
 public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 
+	private static final Logger logger = LoggerFactory.getLogger(PaypalPaymentStatusCheckSchedule.class);
+	
 	private PaypalPaymentService paypalService = new PaypalPaymentService();
 	private EventListenerContext ctx;
 	private Map<URI, PaymentBridge> openBridges;
@@ -35,7 +39,7 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 	public void run() {
 				
 		for (PaymentBridge bridge: openBridges.values()) {
-			if (bridge.getStatus() == PaymentStatus.CREATED) {
+			if (bridge.getStatus() == PaymentStatus.GENERATED) {
 				String payKey = lookForOpenPayment(bridge);
 				if (payKey != null) {
 					checkPayment(payKey, bridge);
@@ -46,6 +50,9 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 	}
 	
 	private void makeTextMsg(String msg, Connection con) {
+		if (con == null) {
+			return;
+		}
 		Model model = WonRdfUtils.MessageUtils.textMessage(msg);
 		ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}
@@ -68,11 +75,13 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 				makeTextMsg("The payment is completed! You can now close the connection.", bridge.getBuyerConnection());
 				makeTextMsg("The payment is completed! You can now close the connection.", bridge.getMerchantConnection());
 			} else if (status == PaypalPaymentStatus.EXPIRED) {
-				// TODO: Set payment as expired
+				makeTextMsg("The payment is expired! Type 'accept' to generate a new one.", bridge.getBuyerConnection());
+				logger.info("Paypal Payment expired with payKey={}", payKey);
+				bridge.setStatus(PaymentStatus.PUBLISHED);
 			}
 
 		} catch (Exception e) {
-			// LOG IT
+			logger.warn("Paypal payment check failed.", e);
 		}
 	}
 

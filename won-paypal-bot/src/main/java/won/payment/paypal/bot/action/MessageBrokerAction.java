@@ -13,6 +13,7 @@ import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.MessageEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
 
@@ -44,22 +45,29 @@ public class MessageBrokerAction extends BaseEventBotAction {
 				PaymentBridge bridge = openBridges.get(needUri);
 				if (bridge.getMerchantConnection() == null) {
 					bridge.setMerchantConnection(con);
-				} else if (!con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
+					bridge.setStatus(PaymentStatus.UNPUBLISHED);
+					logger.debug("Merchant has connected with connection {} in need {}", con.getConnectionURI(),
+							con.getNeedURI());
+				} else if (!con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())
+						&& bridge.getBuyerConnection() == null) {
 					bridge.setBuyerConnection(con);
+					logger.debug("Buyer has connected with connection {} in need {}", con.getConnectionURI(),
+							con.getNeedURI());
 				}
 
 				// Break down
-				if (bridge.getMerchantConnection() != null &&
-						con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
+				if (bridge.getMerchantConnection() != null
+						&& con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
 					merchantAction.getActionTask(event, executingListener).run();
-				} else if (bridge.getBuyerConnection() != null &&
-						con.getConnectionURI().equals(bridge.getBuyerConnection().getConnectionURI())) {
+				} else if (bridge.getBuyerConnection() != null
+						&& con.getConnectionURI().equals(bridge.getBuyerConnection().getConnectionURI())) {
 					buyerAction.getActionTask(event, executingListener).run();
 				} else {
-					// Error !?
+					logger.warn("A not expected Connection {} for the need {}", con.getConnectionURI(),
+							con.getNeedURI());
 				}
 			} else {
-				// Error !?
+				logger.warn("Could not find a PaymentBridge for the need {}", con.getNeedURI());
 			}
 
 		}

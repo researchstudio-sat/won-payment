@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.paypal.exception.ClientActionRequiredException;
 import com.paypal.exception.HttpErrorException;
 import com.paypal.exception.InvalidCredentialException;
@@ -25,6 +28,8 @@ import won.payment.paypal.service.util.Config;
 
 public class PaypalPaymentService {
 
+	private static final Logger logger = LoggerFactory.getLogger(PaypalPaymentService.class);
+	
 	private interface RequestSuccess {
 		void success(Object response);
 	}
@@ -175,6 +180,7 @@ public class PaypalPaymentService {
 		} catch (SSLConfigurationException | InvalidCredentialException | HttpErrorException
 				| InvalidResponseDataException | ClientActionRequiredException | MissingCredentialException
 				| OAuthException | IOException | InterruptedException e) {
+			logger.warn("Could not execute Paypal Request", e);
 			throw new Exception(e);
 		}
 	}

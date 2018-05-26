@@ -78,7 +78,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 			makeTextMsg("The payment will be generated. Please be patient.", con);
 		} else if (status == PaymentStatus.DENIED) {
 			// Can not exists, because connection got closed before
-		} else if (status == PaymentStatus.CREATED) {
+		} else if (status == PaymentStatus.GENERATED) {
 			if (msg.equals("check")) {
 				check(con, bus);
 			} else {
@@ -88,6 +88,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 			makeTextMsg("The payment is completed. You can now close the connection.", con);
 		} else {
 			makeTextMsg("The payment has an unexpected status: " + status.name() + ". Contact the merchant", con);
+			logger.warn("Unexpected Payment Status={}", status.name());
 		}
 
 	}
@@ -113,13 +114,15 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 					"Payment successfuly created. PayKey: " + payKey
 							+ " \n Waiting for counterpart to complete payment ...");
 
-			openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.CREATED);
+			openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.GENERATED);
 			
 			bus.publish(new ConnectionMessageCommandEvent(con, buyerResponse));
 			bus.publish(new ConnectionMessageCommandEvent(merchantCon, merchantResponse));
+			logger.info("Paypal Payment generated with payKey={}", payKey);
 		} catch (Exception e) {
 			makeTextMsg("Something went wrong. Try again or contact your merchant: " + e.getMessage(), con);
 			makeTextMsg("Something went wrong: " + e.getMessage(), merchantCon);
+			logger.warn("Paypal payment could not be generated.", e);
 		}
 	}
 
@@ -150,15 +153,18 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 				openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.COMPLETED);
 				makeTextMsg("The payment is completed! You can now close the connection.", con);
 				makeTextMsg("The payment is completed! You can now close the connection.", merchantCon);
+				logger.info("Paypal payment completed with payKey={}", payKey);
 			} else if (status == PaypalPaymentStatus.EXPIRED) {
 				makeTextMsg("The payment is expired! Type 'accept' to generate a new one.", con);
-				// TODO: Set payment as expired
+				logger.info("Paypal Payment expired with payKey={}", payKey);
+				openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.PUBLISHED);
 			} else {
 				makeTextMsg("The payment is not completed yet. Type 'check' after you completed the payment.", con);
 			}
 
 		} catch (Exception e) {
 			makeTextMsg("Something went wrong: " + e.getMessage(), con);
+			logger.warn("Paypal payment check failed.", e);
 		}
 	}
 

@@ -1,18 +1,22 @@
 package won.payment.paypal.bot.action;
 
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_AMOUNT;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_COUNTERPART;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_CURRENCY;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_FEE_PAYER;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_INVOICE_DETAILS;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_INVOICE_NUMBER;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_RECEIVER;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_SECRET;
+import static won.payment.paypal.bot.util.WonPaymentRdfUtils.PAY_TAX;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -21,9 +25,6 @@ import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.ConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.MessageEvent;
-import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAcceptedEvent;
-import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
-import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalSentEvent;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandEvent;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.listener.EventListener;
@@ -32,26 +33,12 @@ import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.EventCrawler;
 import won.payment.paypal.bot.util.WonPaymentRdfUtils;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
-import won.protocol.agreement.AgreementProtocolState;
-import won.protocol.agreement.ConversationMessage;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
-import won.protocol.util.WonConversationUtils;
 import won.protocol.util.WonRdfUtils;
-import won.protocol.vocabulary.WONAGR;
 import won.protocol.vocabulary.WONPAY;
 
 public class MerchantMessageReceiverAction extends BaseEventBotAction {
-
-	public static final String PAY_AMOUNT = "pay_amount";
-	public static final String PAY_CURRENCY = "pay_currency";
-	public static final String PAY_RECEIVER = "pay_receiver";
-	public static final String PAY_TAX = "pay_tax";
-	public static final String PAY_INVOICE_NUMBER = "pay_invoicenumber";
-	public static final String PAY_INVOICE_DETAILS = "pay_invoicedetails";
-	public static final String PAY_FEE_PAYER = "pay_feepayer";
-	public static final String PAY_SECRET = "pay_secret";
-	public static final String PAY_COUNTERPART = "pay_counterpart";
 
 	private Map<URI, PaymentBridge> openPayments;
 
@@ -127,12 +114,13 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			makeTextMsg("The payment got accepted. It will be created now.", con);
 		} else if (status == PaymentStatus.DENIED) {
 			// Should not exists ?!?
-		} else if (status == PaymentStatus.CREATED) {
+		} else if (status == PaymentStatus.GENERATED) {
 			makeTextMsg("The payment was created. You have to wait for the buyer to complete it.", con);
 		} else if (status == PaymentStatus.COMPLETED) {
 			makeTextMsg("The payment was successfully completed. You can now close the connection.", con);
 		} else {
 			makeTextMsg("The payment has an unexpected status: " + status.name() + ". Try again", con);
+			logger.warn("Unexpected Payment Status={}", status.name());
 		}
 
 	}
@@ -203,6 +191,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 		} else if (key.equals(PAY_TAX)) {
 
 		} else {
+			logger.debug("Unvalid payment argument by merchant: {}", key);
 			throw new Exception("Not a valid payment argument");
 		}
 	}
@@ -218,6 +207,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			isValid = true;
 		} catch (Exception e) {
 			makeTextMsg(e.getMessage(), con);
+			logger.debug("Validation error", e);
 		}
 
 		if (isValid) {
@@ -242,7 +232,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			bus.publish(new ConnectCommandEvent(con.getNeedURI(), new URI(needUri), msg));
 			makeTextMsg("Proposed payment. Waiting for counterpart need to accept ...", con);
 		} catch (URISyntaxException e) {
-			e.printStackTrace();
+			logger.warn("Could not create URI", e);
 		}
 	}
 

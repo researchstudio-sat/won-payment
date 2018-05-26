@@ -7,20 +7,26 @@ import java.io.StringWriter;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.shared.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResourceManager {
 
+	private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
+	
 	public static String getResourceAsString(String path) {
 		InputStream is  = ResourceManager.class.getResourceAsStream(path);
         StringWriter writer = new StringWriter();
         try {
             IOUtils.copy(is, writer, Charsets.UTF_8);
         } catch (IOException e) {
+        	logger.error("Could not read Resource", e);
             throw new NotFoundException("failed to load resource: " + path);
         } finally {
             try {
                 is.close();
             } catch (Exception e) {
+            	logger.error("Could not close Resource", e);
             }
         }
         return writer.toString();

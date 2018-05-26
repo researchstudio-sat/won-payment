@@ -6,7 +6,7 @@ public class PaymentBridge {
 
 	private Connection merchantConnection;
 	private Connection buyerConnection;
-	private PaymentStatus status = PaymentStatus.UNPUBLISHED;
+	private PaymentStatus status = PaymentStatus.NOWHERE;
 	
 	public Connection getMerchantConnection() {
 		return merchantConnection;

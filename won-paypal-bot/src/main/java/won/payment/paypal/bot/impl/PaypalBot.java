@@ -29,8 +29,8 @@ import won.payment.paypal.bot.action.CreateFactoryOfferAction;
 import won.payment.paypal.bot.action.MessageBrokerAction;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
-import won.payment.paypal.bot.action.MerchantMessageReceiverAction;
 import won.payment.paypal.service.impl.PaypalPaymentService;
+import won.payment.paypal.bot.action.MerchantMessageReceiverAction;
 
 public class PaypalBot extends FactoryBot {
 
