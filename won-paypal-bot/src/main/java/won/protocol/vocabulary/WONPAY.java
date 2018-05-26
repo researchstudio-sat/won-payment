@@ -5,13 +5,19 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
+/**
+ * RDF Resources for payment statements.
+ * 
+ * @author schokobaer
+ *
+ */
 public class WONPAY {
 
 	public static final String BASE_URI = "http://purl.org/webofneeds/payment#";
 	public static final String MODEL_URI = "http://purl.org/webofneeds/paymentmodel#";
-	
+
 	private static Model m = ModelFactory.createDefaultModel();
-	
+
 	// Propertys
 	public static Property HAS_AMOUNT = m.createProperty(BASE_URI + "hasAmount");
 	public static Property HAS_CURRENCY = m.createProperty(BASE_URI + "hasCurrency");
@@ -22,18 +28,17 @@ public class WONPAY {
 	public static Property HAS_INVOICE_DETAILS = m.createProperty(BASE_URI + "hasInvoiceDetails");
 	public static Property HAS_PAYMENT_STATE = m.createProperty(BASE_URI + "hasState");
 	public static Property REFERS_TO = m.createProperty(BASE_URI + "refersTo");
-	
+
 	public static Property HAS_PAYPAL_TX_KEY = m.createProperty(BASE_URI + "hasPaypalTxKey");
-	
+
 	public static Property HAS_SECRET = m.createProperty(BASE_URI + "hasSecret");
 	public static Property HAS_NEED_COUNTERPART = m.createProperty(BASE_URI + "hasNeedCounterpart");
-	
-	
+
 	// PaymentStates
 	public static final Resource PAYMENT_STATE_CANCELED = m.createResource(MODEL_URI + "Canceled");
 	public static final Resource PAYMENT_STATE_WAITING = m.createResource(MODEL_URI + "Waiting");
 	public static final Resource PAYMENT_STATE_COMPLETE = m.createResource(MODEL_URI + "Complete");
-	
+
 	// Payments
 	public static final Resource PAYMENT = m.createResource(MODEL_URI + "Payment");
 	public static final Resource PAYPAL_PAYMENT = m.createResource(MODEL_URI + "PaypalPayment");
@@ -42,17 +47,15 @@ public class WONPAY {
 	// PaymentFeePayer
 	public static final Resource FEE_PAYER_SENDER = m.createResource(MODEL_URI + "Sender");
 	public static final Resource FEE_PAYER_RECEIVER = m.createResource(MODEL_URI + "Receiver");
-	
+
 	// Channels
 	public static final Resource BOT_CHANNEL_MERCHANT = m.createResource(MODEL_URI + "MerchantChannel");
 	public static final Resource BOT_CHANNEL_BUYER = m.createResource(MODEL_URI + "BuyerChannel");
-	
+
 	/**
 	 * RDFS
 	 * 
-	 * Payment a class
-	 * PaypalPayment subClassOf Payment
-	 * Cash subClassOf Payment
+	 * Payment a class PaypalPayment subClassOf Payment Cash subClassOf Payment
 	 * 
 	 * 
 	 * 

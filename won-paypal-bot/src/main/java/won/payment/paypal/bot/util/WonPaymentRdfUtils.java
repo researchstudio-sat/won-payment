@@ -16,6 +16,12 @@ import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONAGR;
 import won.protocol.vocabulary.WONPAY;
 
+/**
+ * Rdf Utils for Payment Messages.
+ * 
+ * @author schokobaer
+ *
+ */
 public class WonPaymentRdfUtils {
 
 	public static final String PAY_AMOUNT = "pay_amount";
@@ -51,55 +57,66 @@ public class WonPaymentRdfUtils {
 		Model model = createModelWithBaseResource();
 		Resource msgResource = createResource(model);
 
-		String message = "";
+		String strAmount = "";
+		String strCurrency = "";
+		String strReceiver = "";
+		String strSecret = "";
+		String strCounterpart = "";
+		String strFee = "Fee-Payer: SENDER \n";
+		String strTax = "";
+		String strInvoiceNumber = "";
+		String strInvoiceDetails = "";
 
+		// Defaults
 		msgResource.addProperty(RDF.type, WONPAY.PAYPAL_PAYMENT);
-		
+		msgResource.addProperty(WONPAY.HAS_FEE_PAYER, WONPAY.FEE_PAYER_SENDER);
+
 		// Amount
 		if (paymentDetails.containsKey(PAY_AMOUNT)) {
 			Double amount = Double.parseDouble(paymentDetails.get(PAY_AMOUNT));
 			msgResource.addLiteral(WONPAY.HAS_AMOUNT, amount);
-			message += "Amount: " + amount.toString() + "\n";
+			strAmount = "Amount: " + amount.toString() + " \n";
 		}
 
 		// Currency
 		if (paymentDetails.containsKey(PAY_CURRENCY)) {
 			msgResource.addProperty(WONPAY.HAS_CURRENCY, paymentDetails.get(PAY_CURRENCY));
-			message += "Currency: " + paymentDetails.get(PAY_CURRENCY) + "\n";
+			strCurrency = "Currency: " + paymentDetails.get(PAY_CURRENCY) + " \n";
 		}
 
 		// Receiver
 		if (paymentDetails.containsKey(PAY_RECEIVER)) {
 			msgResource.addProperty(WONPAY.HAS_RECEIVER, paymentDetails.get(PAY_RECEIVER));
-			message += "Receiver: " + paymentDetails.get(PAY_RECEIVER) + "\n";
+			strReceiver = "Receiver: " + paymentDetails.get(PAY_RECEIVER) + " \n";
 		}
 
 		// Tax
 		if (paymentDetails.containsKey(PAY_TAX)) {
+			// TODO: How to handle the tax?
 			Double tax = Double.parseDouble(paymentDetails.get(PAY_TAX).replace("€", ""));
 			msgResource.addLiteral(WONPAY.HAS_TAX, tax);
-			message += "Tax: € " + tax + "\n";
+			strTax = "Tax: € " + tax + " \n";
 		}
 
 		// Invoice Number
 		if (paymentDetails.containsKey(PAY_INVOICE_NUMBER)) {
 			msgResource.addLiteral(WONPAY.HAS_INVOICE_NUMBER, paymentDetails.get(PAY_INVOICE_NUMBER));
-			message += "Invoice Number: " + paymentDetails.get(PAY_INVOICE_NUMBER) + "\n";
+			strInvoiceNumber = "Invoice Number: " + paymentDetails.get(PAY_INVOICE_NUMBER) + " \n";
 		}
 
 		// Invoice Details
 		if (paymentDetails.containsKey(PAY_INVOICE_DETAILS)) {
 			msgResource.addLiteral(WONPAY.HAS_INVOICE_DETAILS, paymentDetails.get(PAY_INVOICE_DETAILS));
-			message += "Invoice Details: " + paymentDetails.get(PAY_INVOICE_DETAILS) + "\n";
+			strInvoiceDetails = "Invoice Details: " + paymentDetails.get(PAY_INVOICE_DETAILS) + " \n";
 		}
 
 		// Fee Payer
 		if (paymentDetails.containsKey(PAY_FEE_PAYER)) {
-			String feePayer = paymentDetails.get(PAY_FEE_PAYER).toLowerCase();
-			message += paymentDetails.get(PAY_FEE_PAYER) + "\n";
-			if ("sender".equals(feePayer)) {
+			String feePayer = paymentDetails.get(PAY_FEE_PAYER).toUpperCase();
+			strFee = "Fee-Payer: " + feePayer + " \n";
+			if ("SENDER".equals(feePayer)) {
 				msgResource.addProperty(WONPAY.HAS_FEE_PAYER, WONPAY.FEE_PAYER_SENDER);
-			} else if ("receiver".equals(feePayer)) {
+			} else if ("RECEIVER".equals(feePayer)) {
 				msgResource.addProperty(WONPAY.HAS_FEE_PAYER, WONPAY.FEE_PAYER_RECEIVER);
 			}
 		}
@@ -107,36 +124,56 @@ public class WonPaymentRdfUtils {
 		// Secret
 		if (paymentDetails.containsKey(PAY_SECRET)) {
 			msgResource.addProperty(WONPAY.HAS_SECRET, paymentDetails.get(PAY_SECRET));
-			message += "Secret: " + paymentDetails.get(PAY_SECRET) + "\n";
+			strSecret = "Secret: " + paymentDetails.get(PAY_SECRET) + " \n";
 		}
 
 		// Counterpart
 		if (paymentDetails.containsKey(PAY_COUNTERPART)) {
 			msgResource.addProperty(WONPAY.HAS_NEED_COUNTERPART, paymentDetails.get(PAY_COUNTERPART));
-			message += "Need Counterpart: " + paymentDetails.get(PAY_COUNTERPART) + "\n";
+			strCounterpart += "Need Counterpart: " + paymentDetails.get(PAY_COUNTERPART) + " \n";
 		}
 
 		// Message
+		String message = strAmount + strCurrency + strTax + strFee + strReceiver + strInvoiceNumber + strInvoiceDetails
+				+ strSecret + strCounterpart;
 		msgResource.addProperty(WON.HAS_TEXT_MESSAGE, message, "en");
 
 		return model;
 	}
 
+	/**
+	 * Generates a message with a paypal transaction key (payKey).
+	 * 
+	 * @param reference
+	 *            the refered paypal payment (outdated).
+	 * @param payKey
+	 *            The paykey of the transaction.
+	 * @param msg
+	 *            the message to send.
+	 * @return Model with all needed data.
+	 */
 	public static Model generatePaypalKeyMessage(Resource reference, String payKey, String msg) {
 		Model model = createModelWithBaseResource();
 		Resource baseRes = createResource(model);
 
-//		baseRes.addProperty(WONPAY.REFERS_TO, reference);
+		// baseRes.addProperty(WONPAY.REFERS_TO, reference);
 		baseRes.addProperty(WONPAY.HAS_PAYPAL_TX_KEY, payKey);
 		baseRes.addProperty(WON.HAS_TEXT_MESSAGE, msg);
 
 		return model;
 	}
-	
+
+	/**
+	 * Validates if the given message is a accept message.
+	 * 
+	 * @param msg
+	 *            WonMessage received from counterpart.
+	 * @return true if accept message otherwise false.
+	 */
 	public static boolean isAcceptMessage(WonMessage msg) {
-		
+
 		Model model = msg.getCompleteDataset().getUnionModel();
-		
+
 		StmtIterator iterator = model.listStatements();
 		while (iterator.hasNext()) {
 			Statement stmt = iterator.next();
@@ -145,7 +182,7 @@ public class WonPaymentRdfUtils {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 

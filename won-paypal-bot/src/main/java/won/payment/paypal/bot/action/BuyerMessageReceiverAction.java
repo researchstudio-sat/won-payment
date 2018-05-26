@@ -27,6 +27,11 @@ import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WONPAY;
 
+/**
+ * Actionhandler for received messages from the buyer.
+ * @author schokobaer
+ *
+ */
 public class BuyerMessageReceiverAction extends BaseEventBotAction {
 
 	private PaypalPaymentService paypalService = new PaypalPaymentService();
@@ -58,12 +63,20 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}
 
+	/**
+	 * Differs between payment status and checks the command sent by the buyer.
+	 * Then forwards it to the corresponding method.
+	 * 
+	 * @param wonMsg Received WonMessage.
+	 * @param con The connection where the WonMessage was received.
+	 * @param bus The bus for publishing new events.
+	 */
 	private void handleMessage(WonMessage wonMsg, Connection con, EventBus bus) {
 
 		PaymentStatus status = openPayments.get(con.getNeedURI()).getStatus();
 		String msg = WonRdfUtils.MessageUtils.getTextMessage(wonMsg).trim();
 		msg = msg != null ? msg : "";
-		
+
 		if (status == PaymentStatus.PUBLISHED) {
 			if (msg.equals("accept")) {
 				generate(con, bus);
@@ -93,6 +106,14 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 
 	}
 
+	/**
+	 * Crawls for the last accepted payment in the merchants agreement protocol.
+	 * Then creates a paypal payment and returns the execution link. The status will be
+	 * set to ACCEPTED. After the payment was generated it will be set to GENERATED.
+	 * 
+	 * @param con The Connection where the accept was received.
+	 * @param bus The event bus for publishing new events.
+	 */
 	private void generate(Connection con, EventBus bus) {
 		openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.ACCEPTED);
 		Connection merchantCon = openPayments.get(con.getNeedURI()).getMerchantConnection();
@@ -103,9 +124,13 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 		Double amount = baseRes.getProperty(WONPAY.HAS_AMOUNT).getObject().asLiteral().getDouble();
 		String currency = baseRes.getProperty(WONPAY.HAS_CURRENCY).getObject().asLiteral().getString();
 		String receiver = baseRes.getProperty(WONPAY.HAS_RECEIVER).getObject().asLiteral().getString();
+		String feePayer = baseRes.getProperty(WONPAY.HAS_FEE_PAYER).getObject().equals(WONPAY.FEE_PAYER_SENDER)
+				? "SENDER"
+				: "RECEIVER";
+		// TODO: InvoiceNumber, InvoiceDetails, Tax
 
 		try {
-			String payKey = paypalService.create(receiver, amount, currency);
+			String payKey = paypalService.create(receiver, amount, currency, feePayer);
 			String url = paypalService.getPaymentUrl(payKey);
 
 			Model buyerResponse = WonPaymentRdfUtils.generatePaypalKeyMessage(null, payKey,
@@ -115,7 +140,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 							+ " \n Waiting for counterpart to complete payment ...");
 
 			openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.GENERATED);
-			
+
 			bus.publish(new ConnectionMessageCommandEvent(con, buyerResponse));
 			bus.publish(new ConnectionMessageCommandEvent(merchantCon, merchantResponse));
 			logger.info("Paypal Payment generated with payKey={}", payKey);
@@ -126,6 +151,12 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 		}
 	}
 
+	/**
+	 * Sets the payment status to DENIED and closes the buyers connection.
+	 * 
+	 * @param con The Connection where the deny was received.
+	 * @param bus The event bus for publishing new events.
+	 */
 	private void deny(Connection con, EventBus bus) {
 		openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.DENIED);
 		Connection merchantCon = openPayments.get(con.getNeedURI()).getMerchantConnection();
@@ -134,6 +165,13 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 		bus.publish(new CloseCommandEvent(con));
 	}
 
+	/**
+	 * Crawls the buyers event for the last payKey and validates it with the Paypal-API.
+	 * On success the status will be set to COMPLETED.
+	 * 
+	 * @param con The Connection where the check was received.
+	 * @param bus The event bus for publishing new events.
+	 */
 	private void check(Connection con, EventBus bus) {
 		Connection merchantCon = openPayments.get(con.getNeedURI()).getMerchantConnection();
 		Resource baseRes = EventCrawler.getLatestPaymentPayKey(con, getEventListenerContext());

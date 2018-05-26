@@ -35,6 +35,11 @@ import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
 
+/**
+ * Creates a new need for a payment.
+ * @author schokobaer
+ *
+ */
 public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
 
 	private static final URI STUB_NEED_URI = URI.create("http://example.com/content");

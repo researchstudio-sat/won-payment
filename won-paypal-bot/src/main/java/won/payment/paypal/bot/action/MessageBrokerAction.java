@@ -6,17 +6,20 @@ import java.util.Map;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.action.EventBotAction;
-import won.bot.framework.eventbot.bus.EventBus;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.ConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
-import won.bot.framework.eventbot.event.MessageEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
-import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
 
+/**
+ * A forwarder which differs between merchant's and buyer's messages.
+ * 
+ * @author schokobaer
+ *
+ */
 public class MessageBrokerAction extends BaseEventBotAction {
 
 	private EventBotAction merchantAction;

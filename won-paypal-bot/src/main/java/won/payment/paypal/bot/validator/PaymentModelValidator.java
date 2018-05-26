@@ -10,18 +10,40 @@ import org.slf4j.LoggerFactory;
 
 import won.protocol.vocabulary.WONPAY;
 
+/**
+ * Validator for a paypal payment model.
+ * 
+ * @author schokobaer
+ *
+ */
 public class PaymentModelValidator {
 
 	private static final Logger logger = LoggerFactory.getLogger(PaymentModelValidator.class);
-	
+
 	public static final Pattern EMAIL_ADDRESS_PATTERN = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$",
 			Pattern.CASE_INSENSITIVE);
 	public static final Pattern CURRENCY_PATTERN = Pattern.compile("^(EUR|USD|GBP|BTC)$", Pattern.CASE_INSENSITIVE);
 
+	/**
+	 * Validates the first resource of the model.
+	 * 
+	 * @param model
+	 *            Payment Model.
+	 * @throws Exception
+	 *             If something is wrong.
+	 */
 	public void validate(Model model) throws Exception {
 		validate(model.listSubjects().next());
 	}
 
+	/**
+	 * Validates a resource with the given Paypal payment data.
+	 * 
+	 * @param baseRes
+	 *            Resource to validate.
+	 * @throws Exception
+	 *             If something is wrong.
+	 */
 	public void validate(Resource baseRes) throws Exception {
 
 		// get Resource
@@ -66,6 +88,5 @@ public class PaymentModelValidator {
 		}
 
 	}
-
 
 }

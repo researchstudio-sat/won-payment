@@ -26,10 +26,16 @@ import com.paypal.svcs.types.common.ErrorData;
 
 import won.payment.paypal.service.util.Config;
 
+/**
+ * Paypal Service for generating and validating payments.
+ * 
+ * @author schokobaer
+ *
+ */
 public class PaypalPaymentService {
 
 	private static final Logger logger = LoggerFactory.getLogger(PaypalPaymentService.class);
-	
+
 	private interface RequestSuccess {
 		void success(Object response);
 	}
@@ -40,6 +46,7 @@ public class PaypalPaymentService {
 
 	/**
 	 * Creates a new Paypal Payment. Returns the pay key.
+	 * 
 	 * @param receiver
 	 * @param amount
 	 * @param currencyCode
@@ -48,7 +55,8 @@ public class PaypalPaymentService {
 	 * @return
 	 * @throws Exception
 	 */
-	public String create(String receiver, Double amount, String currencyCode, String feePayer, String trackingId) throws Exception {
+	public String create(String receiver, Double amount, String currencyCode, String feePayer, String trackingId)
+			throws Exception {
 
 		List<Receiver> receivers = new LinkedList<>();
 
@@ -76,13 +84,13 @@ public class PaypalPaymentService {
 		}
 
 		StringBuilder strBuilder = new StringBuilder();
-		
+
 		executeRequest(pay, response -> {
-			strBuilder.append(((PayResponse)response).getPayKey());
+			strBuilder.append(((PayResponse) response).getPayKey());
 		}, errors -> {
 			throw new Exception();
 		});
-		
+
 		return strBuilder.toString();
 	}
 
@@ -92,6 +100,7 @@ public class PaypalPaymentService {
 
 	/**
 	 * Creates a new Paypal Payment with Sender as fee payer. Returns pay key.
+	 * 
 	 * @param receiver
 	 * @param amount
 	 * @param currencyCode
@@ -124,46 +133,66 @@ public class PaypalPaymentService {
 		// TODO: Implement
 	}
 
+	/**
+	 * Validates the payment with the given payKey. Returns the status.
+	 * 
+	 * @param payKey
+	 *            the payKey of a payment which was generated before.
+	 * @return Status of the payment.
+	 * @throws Exception
+	 *             if something went wrong.
+	 */
 	public PaypalPaymentStatus validate(String payKey) throws Exception {
 		PaypalPaymentStatus status = PaypalPaymentStatus.ERROR;
 		final StringBuilder strBuilder = new StringBuilder();
-		
+
 		PaymentDetailsRequest req = new PaymentDetailsRequest();
 		req.setPayKey(payKey);
 		req.setRequestEnvelope(Config.getEnvelope());
-				
+
 		executeRequest(req, response -> {
 			strBuilder.append(((PaymentDetailsResponse) response).getStatus());
 		}, errors -> {
 			throw new Exception();
 		});
-		
-		status = PaypalPaymentStatus.fromValue(strBuilder.toString()); 
+
+		status = PaypalPaymentStatus.fromValue(strBuilder.toString());
 		return status;
 	}
 
+	/**
+	 * Helper method for executing a request.
+	 * 
+	 * @param req
+	 *            The request to execute.
+	 * @param success
+	 *            the sucess handler.
+	 * @param failure
+	 *            the failure handler.
+	 * @throws Exception
+	 *             if someting went wrong.
+	 */
 	private void executeRequest(Object req, RequestSuccess success, RequestFailure failure) throws Exception {
 
 		AdaptivePaymentsService aps = Config.getAPS();
-		
+
 		try {
 			AckCode ack = AckCode.FAILURE;
 			Object response = null;
 			List<ErrorData> errors = null;
-			
+
 			if (req instanceof PayRequest) {
-				PayResponse payResponse = aps.pay((PayRequest)req);
+				PayResponse payResponse = aps.pay((PayRequest) req);
 				ack = payResponse.getResponseEnvelope().getAck();
 				response = payResponse;
 				errors = payResponse.getError();
-			}
-			else if (req instanceof PaymentDetailsRequest) {
-				PaymentDetailsResponse paymentDetailsResponse = aps.paymentDetails((PaymentDetailsRequest)req);
+			} else if (req instanceof PaymentDetailsRequest) {
+				PaymentDetailsResponse paymentDetailsResponse = aps.paymentDetails((PaymentDetailsRequest) req);
 				ack = paymentDetailsResponse.getResponseEnvelope().getAck();
 				response = paymentDetailsResponse;
 				errors = paymentDetailsResponse.getError();
 			}
-			
+
 			switch (ack) {
 			case SUCCESS:
 				success.success(response);
@@ -176,7 +205,7 @@ public class PaypalPaymentService {
 				failure.fail(errors);
 				break;
 			}
-			
+
 		} catch (SSLConfigurationException | InvalidCredentialException | HttpErrorException
 				| InvalidResponseDataException | ClientActionRequiredException | MissingCredentialException
 				| OAuthException | IOException | InterruptedException e) {

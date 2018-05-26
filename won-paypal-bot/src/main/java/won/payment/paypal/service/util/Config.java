@@ -9,6 +9,12 @@ import com.paypal.svcs.services.AdaptivePaymentsService;
 import com.paypal.svcs.types.common.DetailLevelCode;
 import com.paypal.svcs.types.common.RequestEnvelope;
 
+/**
+ * Config holder for Paypal-API.
+ * 
+ * @author schokobaer
+ *
+ */
 public final class Config {
 
 	private static AdaptivePaymentsService aps = null;
@@ -19,6 +25,11 @@ public final class Config {
 	private static final String SIGNATURE = "paypal.api.acct1.Signature";
 	private static final String APPID = "paypal.api.acct1.AppId";
 
+	/**
+	 * Returns a singelton of a paypalservice.
+	 * 
+	 * @return PaypalService.
+	 */
 	public static final AdaptivePaymentsService getAPS() {
 		// AdaptivePaymentsService aps = new
 		// AdaptivePaymentsService(Config.getAccountConfig());
@@ -33,32 +44,35 @@ public final class Config {
 
 	}
 
+	/**
+	 * Envelope for language en_US and detail level ALL.
+	 * 
+	 * @return RequestEnvelope for a paypal request.
+	 */
 	public static final RequestEnvelope getEnvelope() {
 		RequestEnvelope envelope = new RequestEnvelope("en_US");
 		envelope.setDetailLevel(DetailLevelCode.RETURNALL);
 		return envelope;
 	}
 
+	/**
+	 * Reads the config from paypal-bot.properties and returns them in a map.
+	 * 
+	 * @return Map with config.
+	 */
 	public static final Map<String, String> getConfig() {
 		Map<String, String> configMap = new HashMap<String, String>();
-/*
-		// Account Credential
-		if (System.getProperty(MODE) != null) {
-			configMap.put("mode", System.getProperty(MODE));
-		}
-		if (System.getProperty(USERNAME) != null) {
-			configMap.put("acct1.UserName", System.getProperty(USERNAME));
-		}
-		if (System.getProperty(PASSWORD) != null) {
-			configMap.put("acct1.Password", System.getProperty(PASSWORD));
-		}
-		if (System.getProperty(SIGNATURE) != null) {
-			configMap.put("acct1.Signature", System.getProperty(SIGNATURE));
-		}
-		if (System.getProperty(APPID) != null) {
-			configMap.put("acct1.AppId", System.getProperty(APPID));
-		}*/
-		
+		/*
+		 * // Account Credential if (System.getProperty(MODE) != null) {
+		 * configMap.put("mode", System.getProperty(MODE)); } if
+		 * (System.getProperty(USERNAME) != null) { configMap.put("acct1.UserName",
+		 * System.getProperty(USERNAME)); } if (System.getProperty(PASSWORD) != null) {
+		 * configMap.put("acct1.Password", System.getProperty(PASSWORD)); } if
+		 * (System.getProperty(SIGNATURE) != null) { configMap.put("acct1.Signature",
+		 * System.getProperty(SIGNATURE)); } if (System.getProperty(APPID) != null) {
+		 * configMap.put("acct1.AppId", System.getProperty(APPID)); }
+		 */
+
 		// Change to config file properties
 		configMap.put("mode", "sandbox");
 		configMap.put("acct1.UserName", "test_api1.won.org");
@@ -75,6 +89,5 @@ public final class Config {
 
 		return configMap;
 	}
-	
 
 }

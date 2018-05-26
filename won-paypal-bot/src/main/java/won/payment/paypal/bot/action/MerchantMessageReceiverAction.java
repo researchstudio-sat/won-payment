@@ -38,6 +38,12 @@ import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WONPAY;
 
+/**
+ * Actionhandler for received messages from the merchant.
+ * 
+ * @author schokobaer
+ *
+ */
 public class MerchantMessageReceiverAction extends BaseEventBotAction {
 
 	private Map<URI, PaymentBridge> openPayments;
@@ -90,6 +96,17 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 
 	}
 
+	/**
+	 * Differs between payment status and checks the command sent by the merchant.
+	 * Then forwards it to the corresponding method.
+	 * 
+	 * @param wonMsg
+	 *            Received WonMessage.
+	 * @param con
+	 *            The connection where the WonMessage was received.
+	 * @param bus
+	 *            The bus for publishing new events.
+	 */
 	private void handleMessage(WonMessage wonMsg, Connection con, EventBus bus) {
 
 		PaymentStatus status = openPayments.get(con.getNeedURI()).getStatus();
@@ -125,6 +142,17 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 
 	}
 
+	/**
+	 * Is invoked when the received WonMessage was a accept message. If the
+	 * WonMessage was a paypal payment it will be published.
+	 * 
+	 * @param msg
+	 *            Received WonMessage.
+	 * @param con
+	 *            The connection where the WonMessage was received.
+	 * @param bus
+	 *            The bus for publishing new events.
+	 */
 	private void handleAccept(WonMessage msg, Connection con, EventBus bus) {
 
 		PaymentStatus status = openPayments.get(con.getNeedURI()).getStatus();
@@ -133,13 +161,25 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			// TODO: Check if the acceptMessage was a payment
 			Resource payment = EventCrawler.getLastPaymentEvent(con, getEventListenerContext());
 			if (payment != null) {
-				generate(payment, con, bus);
+				publish(payment, con, bus);
 			}
 		} else {
 			makeTextMsg("The payment is already published to the buyer. This has no effects", con);
 		}
 	}
 
+	/**
+	 * Invoked when a message starts with 'pay_'. Splits the sent key-value-pairs
+	 * and validates them. If all are valid the message will be proposed to the
+	 * merchant.
+	 * 
+	 * @param msg
+	 *            Received WonMessage.
+	 * @param con
+	 *            The connection where the WonMessage was received.
+	 * @param bus
+	 *            The bus for publishing new events.
+	 */
 	private void paymentdataSent(String msg, Connection con, EventBus bus) {
 
 		String[] parts = msg.split(";");
@@ -164,6 +204,17 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 		}
 	}
 
+	/**
+	 * Validates a simple key-value-pair. If it is not valid an exception is thrown
+	 * with the cause.
+	 * 
+	 * @param key
+	 *            Key of the key-value-pair.
+	 * @param value
+	 *            Value of the key-value-pair.
+	 * @throws Exception
+	 *             Is an illegalArgument exception.
+	 */
 	private void validateField(String key, String value) throws Exception {
 		if (key.equals(PAY_AMOUNT)) {
 			Double amount = Double.parseDouble(value);
@@ -196,6 +247,15 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 		}
 	}
 
+	/**
+	 * Validates the agreement protocol. If all needed data is available a paypal
+	 * payment message is generated and proposed to the merchant.
+	 * 
+	 * @param con
+	 *            The connection where the WonMessage was received.
+	 * @param bus
+	 *            The bus for publishing new events.
+	 */
 	private void validate(Connection con, EventBus bus) {
 		Map<String, String> payDetails = EventCrawler.crawlPaymentDetails(con, getEventListenerContext());
 		Model model = WonPaymentRdfUtils.generatePaymentModel(payDetails);
@@ -220,7 +280,19 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 		}
 	}
 
-	private void generate(Resource payment, Connection con, EventBus bus) {
+	/**
+	 * When the merchant has accepted the proposed paypal payment this method will
+	 * be invoked. It opens a new connection to the buyer and makes the request for
+	 * the given payment.
+	 * 
+	 * @param payment
+	 *            The payment which was crawled from the agreement protocol.
+	 * @param con
+	 *            The connection where the WonMessage was received.
+	 * @param bus
+	 *            The bus for publishing new events.
+	 */
+	private void publish(Resource payment, Connection con, EventBus bus) {
 		String needUri = payment.getProperty(WONPAY.HAS_NEED_COUNTERPART).getObject().asLiteral().getString();
 		String msg = "Payment Request: \n" + "Amount: "
 				+ payment.getProperty(WONPAY.HAS_AMOUNT).getObject().asLiteral().getString() + " "
@@ -240,8 +312,11 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 	 * Creates a sample Payment Message and proposes it.
 	 * 
 	 * @param ctx
-	 * @param bus
+	 *            The Context of the bot.
 	 * @param con
+	 *            The connection where the WonMessage was received.
+	 * @param bus
+	 *            The bus for publishing new events.
 	 */
 	private void sample(String needUri, EventBus bus, Connection con) {
 		Map<String, String> payDetails = new HashMap<>();

@@ -32,6 +32,12 @@ import won.protocol.util.linkeddata.WonLinkedDataUtils;
 import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
 
+/**
+ * Crawls the Connection for specific events and data.
+ * 
+ * @author schokobaer
+ *
+ */
 public class EventCrawler {
 
 	public interface MessageFinder {
@@ -46,7 +52,7 @@ public class EventCrawler {
 		String makeTextMessage(Duration queryDuration, AgreementProtocolState state, URI... uris);
 	}
 
-	public static void referToEarlierMessages(EventListenerContext ctx, EventBus bus, Connection con,
+	private static void referToEarlierMessages(EventListenerContext ctx, EventBus bus, Connection con,
 			MessageFinder messageFinder, MessageReferrer messageReferrer, TextMessageMaker textMessageMaker) {
 		// initiate crawl behaviour
 		CrawlConnectionCommandEvent command = new CrawlConnectionCommandEvent(con.getNeedURI(), con.getConnectionURI());
@@ -69,7 +75,7 @@ public class EventCrawler {
 		crawlConnectionDataBehaviour.activate();
 	}
 
-	private static  Model makeReferringMessage(AgreementProtocolState state, MessageFinder messageFinder,
+	private static Model makeReferringMessage(AgreementProtocolState state, MessageFinder messageFinder,
 			MessageReferrer messageReferrer, TextMessageMaker textMessageMaker) {
 		int origPrio = Thread.currentThread().getPriority();
 		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -84,14 +90,30 @@ public class EventCrawler {
 				.textMessage(textMessageMaker.makeTextMessage(queryDuration, state, targetUriArray));
 		return messageReferrer.referToMessages(messageModel, targetUriArray);
 	}
-	
+
+	/**
+	 * Make a propose to the last sent messages.
+	 * 
+	 * @param ctx
+	 *            Bot Context.
+	 * @param bus
+	 *            Bus to publish to proposal.
+	 * @param con
+	 *            Connection to search.
+	 * @param allowOwnClauses
+	 *            bot events allowed.
+	 * @param allowCounterpartClauses
+	 *            counterpart events allowed.
+	 * @param count
+	 *            amaount of events to propose.
+	 */
 	public static void propose(EventListenerContext ctx, EventBus bus, Connection con, boolean allowOwnClauses,
 			boolean allowCounterpartClauses, int count) {
-//		try {
-//			Thread.sleep(PROPOSAL_WAIT_TIME);
-//		} catch (InterruptedException e) {
-//
-//		}
+		// try {
+		// Thread.sleep(PROPOSAL_WAIT_TIME);
+		// } catch (InterruptedException e) {
+		//
+		// }
 		referToEarlierMessages(ctx, bus, con, state -> {
 			return state.getNLatestMessageUris(m -> {
 				URI ownNeedUri = con.getNeedURI();
@@ -111,6 +133,16 @@ public class EventCrawler {
 				});
 	}
 
+	/**
+	 * Accepts the last proposal.
+	 * 
+	 * @param ctx
+	 *            Bot Context.
+	 * @param bus
+	 *            Bus to publish the accept message.
+	 * @param con
+	 *            Connection to search proposal.
+	 */
 	public static void accept(EventListenerContext ctx, EventBus bus, Connection con) {
 		referToEarlierMessages(ctx, bus, con, state -> {
 			URI uri = state.getLatestPendingProposal(Optional.empty(), Optional.of(con.getRemoteNeedURI()));
@@ -123,8 +155,7 @@ public class EventCrawler {
 					return "Ok, I am hereby accepting your latest proposal (uri: " + uris[0] + ").";
 				});
 	}
-	
-	
+
 	/**
 	 * Crawls the events in the connection and searchs for payment details.
 	 * 
@@ -176,9 +207,9 @@ public class EventCrawler {
 						if (posEnd > 0) {
 							String key = field.substring(0, posEnd).toLowerCase();
 							String val = field.substring(posEnd + 1).trim();
-//							if (!payDetails.containsKey(key)) {
-								payDetails.put(key, val);
-//							}
+							// if (!payDetails.containsKey(key)) {
+							payDetails.put(key, val);
+							// }
 						}
 					}
 				}
@@ -186,7 +217,16 @@ public class EventCrawler {
 		}
 		return payDetails;
 	}
-	
+
+	/**
+	 * Crawls for the last payment event and returns the resource.
+	 * 
+	 * @param con
+	 *            Connection to crawl.
+	 * @param ctx
+	 *            Bot Context.
+	 * @return Resource or null.
+	 */
 	public static Resource getLastPaymentEvent(Connection con, EventListenerContext ctx) {
 		AgreementProtocolState state = WonConversationUtils.getAgreementProtocolState(con.getConnectionURI(),
 				ctx.getLinkedDataSource());
@@ -196,18 +236,28 @@ public class EventCrawler {
 		while (iterator.hasNext()) {
 			Statement stmt = iterator.next();
 			Property prop = stmt.getPredicate();
-			if (prop.equals(RDF.type) && stmt.getObject().isResource() &&
-					stmt.getObject().asResource().equals(WONPAY.PAYPAL_PAYMENT)) {
+			if (prop.equals(RDF.type) && stmt.getObject().isResource()
+					&& stmt.getObject().asResource().equals(WONPAY.PAYPAL_PAYMENT)) {
 				return stmt.getSubject();
 			}
 		}
 		return null;
 	}
-	
+
+	/**
+	 * Crawls for the last event with a Paypal transaction key (payKey).
+	 * 
+	 * @param con
+	 *            Connection to crawl.
+	 * @param ctx
+	 *            Bot Context.
+	 * @return Resource with the payKey.
+	 */
 	public static Resource getLatestPaymentPayKey(Connection con, EventListenerContext ctx) {
-		Dataset dataset = WonLinkedDataUtils.getConversationAndNeedsDataset(con.getConnectionURI(), ctx.getLinkedDataSource());
+		Dataset dataset = WonLinkedDataUtils.getConversationAndNeedsDataset(con.getConnectionURI(),
+				ctx.getLinkedDataSource());
 		Model data = dataset.getUnionModel();
-		
+
 		StmtIterator iterator = data.listStatements();
 		while (iterator.hasNext()) {
 			Statement stmt = iterator.next();
@@ -216,8 +266,8 @@ public class EventCrawler {
 				return stmt.getSubject();
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 }
