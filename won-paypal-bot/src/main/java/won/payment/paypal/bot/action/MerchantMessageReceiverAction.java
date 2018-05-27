@@ -191,7 +191,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 				String key = field.substring(0, indexVal).trim();
 				String value = field.substring(indexVal + 1).trim();
 				try {
-					validateField(key, value);
+					validateField(key, value, con);
 				} catch (Exception e) {
 					valid = false;
 					makeTextMsg(e.getMessage(), con);
@@ -215,7 +215,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 	 * @throws Exception
 	 *             Is an illegalArgument exception.
 	 */
-	private void validateField(String key, String value) throws Exception {
+	private void validateField(String key, String value, Connection con) throws Exception {
 		if (key.equals(PAY_AMOUNT)) {
 			Double amount = Double.parseDouble(value);
 			if (amount <= 0) {
@@ -226,7 +226,9 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			// throw new Exception("Only EUR supported at the moment");
 			// }
 		} else if (key.equals(PAY_COUNTERPART)) {
-
+			if (con.getRemoteNeedURI().toString().equals(value)) {
+				throw new Exception("You have to put an other needs URI as counterpart");
+			}
 		} else if (key.equals(PAY_FEE_PAYER)) {
 			if (!value.toUpperCase().equals("SENDER") && !value.toUpperCase().equals("RECEIVER")) {
 				throw new Exception("Fee payer must be 'SENDER' or 'RECEIVER'");
@@ -263,7 +265,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 		boolean isValid = false;
 
 		try {
-			paymentValidator.validate(model);
+			paymentValidator.validate(model, con);
 			isValid = true;
 		} catch (Exception e) {
 			makeTextMsg(e.getMessage(), con);

@@ -3,11 +3,13 @@ package won.payment.paypal.bot.validator;
 import java.util.regex.Pattern;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import won.protocol.model.Connection;
 import won.protocol.vocabulary.WONPAY;
 
 /**
@@ -32,8 +34,8 @@ public class PaymentModelValidator {
 	 * @throws Exception
 	 *             If something is wrong.
 	 */
-	public void validate(Model model) throws Exception {
-		validate(model.listSubjects().next());
+	public void validate(Model model, Connection con) throws Exception {
+		validate(model.listSubjects().next(), con);
 	}
 
 	/**
@@ -44,7 +46,7 @@ public class PaymentModelValidator {
 	 * @throws Exception
 	 *             If something is wrong.
 	 */
-	public void validate(Resource baseRes) throws Exception {
+	public void validate(Resource baseRes, Connection con) throws Exception {
 
 		// get Resource
 		if (baseRes == null) {
@@ -76,6 +78,14 @@ public class PaymentModelValidator {
 				.find()) {
 			throw new Exception("Unvalid receiver defined. Receiver must be an email address");
 		}
+		
+		// Fee-Payer
+		if (baseRes.hasProperty(WONPAY.HAS_FEE_PAYER)) {
+			RDFNode feePayer = baseRes.getProperty(WONPAY.HAS_FEE_PAYER).getObject();
+			if (!feePayer.equals(WONPAY.FEE_PAYER_SENDER) && !feePayer.equals(WONPAY.FEE_PAYER_RECEIVER)) {
+				throw new Exception("Unvalid fee payer. Mustbe SENDER or RECEIVER.");
+			}
+		}
 
 		// Secret
 		if (!baseRes.hasProperty(WONPAY.HAS_SECRET)) {
@@ -85,7 +95,11 @@ public class PaymentModelValidator {
 		// Counterpart
 		if (!baseRes.hasProperty(WONPAY.HAS_NEED_COUNTERPART)) {
 			throw new Exception("No counterpart need defined");
+		} else if (baseRes.getProperty(WONPAY.HAS_NEED_COUNTERPART).getString().equals(con.getRemoteNeedURI().toString())) {
+			throw new Exception("You have to put an other needs URI as counterpart");
 		}
+		
+		// TODO: Check how to validate tax, and rest
 
 	}
 
