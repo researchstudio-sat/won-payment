@@ -59,6 +59,9 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 	}
 
 	private void makeTextMsg(String msg, Connection con) {
+		if (con == null) {
+			return;
+		}
 		Model model = WonRdfUtils.MessageUtils.textMessage(msg);
 		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}

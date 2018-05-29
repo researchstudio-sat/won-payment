@@ -74,6 +74,9 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 	}
 
 	private void makeTextMsg(String msg, Connection con) {
+		if (con == null) {
+			return;
+		}
 		Model model = WonRdfUtils.MessageUtils.textMessage(msg);
 		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}
@@ -269,7 +272,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			isValid = true;
 		} catch (Exception e) {
 			makeTextMsg(e.getMessage(), con);
-			logger.debug("Validation error", e);
+			logger.debug("Validation error {}", e.getMessage());
 		}
 
 		if (isValid) {
@@ -300,7 +303,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 				+ payment.getProperty(WONPAY.HAS_AMOUNT).getObject().asLiteral().getString() + " "
 				+ payment.getProperty(WONPAY.HAS_CURRENCY).getObject().asLiteral().getString() + " \n" + "Secret: "
 				+ payment.getProperty(WONPAY.HAS_SECRET).getObject().asLiteral().getString() + "  \n\n"
-				+ "Type 'accept' or 'denie'.";
+				+ "Type 'accept' or 'deny'.";
 		try {
 			openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.PUBLISHED);
 			bus.publish(new ConnectCommandEvent(con.getNeedURI(), new URI(needUri), msg));

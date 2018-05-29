@@ -34,6 +34,9 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	}
 
 	private void makeTextMsg(String msg, Connection con) {
+		if (con == null) {
+			return;
+		}
 		Model model = WonRdfUtils.MessageUtils.textMessage(msg);
 		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}
@@ -114,6 +117,32 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
 						bridge.getStatus().name(), con.getNeedURI());
 			}
+		} else if (bridge.getStatus() == PaymentStatus.PUBLISHED) {
+			// If the merchant left, tell the buyer not to do anything and leave the channel
+			// If the buyer left just tell the merchant
+			// If the buyer declines the connection just tell the merchant
+			if (bridge.getMerchantConnection() != null
+					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
+				bridge.setMerchantConnection(null);
+				makeTextMsg("ATTENTION: THE MERCHANT HAS LEFT. PLEASE CONTACT THE MERCHANT!",
+						bridge.getBuyerConnection());
+				logger.debug("Merchant has closed the connection in status {}" + " in the Need {}",
+						bridge.getStatus().name(), con.getNeedURI());
+			} else if (bridge.getBuyerConnection() != null
+					&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+				bridge.setBuyerConnection(null);
+				makeTextMsg("The Buyer has left without accepting. Change the payment and validate it again.",
+						bridge.getMerchantConnection());
+				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
+						bridge.getStatus().name(), con.getNeedURI());
+			} else if (bridge.getBuyerConnection() == null) {
+				makeTextMsg("The buyer declined the connection. Change the payment and validate it again.",
+						bridge.getMerchantConnection());
+				bridge.setStatus(PaymentStatus.DENIED);
+				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
+						bridge.getStatus().name(), con.getNeedURI());
+			}
+			
 		} else {
 			// Can only be the merchant
 			if (bridge.getMerchantConnection() != null
