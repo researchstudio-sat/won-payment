@@ -43,6 +43,16 @@ public class PaypalPaymentService {
 	private interface RequestFailure {
 		void fail(List<ErrorData> errors) throws Exception;
 	}
+	
+	private Config config;
+	
+	public PaypalPaymentService() {
+		
+	}
+	
+	public PaypalPaymentService(Config config) {
+		this.config = config;
+	}
 
 	/**
 	 * Creates a new Paypal Payment. Returns the pay key.
@@ -69,7 +79,7 @@ public class PaypalPaymentService {
 		ReceiverList receiverList = new ReceiverList(receivers);
 
 		PayRequest pay = new PayRequest();
-		pay.setRequestEnvelope(Config.getEnvelope());
+		pay.setRequestEnvelope(config.getEnvelope());
 		pay.setActionType("CREATE");
 		pay.setCurrencyCode(currencyCode);
 		pay.setFeesPayer(feePayer);
@@ -148,7 +158,7 @@ public class PaypalPaymentService {
 
 		PaymentDetailsRequest req = new PaymentDetailsRequest();
 		req.setPayKey(payKey);
-		req.setRequestEnvelope(Config.getEnvelope());
+		req.setRequestEnvelope(config.getEnvelope());
 
 		executeRequest(req, response -> {
 			strBuilder.append(((PaymentDetailsResponse) response).getStatus());
@@ -174,7 +184,7 @@ public class PaypalPaymentService {
 	 */
 	private void executeRequest(Object req, RequestSuccess success, RequestFailure failure) throws Exception {
 
-		AdaptivePaymentsService aps = Config.getAPS();
+		AdaptivePaymentsService aps = config.getAPS();
 
 		try {
 			AckCode ack = AckCode.FAILURE;

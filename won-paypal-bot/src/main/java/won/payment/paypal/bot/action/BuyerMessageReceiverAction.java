@@ -34,12 +34,13 @@ import won.protocol.vocabulary.WONPAY;
  */
 public class BuyerMessageReceiverAction extends BaseEventBotAction {
 
-	private PaypalPaymentService paypalService = new PaypalPaymentService();
+	private PaypalPaymentService paypalService;
 	private Map<URI, PaymentBridge> openPayments;
 
-	public BuyerMessageReceiverAction(EventListenerContext eventListenerContext, Map<URI, PaymentBridge> openPayments) {
+	public BuyerMessageReceiverAction(EventListenerContext eventListenerContext, Map<URI, PaymentBridge> openPayments, PaypalPaymentService paypalService) {
 		super(eventListenerContext);
 		this.openPayments = openPayments;
+		this.paypalService = paypalService;
 	}
 
 	@Override

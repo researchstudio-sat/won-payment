@@ -24,6 +24,7 @@ import won.payment.paypal.bot.action.MerchantMessageReceiverAction;
 import won.payment.paypal.bot.action.MessageBrokerAction;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
+import won.payment.paypal.service.impl.PaypalPaymentService;
 
 /**
  * The bot which subscribes for the Events.
@@ -35,12 +36,13 @@ public class PaypalBot extends FactoryBot {
 
 	private static final Long SCHEDULER_INTERVAL = 60 * 1000L;
 
+	private PaypalPaymentService paypalService;
 	private Map<URI, PaymentBridge> openBridges = new HashMap<>();
 	private Timer paymentCheckTimer;
 
 	@Override
 	protected void initializeFactoryEventListeners() {
-
+		
 		EventBus bus = getEventBus();
 		EventListenerContext ctx = getEventListenerContext();
 
@@ -54,7 +56,7 @@ public class PaypalBot extends FactoryBot {
 
 		// Broker for Merchant and Buyer Messages
 		EventBotAction merchantAction = new MerchantMessageReceiverAction(ctx, openBridges);
-		EventBotAction buyerAction = new BuyerMessageReceiverAction(ctx, openBridges);
+		EventBotAction buyerAction = new BuyerMessageReceiverAction(ctx, openBridges, paypalService);
 		EventListener broker = new ActionOnEventListener(ctx,
 				new MessageBrokerAction(ctx, openBridges, merchantAction, buyerAction));
 		bus.subscribe(MessageFromOtherNeedEvent.class, broker);
@@ -70,9 +72,19 @@ public class PaypalBot extends FactoryBot {
 
 		// Start PaypalPaymentStatusCheckScheduler
 		PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(
-				getEventListenerContext(), openBridges);
+				getEventListenerContext(), openBridges, paypalService);
 		paymentCheckTimer = new Timer(true);
 		paymentCheckTimer.scheduleAtFixedRate(statusScheduler, SCHEDULER_INTERVAL, SCHEDULER_INTERVAL);
 	}
+
+	public PaypalPaymentService getPaypalService() {
+		return paypalService;
+	}
+
+	public void setPaypalService(PaypalPaymentService paypalService) {
+		this.paypalService = paypalService;
+	}
+	
+	
 
 }

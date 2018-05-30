@@ -36,6 +36,7 @@
                 <property name="fixedRate" value="false" />  <!-- fixed delay after completion -->
             </bean>
         </property>
+        <property name="paypalService" ref="paypalservice" />
     </bean>
 
     <bean id="botContextWrapper" class="won.payment.paypal.bot.impl.PaypalBotContextWrapper">
@@ -52,7 +53,10 @@
         </property>
     </bean>
     
-    <!-- 
+    <bean id="paypalservice" class="won.payment.paypal.service.impl.PaypalPaymentService">
+        <constructor-arg name="config" ref="paypalconfig" />
+    </bean>
+    
     <bean id="paypalconfig" class="won.payment.paypal.service.util.Config">
         <property name="mode" value="${paypal.api.mode}" />
         <property name="username" value="${paypal.api.acct1.UserName}" />
@@ -60,5 +64,5 @@
         <property name="signature" value="${paypal.api.acct1.Signature}" />
         <property name="appId" value="${paypal.api.acct1.AppId}" />
     </bean>
-     -->
+    
 </beans>

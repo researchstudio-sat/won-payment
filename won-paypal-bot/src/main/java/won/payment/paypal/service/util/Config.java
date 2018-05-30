@@ -17,20 +17,60 @@ import com.paypal.svcs.types.common.RequestEnvelope;
  */
 public final class Config {
 
-	private static AdaptivePaymentsService aps = null;
+	private AdaptivePaymentsService aps = null;
+	
+	private String mode;
+	private String username;
+	private String password;
+	private String signature;
+	private String appId;
 
-	private static final String MODE = "paypal.api.mode";
-	private static final String USERNAME = "paypal.api.acct1.UserName";
-	private static final String PASSWORD = "paypal.api.acct1.Password";
-	private static final String SIGNATURE = "paypal.api.acct1.Signature";
-	private static final String APPID = "paypal.api.acct1.AppId";
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getSignature() {
+		return signature;
+	}
+
+	public void setSignature(String signature) {
+		this.signature = signature;
+	}
+
+	public String getAppId() {
+		return appId;
+	}
+
+	public void setAppId(String appId) {
+		this.appId = appId;
+	}
 
 	/**
 	 * Returns a singelton of a paypalservice.
 	 * 
 	 * @return PaypalService.
 	 */
-	public static final AdaptivePaymentsService getAPS() {
+	public AdaptivePaymentsService getAPS() {
 		// AdaptivePaymentsService aps = new
 		// AdaptivePaymentsService(Config.getAccountConfig());
 		// return aps;
@@ -49,7 +89,7 @@ public final class Config {
 	 * 
 	 * @return RequestEnvelope for a paypal request.
 	 */
-	public static final RequestEnvelope getEnvelope() {
+	public RequestEnvelope getEnvelope() {
 		RequestEnvelope envelope = new RequestEnvelope("en_US");
 		envelope.setDetailLevel(DetailLevelCode.RETURNALL);
 		return envelope;
@@ -60,25 +100,21 @@ public final class Config {
 	 * 
 	 * @return Map with config.
 	 */
-	public static final Map<String, String> getConfig() {
+	public Map<String, String> getConfig() {
 		Map<String, String> configMap = new HashMap<String, String>();
-		/*
-		 * // Account Credential if (System.getProperty(MODE) != null) {
-		 * configMap.put("mode", System.getProperty(MODE)); } if
-		 * (System.getProperty(USERNAME) != null) { configMap.put("acct1.UserName",
-		 * System.getProperty(USERNAME)); } if (System.getProperty(PASSWORD) != null) {
-		 * configMap.put("acct1.Password", System.getProperty(PASSWORD)); } if
-		 * (System.getProperty(SIGNATURE) != null) { configMap.put("acct1.Signature",
-		 * System.getProperty(SIGNATURE)); } if (System.getProperty(APPID) != null) {
-		 * configMap.put("acct1.AppId", System.getProperty(APPID)); }
-		 */
 
+		configMap.put("mode", mode);
+		configMap.put("acct1.UserName", username);
+		configMap.put("acct1.Password", password);
+		configMap.put("acct1.Signature", signature);
+		configMap.put("acct1.AppId", appId);
+		
 		// Change to config file properties
-		configMap.put("mode", "sandbox");
-		configMap.put("acct1.UserName", "test_api1.won.org");
-		configMap.put("acct1.Password", "RY9LWMA5CYA8GF5V");
-		configMap.put("acct1.Signature", "AovEzlPCsQMDpmPF8wyyNnan-Or2ACAcja7JlneaFv2yA2.SHCHe18ci");
-		configMap.put("acct1.AppId", "APP-80W284485P519543T");
+//		configMap.put("mode", "sandbox");
+//		configMap.put("acct1.UserName", "test_api1.won.org");
+//		configMap.put("acct1.Password", "RY9LWMA5CYA8GF5V");
+//		configMap.put("acct1.Signature", "AovEzlPCsQMDpmPF8wyyNnan-Or2ACAcja7JlneaFv2yA2.SHCHe18ci");
+//		configMap.put("acct1.AppId", "APP-80W284485P519543T");
 
 		// Sample Certificate credential
 		// configMap.put("acct2.UserName", "certuser_biz_api1.paypal.com");

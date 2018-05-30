@@ -31,13 +31,14 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 
 	private static final Logger logger = LoggerFactory.getLogger(PaypalPaymentStatusCheckSchedule.class);
 
-	private PaypalPaymentService paypalService = new PaypalPaymentService();
+	private PaypalPaymentService paypalService;
 	private EventListenerContext ctx;
 	private Map<URI, PaymentBridge> openBridges;
 
-	public PaypalPaymentStatusCheckSchedule(EventListenerContext ctx, Map<URI, PaymentBridge> openBridges) {
+	public PaypalPaymentStatusCheckSchedule(EventListenerContext ctx, Map<URI, PaymentBridge> openBridges, PaypalPaymentService paypalService) {
 		this.ctx = ctx;
 		this.openBridges = openBridges;
+		this.paypalService = paypalService;
 	}
 
 	@Override
