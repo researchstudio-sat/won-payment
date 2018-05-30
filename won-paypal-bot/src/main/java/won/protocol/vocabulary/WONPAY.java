@@ -26,6 +26,7 @@ public class WONPAY {
 	public static Property HAS_TAX = m.createProperty(BASE_URI + "hasTax");
 	public static Property HAS_INVOICE_NUMBER = m.createProperty(BASE_URI + "hasInvoiceNumber");
 	public static Property HAS_INVOICE_DETAILS = m.createProperty(BASE_URI + "hasInvoiceDetails");
+	public static Property HAS_EXPIRATION_TIME = m.createProperty(BASE_URI + "haseExpirationTime");
 	public static Property HAS_PAYMENT_STATE = m.createProperty(BASE_URI + "hasState");
 	public static Property REFERS_TO = m.createProperty(BASE_URI + "refersTo");
 

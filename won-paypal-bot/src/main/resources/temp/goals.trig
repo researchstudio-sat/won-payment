@@ -1,0 +1,94 @@
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix s:     <http://schema.org/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex2: <http://example.org/2/> .
+@prefix pay: <http://purl.org/webofneeds/payment#> .
+
+@prefix olntest:   <http://sat.researchstudio.at/oln/test/> .
+
+
+ex2:p2g-shapes {
+        <http://example.org/2/SelfShape>
+              a   sh:NodeShape ;
+              sh:targetNode   s:TravelAction ;
+              sh:property [
+                              sh:path [ sh:inversePath rdf:type ];
+                              sh:minCount 1 ;
+                              sh:maxCount 1 ;
+                          ] .
+                          
+      <http://example.org/2/PaymentShape>
+              a                     sh:NodeShape ;
+              sh:closed             true ;
+              sh:ignoredProperties  ( rdf:type ) ;
+              sh:property [
+                              sh:path pay:hasAmount ;
+                              sh:class xsd:decimal ;
+                              sh:minExclusive 0 ;
+                              sh:minCount 1;
+                              sh:maxCount 1;
+                          ] ;
+              sh:property [
+                              sh:path pay:hasCurrency ;
+                              sh:class xsd:string ;
+                              sh:pattern "[A-Z]{3}" ;
+                              sh:minCount 1;
+                              sh:maxCount 1;
+                          ] ;
+              sh:property [
+                              sh:path pay:hasReceiver ;
+                              sh:class xsd:string ;
+                              sh:pattern "^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$" ;
+                              sh:minCount 1;
+                              sh:maxCount 1;
+                          ] ;
+              sh:property [
+                              sh:path pay:hasSecret ;
+                              sh:class xsd:string ;
+                              sh:minCount 1;
+                              sh:maxCount 1;
+                          ] ;
+              sh:property [
+                              sh:path pay:hasNeedCounterpart ;
+                              sh:class xsd:string ;
+                              sh:pattern "^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$" ;
+                              sh:minCount 1;
+                              sh:maxCount 1;
+                          ] ;
+              
+              sh:property [
+                              sh:path pay:hasFeePayer ;
+                              sh:class xsd:string ;
+                              sh:minCount 0;
+                              sh:maxCount 1;
+                          ] ;
+              sh:property [
+                              sh:path pay:hasTax ;
+                              sh:class xsd:decimal ;
+                              sh:minExclusive 0 ;
+                              sh:minCount 0;
+                              sh:maxCount 1;
+                          ] ;
+              sh:property [
+                              sh:path pay:hasFeePayer ;
+                              sh:class xsd:string ;
+                              sh:minCount 0;
+                              sh:maxCount 1;
+                          ] ;
+              sh:property [
+                              sh:path pay:haseExpirationTime ;
+                              sh:class xsd:duration ;
+                              sh:minCount 0;
+                              sh:maxCount 1;
+                          ] ;   
+              sh:property [
+                              sh:path pay:hasInvoiceDetails ;
+                              sh:class xsd:string ;
+                              sh:minCount 0;
+                              sh:maxCount 1;
+                          ] ;        
+                          
+              sh:targetClass       s:TravelAction .
+
+}
