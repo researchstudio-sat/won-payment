@@ -56,7 +56,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
     private Map<URI, PaymentBridge> openBridges;
 
     static {
-        goalString = ResourceManager.getResourceAsString("/temp/goals_withoutmax.trig");
+        goalString = ResourceManager.getResourceAsString("/temp/goals.trig");
     }
 	
 	public CreateFactoryOfferAction(EventListenerContext eventListenerContext, Map<URI, PaymentBridge> openBridges, URI... facets) {

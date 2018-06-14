@@ -41,23 +41,8 @@
                     </includes>
                     <fileOptions>
                         <source>
-                            <input>src/main/vocabs/logico.ttl</input>
-                            <package-name>won.transport.ont</package-name>
-                            <output>${project.build.directory}/generated-sources/java</output>
-                            <use-inf>false</use-inf>
-                            <ontology>true</ontology>
-                        </source>
-                        <source>
-                            <input>src/main/vocabs/logiserv.ttl</input>
-                            <package-name>won.transport.ont</package-name>
-                            <output>${project.build.directory}/generated-sources/java</output>
-                            <use-inf>true</use-inf>
-                            <ontology>true</ontology>
-
-                      </source>
-                        <source>
-                            <input>src/main/vocabs/transport.ttl</input>
-                            <package-name>won.transport.ont</package-name>
+                            <input>src/main/vocabs/payment.ttl</input>
+                            <package-name>won.payment.ont</package-name>
                             <output>${project.build.directory}/generated-sources/java</output>
                             <use-inf>true</use-inf>
                             <ontology>true</ontology>

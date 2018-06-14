@@ -33,7 +33,7 @@
 			dc:title         "Paypal Payment Endpoint"@en ;
 			dc:description   "Offering Payments via Paypal"@en ;
 			won:hasTag       "Paypal",
-                             "Paypal Zahlung"@de,
+                             "Paypal Zahlung"@de ,
                              "Paypal Payment"@en ;
 		] ;
 		won:seeks [

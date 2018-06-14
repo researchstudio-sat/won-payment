@@ -1,66 +1,69 @@
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-@prefix s:     <http://schema.org/> .
-@prefix sh:    <http://www.w3.org/ns/shacl#> .
-@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dc:    <http://purl.org/dc/elements/1.1/> .
-@prefix ex2: <http://example.org/2/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix pay: <http://purl.org/webofneeds/payment#> .
+@prefix ex2: <http://example.org/2/> .
 @prefix currency: <http://purl.org/webofneeds/currency#> .
 
-@prefix olntest:   <http://sat.researchstudio.at/oln/test/> .
+ex2:euro
+    a pay:Currency ;
+    rdf:value 'EUR' .
+
+ex2:myPayment a pay:Payment .
+
+ex2:myPayment 
+	pay:hasAmount 2.34 ;
+	pay:hasCurrency 'EUR' ;
+	pay:hasReceiver 'test@won.org' ;
+	pay:hasSecret 'mysec' ;
+	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/x7l4hfbwo5y6at4w2a3j> .
 
 
-pay:Sender   a pay:FeePayer .
-pay:Receiver a pay:FeePayer .
 
 
-ex2:p2g-shapes {
-        <http://example.org/2/SelfShape>
-              a   sh:NodeShape ;
-              sh:targetNode   pay:Payment ;
-              sh:property [
-                              sh:path [ sh:inversePath rdf:type ];
-                              sh:minCount 1 ;
-                              sh:maxCount 1 ;
-                          ] .
-      
-        <http://example.org/2/PaymentShape>
-              a                      sh:NodeShape  ;
-              sh:targetClass         pay:Payment   ;
-              sh:closed              true          ;
-              sh:ignoredProperties   ( rdf:type )  ;
+
+
+<this:messageuri>
+	a pay:Payment ;
+	pay:hasAmount 2.34 ;
+	pay:hasCurrency 'EUR' ;
+	pay:hasReceiver 'test@won.org' ;
+	pay:hasSecret 'mysec' ;
+	pay:hasNeedCounterpart 'TheBuyersNeedUrl' .
+	
+
+
+
+  <http://example.org/2/PaymentShape>
+              a                     sh:NodeShape ;
+            # sh:closed             true ;
+            # sh:ignoredProperties  ( rdf:type ) ;
               sh:property [
                               sh:path pay:hasAmount ;
-                              sh:datatype xsd:decimal ;
+                              sh:class xsd:decimal ;
                               sh:minExclusive 0 ;
                               sh:minCount 1;
                               sh:maxCount 1;
                           ] ;
               sh:property [
                               sh:path pay:hasCurrency ;
-                              sh:datatype xsd:string ;
-                              sh:pattern "^[A-Z]{3}$" ;
+                              sh:class xsd:string ;
                               sh:minCount 1;
                               sh:maxCount 1;
                           ] ;
               sh:property [
                               sh:path pay:hasReceiver ;
-                              sh:datatype xsd:string ;
+                              sh:class xsd:string ;
                               sh:minCount 1;
                               sh:maxCount 1;
-                              sh:pattern "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$";
                           ] ;
               sh:property [
                               sh:path pay:hasSecret ;
-                              sh:datatype xsd:string ;
+                              sh:class xsd:string ;
                               sh:minCount 1;
                               sh:maxCount 1;
-                              sh:minLength 4 ;
                           ] ;
               sh:property [
                               sh:path pay:hasNeedCounterpart ;
-                              sh:nodeKind sh:IRI ;
+                              sh:class xsd:string ;
                               sh:minCount 1;
                               sh:maxCount 1;
                           ] ;
@@ -68,36 +71,34 @@ ex2:p2g-shapes {
               # Optional Fields
               sh:property [
                               sh:path pay:hasFeePayer ;
+                              sh:class xsd:string ;
                               sh:minCount 0;
                               sh:maxCount 1;
-                              sh:in ( pay:Sender pay:Receiver ) ;
                           ] ;
               sh:property [
                               sh:path pay:hasTax ;
-                              sh:datatype xsd:decimal ;
+                              sh:class xsd:decimal ;
                               sh:minExclusive 0 ;
                               sh:minCount 0;
                               sh:maxCount 1;
                           ] ;
               sh:property [
-                              sh:path pay:hasInvoiceId ;
-                              sh:datatype xsd:string ;
+                              sh:path pay:hasFeePayer ;
+                              sh:class xsd:string ;
                               sh:minCount 0;
                               sh:maxCount 1;
                           ] ;
               sh:property [
                               sh:path pay:haseExpirationTime ;
-                              sh:datatype xsd:duration ;
+                              sh:class xsd:duration ;
                               sh:minCount 0;
                               sh:maxCount 1;
                           ] ;   
               sh:property [
                               sh:path pay:hasInvoiceDetails ;
-                              sh:datatype xsd:string ;
+                              sh:class xsd:string ;
                               sh:minCount 0;
                               sh:maxCount 1;
-                          ] .
+                          ] .        
                           
-      
-
-}
+              # sh:targetClass       pay:PaymentAction .
