@@ -14,10 +14,6 @@ public class StubAction extends BaseEventBotAction {
 		super(eventListenerContext);
 	}
 	
-	public StubAction(EventListenerContext eventListenerContext, AnalyzeBehaviour analyzeBehaviour) {
-		super(eventListenerContext);
-	}
-
 	@Override
 	protected void doRun(Event event, EventListener executingListener) throws Exception {
 		logger.info("Received a {}", event.getClass().getSimpleName());

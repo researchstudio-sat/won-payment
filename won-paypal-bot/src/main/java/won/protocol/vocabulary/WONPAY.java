@@ -14,7 +14,7 @@ import org.apache.jena.rdf.model.Resource;
 public class WONPAY {
 
 	public static final String BASE_URI = "http://purl.org/webofneeds/payment#";
-	public static final String MODEL_URI = "http://purl.org/webofneeds/paymentmodel#";
+	public static final String MODEL_URI = "http://purl.org/webofneeds/payment#";
 
 	private static Model m = ModelFactory.createDefaultModel();
 

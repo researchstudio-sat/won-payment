@@ -1,11 +1,6 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix pay: <http://purl.org/webofneeds/payment#> .
 @prefix ex2: <http://example.org/2/> .
-@prefix currency: <http://purl.org/webofneeds/currency#> .
-
-ex2:euro
-    a pay:Currency ;
-    rdf:value 'EUR' .
 
 ex2:myPayment a pay:Payment .
 
@@ -16,7 +11,8 @@ ex2:myPayment
 	pay:hasSecret 'mysec' ;
 	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/x7l4hfbwo5y6at4w2a3j> .
 
-
+ex2:myPayment
+	pay:hasTax 0.99 .
 
 
 

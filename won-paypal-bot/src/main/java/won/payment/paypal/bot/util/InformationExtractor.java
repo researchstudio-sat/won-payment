@@ -13,11 +13,17 @@ import won.utils.goals.GoalInstantiationResult;
 public class InformationExtractor {
 
 	private static final String paymentDetailsQuery;
+	
     private static final String AMOUNT = "amount";
     private static final String CURRENCY = "currency";
     private static final String RECEIVER = "receiver";
     private static final String SECRET = "secret";
     private static final String COUNTERPART = "counterpart";
+    private static final String FEEPAYER = "feepayer";
+    private static final String TAX = "tax";
+    private static final String INVOICEID = "invoiceid";
+    private static final String INVOICEDETAILS = "invoicedetails";
+    private static final String EXPIRATIONTIME = "expirationtime";
     
     
     
@@ -80,6 +86,61 @@ public class InformationExtractor {
         return null;
     }
     
+    // Optional
+    public static String getFeePayer(GoalInstantiationResult payload) {
+    	if(payload != null) {
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+
+            if (solution != null && solution.getLiteral(FEEPAYER) != null) {
+                return solution.getLiteral(FEEPAYER).getString();
+            }
+        }
+        return null;
+    }
+    
+    public static Double getTax(GoalInstantiationResult payload) {
+    	if(payload != null) {
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+
+            if (solution != null && solution.getLiteral(TAX) != null) {
+                return solution.getLiteral(TAX).getDouble();
+            }
+        }
+        return null;
+    }
+    
+    public static String getInvoiceId(GoalInstantiationResult payload) {
+    	if(payload != null) {
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+
+            if (solution != null && solution.getLiteral(INVOICEID) != null) {
+                return solution.getLiteral(INVOICEID).getString();
+            }
+        }
+        return null;
+    }
+    
+    public static String getInvoiceDetails(GoalInstantiationResult payload) {
+    	if(payload != null) {
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+
+            if (solution != null && solution.getLiteral(INVOICEDETAILS) != null) {
+                return solution.getLiteral(INVOICEDETAILS).getString();
+            }
+        }
+        return null;
+    }
+    
+    public static String getExpirationTime(GoalInstantiationResult payload) {
+    	if(payload != null) {
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+
+            if (solution != null && solution.getLiteral(EXPIRATIONTIME) != null) {
+                return solution.getLiteral(EXPIRATIONTIME).getString();
+            }
+        }
+        return null;
+    }
     
     
     

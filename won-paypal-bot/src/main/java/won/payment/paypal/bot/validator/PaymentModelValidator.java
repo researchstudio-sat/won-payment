@@ -4,7 +4,10 @@ import java.util.regex.Pattern;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +38,19 @@ public class PaymentModelValidator {
 	 *             If something is wrong.
 	 */
 	public void validate(Model model, Connection con) throws Exception {
-		validate(model.listSubjects().next(), con);
+		
+		ResIterator iterator = model.listResourcesWithProperty(RDF.type, WONPAY.PAYMENT);
+		
+		if (!iterator.hasNext()) {
+			throw new Exception("No Payment defined in model");
+		}
+		
+		Resource baseRes = iterator.next();		
+		validate(baseRes, con);
+		
+		if (iterator.hasNext()) {
+			throw new Exception("More than one Payment defined in model");
+		}
 	}
 
 	/**
@@ -95,7 +110,7 @@ public class PaymentModelValidator {
 		// Counterpart
 		if (!baseRes.hasProperty(WONPAY.HAS_NEED_COUNTERPART)) {
 			throw new Exception("No counterpart need defined");
-		} else if (baseRes.getProperty(WONPAY.HAS_NEED_COUNTERPART).getString().equals(con.getRemoteNeedURI().toString())) {
+		} else if (baseRes.getProperty(WONPAY.HAS_NEED_COUNTERPART).getResource().getURI().equals(con.getRemoteNeedURI().toString())) {
 			throw new Exception("You have to put an other needs URI as counterpart");
 		}
 		

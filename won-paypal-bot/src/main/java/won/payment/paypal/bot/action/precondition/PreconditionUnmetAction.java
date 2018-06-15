@@ -36,9 +36,9 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
             
             GoalInstantiationResult preconditionEventPayload = ((PreconditionEvent) event).getPayload();
 
-            String respondWith = "Payment not possible yet, missing necessary Values: ";
+            String respondWith = "Payment not possible yet, missing necessary Values: \n";
             for (ValidationResultWrapper validationResultWrapper : preconditionEventPayload.getShaclReportWrapper().getValidationResults()) {
-				respondWith += validationResultWrapper.getResultPath().getLocalName() + ", ";
+				respondWith += validationResultWrapper.getResultMessage() + "\n";
 			}
             logger.info(respondWith);
             

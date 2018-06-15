@@ -3,13 +3,19 @@ prefix won:   <http://purl.org/webofneeds/model#>
 prefix pay:   <http://purl.org/webofneeds/payment#>
 prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-Select ?amount ?currency ?receiver ?secret ?counterpart
+Select ?amount ?currency ?receiver ?secret ?counterpart ?feepayer ?tax ?invoiceid ?expirationtime ?invoicedetails
 
 where {
     ?main a pay:Payment ;
-          pay:hasAmount ?amount ;
-          pay:hasCurrency ?currency ;
-          pay:hasReceiver ?receiver ;
-          pay:hasSecret ?secret ;
-          pay:hasNeedCounterpart ?counterpart .
+         pay:hasAmount ?amount ;
+         pay:hasCurrency ?currency ;
+         pay:hasReceiver ?receiver ;
+         pay:hasSecret ?secret ;
+         pay:hasNeedCounterpart ?counterpart .
+     
+     OPTIONAL { ?main pay:hasFeePayer ?feepayer }
+     OPTIONAL { ?main pay:hasTax ?tax }
+     OPTIONAL { ?main pay:hasInvoiceId ?invoiceid }
+     OPTIONAL { ?main pay:haseExpirationTime ?expirationtime }
+     OPTIONAL { ?main pay:hasInvoiceDetails ?invoicedetails } 
 }

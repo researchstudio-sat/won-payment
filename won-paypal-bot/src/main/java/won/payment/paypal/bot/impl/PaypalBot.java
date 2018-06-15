@@ -9,6 +9,8 @@ import won.bot.framework.bot.base.FactoryBot;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.EventBotAction;
 import won.bot.framework.eventbot.behaviour.AnalyzeBehaviour;
+import won.bot.framework.eventbot.behaviour.BotBehaviour;
+import won.bot.framework.eventbot.behaviour.EagerlyPopulateCacheBehaviour;
 import won.bot.framework.eventbot.bus.EventBus;
 import won.bot.framework.eventbot.event.impl.analyzation.agreement.AgreementCancellationAcceptedEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.agreement.AgreementCancellationRequestedEvent;
@@ -32,6 +34,8 @@ import won.payment.paypal.bot.action.MessageBrokerAction;
 import won.payment.paypal.bot.action.StubAction;
 import won.payment.paypal.bot.action.agreement.PreconditionMetAction;
 import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
+import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
+import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
 import won.payment.paypal.service.impl.PaypalPaymentService;
@@ -61,10 +65,18 @@ public class PaypalBot extends FactoryBot {
 		
 		
 		// eagerly cache RDF data
-		// BotBehaviour eagerlyCacheBehaviour = new EagerlyPopulateCacheBehaviour(ctx);
-		// eagerlyCacheBehaviour.activate();
+		BotBehaviour eagerlyCacheBehaviour = new EagerlyPopulateCacheBehaviour(ctx);
+		eagerlyCacheBehaviour.activate();
 
 		//Analyzation Events
+		bus.subscribe(PreconditionUnmetEvent.class,
+            new ActionOnEventListener(
+                ctx,
+                "PreconditionUnmetEvent",
+                new PreconditionUnmetAction(ctx)
+            )
+        );
+ 
         bus.subscribe(PreconditionMetEvent.class,
             new ActionOnEventListener(
                 ctx,
@@ -73,19 +85,11 @@ public class PaypalBot extends FactoryBot {
             )
         );
 
-        bus.subscribe(PreconditionUnmetEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "PreconditionUnmetEvent",
-                new PreconditionUnmetAction(ctx)
-            )
-        );
-
         bus.subscribe(ProposalAcceptedEvent.class,
             new ActionOnEventListener(
                 ctx,
                 "ProposalAcceptedEvent",
-                new StubAction(ctx)
+                new ProposalAcceptedAction(ctx)
             )
         );
 
@@ -93,7 +97,7 @@ public class PaypalBot extends FactoryBot {
              new ActionOnEventListener(
                  ctx,
                  "ProposalReceivedEvent",
-                 new StubAction(ctx, analyzeBehaviour)
+                 new ProposalReceivedAction(ctx, analyzeBehaviour)
              )
         );
 
@@ -101,7 +105,7 @@ public class PaypalBot extends FactoryBot {
             new ActionOnEventListener(
                 ctx,
                 "AgreementCancellationAcceptedEvent",
-                new StubAction(ctx, analyzeBehaviour)
+                new StubAction(ctx)
             )
         );
 
@@ -109,7 +113,7 @@ public class PaypalBot extends FactoryBot {
             new ActionOnEventListener(
                 ctx,
                 "AgreementCancellationAcceptedEvent",
-                new StubAction(ctx, analyzeBehaviour)
+                new StubAction(ctx)
             )
         );
 		
