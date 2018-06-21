@@ -8,7 +8,10 @@ import java.util.Map;
 
 import won.bot.framework.bot.context.BotContext;
 import won.bot.framework.bot.context.FactoryBotContextWrapper;
+import won.bot.framework.eventbot.EventListenerContext;
 import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.service.impl.PaypalPaymentService;
+import won.protocol.model.Connection;
 
 /**
  * Simple BotContextWrapper, which manages the open payment bridges.
@@ -19,12 +22,13 @@ import won.payment.paypal.bot.model.PaymentBridge;
 public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
 	
 	private static final String OPEN_PAYMENT_BRIDGES = ":openpaymentbridges";
+	private PaypalPaymentService paypalService;
 	
 	public PaypalBotContextWrapper(BotContext botContext, String botName) {
 		super(botContext, botName);
 	}
 	
-	public void addOpenBridge(URI needUri, PaymentBridge bridge) {
+	public void putOpenBridge(URI needUri, PaymentBridge bridge) {
 		this.getBotContext().saveToObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString(), bridge);
 	}
 	
@@ -44,5 +48,23 @@ public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
 	public void removeOpenBridge(URI needUri) {
 		this.getBotContext().removeFromObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString());
 	}
+	
+	public static PaypalBotContextWrapper instance(EventListenerContext ctx) {
+		return ((PaypalBotContextWrapper)ctx.getBotContextWrapper());
+	}
+	
+	public static PaymentBridge paymentBridge(EventListenerContext ctx, Connection con) {
+		return instance(ctx).getOpenBridge(con.getNeedURI());
+	}
+
+	public void setPaypalService(PaypalPaymentService paypalService) {
+		this.paypalService = paypalService;		
+	}
+
+	public PaypalPaymentService getPaypalService() {
+		return paypalService;
+	}
+	
+	
 
 }

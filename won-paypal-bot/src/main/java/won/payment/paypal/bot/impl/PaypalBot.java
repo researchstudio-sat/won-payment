@@ -26,6 +26,7 @@ import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
 import won.payment.paypal.bot.action.BuyerMessageReceiverAction;
+import won.payment.paypal.bot.action.ConnectionAcceptedAction;
 import won.payment.paypal.bot.action.ConnectionCloseAction;
 import won.payment.paypal.bot.action.ConnectionDenierAction;
 import won.payment.paypal.bot.action.CreateFactoryOfferAction;
@@ -58,17 +59,25 @@ public class PaypalBot extends FactoryBot {
 		
 		EventBus bus = getEventBus();
 		EventListenerContext ctx = getEventListenerContext();
+		
+		PaypalBotContextWrapper.instance(ctx).setPaypalService(paypalService);
 
 		AnalyzeBehaviour analyzeBehaviour = new AnalyzeBehaviour(ctx);
 		analyzeBehaviour.activate();
-		
-//		getBotContextWrapper().getBotContext().
-		
+				
 		
 		// eagerly cache RDF data
 		BotBehaviour eagerlyCacheBehaviour = new EagerlyPopulateCacheBehaviour(ctx);
 		eagerlyCacheBehaviour.activate();
 
+		
+		// Factory Hint Event
+		bus.subscribe(FactoryHintEvent.class,
+				new ActionOnEventListener(ctx, "FactoryHintEvent", new CreateFactoryOfferAction(ctx)));
+		
+		// Counterpart accepted the connection
+		bus.subscribe(OpenFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionAcceptedAction(ctx)));
+		
 		//Analyzation Events
 		bus.subscribe(PreconditionUnmetEvent.class,
             new ActionOnEventListener(
@@ -94,6 +103,7 @@ public class PaypalBot extends FactoryBot {
             )
         );
 
+        // CLEAR ME
         bus.subscribe(ProposalReceivedEvent.class,
              new ActionOnEventListener(
                  ctx,
@@ -101,7 +111,7 @@ public class PaypalBot extends FactoryBot {
                  new ProposalReceivedAction(ctx, analyzeBehaviour)
              )
         );
-
+        // CLEAR ME
         bus.subscribe(AgreementCancellationAcceptedEvent.class,
             new ActionOnEventListener(
                 ctx,
@@ -109,7 +119,7 @@ public class PaypalBot extends FactoryBot {
                 new StubAction(ctx)
             )
         );
-
+        // CLEAR ME
         bus.subscribe(AgreementCancellationRequestedEvent.class,
             new ActionOnEventListener(
                 ctx,
@@ -118,9 +128,7 @@ public class PaypalBot extends FactoryBot {
             )
         );
 		
-		// Factory Hint Event
-		bus.subscribe(FactoryHintEvent.class,
-				new ActionOnEventListener(ctx, "FactoryHintEvent", new CreateFactoryOfferAction(ctx)));
+		
 
 		// Broker for Merchant and Buyer Messages
 //		EventBotAction merchantAction = new MerchantMessageReceiverAction(ctx, openBridges);

@@ -15,6 +15,7 @@ public class PaymentBridge implements Serializable {
 
 	private Connection merchantConnection;
 	private Connection buyerConnection;
+	private String payKey;
 	private PaymentStatus status = PaymentStatus.NOWHERE;
 
 	public Connection getMerchantConnection() {
@@ -39,6 +40,14 @@ public class PaymentBridge implements Serializable {
 
 	public void setStatus(PaymentStatus status) {
 		this.status = status;
+	}
+
+	public String getPayKey() {
+		return payKey;
+	}
+
+	public void setPayKey(String payKey) {
+		this.payKey = payKey;
 	}
 
 }

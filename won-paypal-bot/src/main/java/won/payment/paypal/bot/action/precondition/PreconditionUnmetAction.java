@@ -14,6 +14,8 @@ import won.bot.framework.eventbot.event.impl.analyzation.precondition.Preconditi
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
+import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
 import won.utils.goals.GoalInstantiationResult;
@@ -31,7 +33,12 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 
         if(ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof PreconditionUnmetEvent) {
             Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
-
+            PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+            
+            if (bridge.getStatus() != PaymentStatus.GOALUNSATISFIED) {
+            	return;
+            }
+            
             logger.info("Precondition unmet");
             
             GoalInstantiationResult preconditionEventPayload = ((PreconditionEvent) event).getPayload();
@@ -54,7 +61,6 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
             
 
             Model messageModel = WonRdfUtils.MessageUtils.processingMessage(respondWith);
-            //TODO: Create Message that tells the other side which preconditions(shapes) are not yet met in a better way and not just by pushing a string into the conversation
             getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, messageModel));
         }
 

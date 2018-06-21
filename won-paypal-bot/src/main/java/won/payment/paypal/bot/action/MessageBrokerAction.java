@@ -48,7 +48,7 @@ public class MessageBrokerAction extends BaseEventBotAction {
 				PaymentBridge bridge = openBridges.get(needUri);
 				if (bridge.getMerchantConnection() == null) {
 					bridge.setMerchantConnection(con);
-					bridge.setStatus(PaymentStatus.UNPUBLISHED);
+					bridge.setStatus(PaymentStatus.GOALUNSATISFIED);
 					logger.debug("Merchant has connected with connection {} in need {}", con.getConnectionURI(),
 							con.getNeedURI());
 				} else if (!con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())

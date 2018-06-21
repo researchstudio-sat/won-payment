@@ -115,7 +115,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 		PaymentStatus status = openPayments.get(con.getNeedURI()).getStatus();
 		String msg = WonRdfUtils.MessageUtils.getTextMessage(wonMsg).trim();
 
-		if (status == PaymentStatus.UNPUBLISHED || status == PaymentStatus.DENIED) {
+		if (status == PaymentStatus.GOALUNSATISFIED || status == PaymentStatus.DENIED) {
 			if ("help".equals(msg)) {
 				printHelp(con);
 			} else if ("payment validate".equals(msg)) {
@@ -128,9 +128,9 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 			} else {
 				makeTextMsg("If do not know how to hanlde me type 'help'", con);
 			}
-		} else if (status == PaymentStatus.PUBLISHED) {
+		} else if (status == PaymentStatus.GOALSATISFIED) {
 			makeTextMsg("You have to wait for the payment to be accepted or denied.", con);
-		} else if (status == PaymentStatus.ACCEPTED) {
+		} else if (status == PaymentStatus.PUBLISHED) {
 			makeTextMsg("The payment got accepted. It will be created now.", con);
 		} else if (status == PaymentStatus.DENIED) {
 			// Should not exists ?!?
@@ -160,7 +160,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 
 		PaymentStatus status = openPayments.get(con.getNeedURI()).getStatus();
 
-		if (status == PaymentStatus.UNPUBLISHED || status == PaymentStatus.DENIED) {
+		if (status == PaymentStatus.GOALUNSATISFIED || status == PaymentStatus.DENIED) {
 			// TODO: Check if the acceptMessage was a payment
 			Resource payment = EventCrawler.getLastPaymentEvent(con, getEventListenerContext());
 			if (payment != null) {
@@ -305,7 +305,7 @@ public class MerchantMessageReceiverAction extends BaseEventBotAction {
 				+ payment.getProperty(WONPAY.HAS_SECRET).getObject().asLiteral().getString() + "  \n\n"
 				+ "Type 'accept' or 'deny'.";
 		try {
-			openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.PUBLISHED);
+			openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.GOALSATISFIED);
 			bus.publish(new ConnectCommandEvent(con.getNeedURI(), new URI(needUri), msg));
 			makeTextMsg("Proposed payment. Waiting for counterpart need to accept ...", con);
 		} catch (URISyntaxException e) {

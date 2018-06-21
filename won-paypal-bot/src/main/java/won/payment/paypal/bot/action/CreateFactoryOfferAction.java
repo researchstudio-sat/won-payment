@@ -113,7 +113,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
 						PaymentBridge bridge = new PaymentBridge();
 						bridge.setMerchantConnection(con);
 						bridge.setStatus(PaymentStatus.NOWHERE);
-						((PaypalBotContextWrapper)getEventListenerContext().getBotContextWrapper()).addOpenBridge(needUri, bridge);
+						((PaypalBotContextWrapper)getEventListenerContext().getBotContextWrapper()).putOpenBridge(needUri, bridge);
 					}
 					
 				}

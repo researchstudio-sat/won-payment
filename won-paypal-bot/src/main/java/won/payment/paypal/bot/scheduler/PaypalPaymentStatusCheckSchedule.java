@@ -48,7 +48,7 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 		while (itr.hasNext()) {
 			PaymentBridge bridge = itr.next();
 			if (bridge.getStatus() == PaymentStatus.GENERATED) {
-				String payKey = lookForOpenPayment(bridge);
+				String payKey = bridge.getPayKey();
 				if (payKey != null) {
 					checkPayment(payKey, bridge);
 				}
@@ -61,24 +61,8 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 		if (con == null) {
 			return;
 		}
-		Model model = WonRdfUtils.MessageUtils.textMessage(msg);
+		Model model = WonRdfUtils.MessageUtils.processingMessage(msg);
 		ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
-	}
-
-	/**
-	 * Crawls for the payKey of the generated payment.
-	 * 
-	 * @param bridge
-	 *            The payment bridge where the payment key should be searched.
-	 * @return Paykey or null.
-	 */
-	private String lookForOpenPayment(PaymentBridge bridge) {
-		Resource baseRes = EventCrawler.getLatestPaymentPayKey(bridge.getBuyerConnection(), ctx);
-		if (baseRes == null) {
-			return null;
-		}
-		String payKey = baseRes.getProperty(WONPAY.HAS_PAYPAL_TX_KEY).getObject().asLiteral().getString();
-		return payKey;
 	}
 
 	/**
@@ -102,8 +86,10 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 				makeTextMsg("The payment is expired! Type 'accept' to generate a new one.",
 						bridge.getBuyerConnection());
 				logger.info("Paypal Payment expired with payKey={}", payKey);
-				bridge.setStatus(PaymentStatus.PUBLISHED);
+				bridge.setStatus(PaymentStatus.EXPIRED);
 			}
+			
+			PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getNeedURI(), bridge);
 
 		} catch (Exception e) {
 			logger.warn("Paypal payment check failed.", e);

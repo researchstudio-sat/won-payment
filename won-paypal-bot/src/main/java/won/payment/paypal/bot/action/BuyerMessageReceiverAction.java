@@ -81,7 +81,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 		String msg = WonRdfUtils.MessageUtils.getTextMessage(wonMsg).trim();
 		msg = msg != null ? msg : "";
 
-		if (status == PaymentStatus.PUBLISHED) {
+		if (status == PaymentStatus.GOALSATISFIED) {
 			if (msg.equals("accept")) {
 				generate(con, bus);
 			} else if (msg.equals("deny")) {
@@ -91,7 +91,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 						+ "Type 'deny' to deny the payment and close the connection.";
 				makeTextMsg(resp, con);
 			}
-		} else if (status == PaymentStatus.ACCEPTED) {
+		} else if (status == PaymentStatus.PUBLISHED) {
 			makeTextMsg("The payment will be generated. Please be patient.", con);
 		} else if (status == PaymentStatus.DENIED) {
 			// Can not exists, because connection got closed before
@@ -119,7 +119,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 	 * @param bus The event bus for publishing new events.
 	 */
 	private void generate(Connection con, EventBus bus) {
-		openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.ACCEPTED);
+		openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.PUBLISHED);
 		Connection merchantCon = openPayments.get(con.getNeedURI()).getMerchantConnection();
 		makeTextMsg("The counterpart need has accepted the payment request! Generating the payment ...", merchantCon);
 		makeTextMsg("Generating the payment ...", con);
@@ -199,7 +199,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 			} else if (status == PaypalPaymentStatus.EXPIRED) {
 				makeTextMsg("The payment is expired! Type 'accept' to generate a new one.", con);
 				logger.info("Paypal Payment expired with payKey={}", payKey);
-				openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.PUBLISHED);
+				openPayments.get(con.getNeedURI()).setStatus(PaymentStatus.GOALSATISFIED);
 			} else {
 				makeTextMsg("The payment is not completed yet. Type 'check' after you completed the payment.", con);
 			}

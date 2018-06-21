@@ -42,6 +42,7 @@
     <bean id="botContextWrapper" class="won.payment.paypal.bot.impl.PaypalBotContextWrapper">
         <constructor-arg name="botContext" ref="${botContext.impl}"/>
         <constructor-arg name="botName" value="${paypalbot.name}"/>
+        <property name="paypalService" ref="paypalservice" />
     </bean>
 
     <bean id="needProducer" class="won.bot.framework.component.needproducer.impl.DirectoryBasedNeedProducer">

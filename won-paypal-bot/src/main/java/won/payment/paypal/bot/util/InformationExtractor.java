@@ -7,6 +7,7 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 
 import won.utils.goals.GoalInstantiationResult;
 
@@ -14,6 +15,7 @@ public class InformationExtractor {
 
 	private static final String paymentDetailsQuery;
 	
+	private static final String PAYMENT = "main";
     private static final String AMOUNT = "amount";
     private static final String CURRENCY = "currency";
     private static final String RECEIVER = "receiver";
@@ -31,9 +33,20 @@ public class InformationExtractor {
     	paymentDetailsQuery = ResourceManager.getResourceAsString("/temp/paymentDetails.rq");
     }
     
-    public static Double getAmount(GoalInstantiationResult payload) {
+    public static Resource getPayment(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
+
+            if (solution != null) {
+                return solution.getResource(PAYMENT);
+            }
+        }
+        return null;
+    }
+    
+    public static Double getAmount(Model payload) {
+    	if(payload != null) {
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null) {
                 return solution.getLiteral(AMOUNT).getDouble();
@@ -42,9 +55,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getCurrency(GoalInstantiationResult payload) {
+    public static String getCurrency(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null) {
                 return solution.getLiteral(CURRENCY).getString();
@@ -53,9 +66,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getReceiver(GoalInstantiationResult payload) {
+    public static String getReceiver(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null) {
                 return solution.getLiteral(RECEIVER).getString();
@@ -64,9 +77,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getSecret(GoalInstantiationResult payload) {
+    public static String getSecret(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null) {
                 return solution.getLiteral(SECRET).getString();
@@ -75,9 +88,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getCounterpart(GoalInstantiationResult payload) {
+    public static String getCounterpart(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null) {
                 return solution.getResource(COUNTERPART).getURI();
@@ -87,9 +100,9 @@ public class InformationExtractor {
     }
     
     // Optional
-    public static String getFeePayer(GoalInstantiationResult payload) {
+    public static String getFeePayer(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null && solution.getLiteral(FEEPAYER) != null) {
                 return solution.getLiteral(FEEPAYER).getString();
@@ -98,9 +111,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static Double getTax(GoalInstantiationResult payload) {
+    public static Double getTax(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null && solution.getLiteral(TAX) != null) {
                 return solution.getLiteral(TAX).getDouble();
@@ -109,9 +122,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getInvoiceId(GoalInstantiationResult payload) {
+    public static String getInvoiceId(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null && solution.getLiteral(INVOICEID) != null) {
                 return solution.getLiteral(INVOICEID).getString();
@@ -120,9 +133,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getInvoiceDetails(GoalInstantiationResult payload) {
+    public static String getInvoiceDetails(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null && solution.getLiteral(INVOICEDETAILS) != null) {
                 return solution.getLiteral(INVOICEDETAILS).getString();
@@ -131,9 +144,9 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getExpirationTime(GoalInstantiationResult payload) {
+    public static String getExpirationTime(Model payload) {
     	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload.getInstanceModel());
+            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null && solution.getLiteral(EXPIRATIONTIME) != null) {
                 return solution.getLiteral(EXPIRATIONTIME).getString();

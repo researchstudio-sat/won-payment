@@ -97,7 +97,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	 */
 	private void unexpectedClosure(PaymentBridge bridge, Connection con) {
 
-		if (bridge.getStatus() == PaymentStatus.ACCEPTED || bridge.getStatus() == PaymentStatus.GENERATED) {
+		if (bridge.getStatus() == PaymentStatus.PUBLISHED || bridge.getStatus() == PaymentStatus.GENERATED) {
 			if (bridge.getMerchantConnection() != null
 					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
 				bridge.setMerchantConnection(null);
@@ -115,7 +115,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
 						bridge.getStatus().name(), con.getNeedURI());
 			}
-		} else if (bridge.getStatus() == PaymentStatus.PUBLISHED) {
+		} else if (bridge.getStatus() == PaymentStatus.GOALSATISFIED) {
 			// If the merchant left, tell the buyer not to do anything and leave the channel
 			// If the buyer left just tell the merchant
 			// If the buyer declines the connection just tell the merchant

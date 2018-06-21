@@ -15,6 +15,8 @@ import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
+import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.model.Connection;
@@ -35,10 +37,13 @@ public class PreconditionMetAction extends BaseEventBotAction {
 
         if(ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof PreconditionMetEvent) {
             Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
-
-            PaypalBotContextWrapper botContextWrapper = (PaypalBotContextWrapper) ctx.getBotContextWrapper();
-
-            GoalInstantiationResult preconditionEventPayload = ((PreconditionEvent) event).getPayload();
+            PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+            
+            if (bridge.getStatus() != PaymentStatus.GOALUNSATISFIED) {
+            	return;
+            }
+            
+            Model preconditionEventPayload = ((PreconditionEvent) event).getPayload().getInstanceModel();
 
             logger.info("Precondition Met");
             
@@ -63,16 +68,11 @@ public class PreconditionMetAction extends BaseEventBotAction {
             logger.info("InvoiceId: " + invoiceId);
             logger.info("InvoiceDetails: " + invoiceDetails);
             logger.info("ExpirationTime: " + expirationTime);
-
-            final String preconditionUri = ((PreconditionEvent) event).getPreconditionUri();
-
-            Model paymentModel = preconditionEventPayload.getInstanceModel();
             
             try {
-            	validator.validate(paymentModel, con);
-            	Model payloadModel = preconditionEventPayload.getInstanceModel();
-            	WonRdfUtils.MessageUtils.addProcessing(payloadModel, "Payment summary");
-            	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, payloadModel);
+            	validator.validate(preconditionEventPayload, con);
+            	WonRdfUtils.MessageUtils.addProcessing(preconditionEventPayload, "Payment summary");
+            	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, preconditionEventPayload);
 
                 ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {
                     @Override
@@ -83,6 +83,8 @@ public class PreconditionMetAction extends BaseEventBotAction {
                             		"....Do you want to confirm the payment? Then accept the proposal");
                             WonRdfUtils.MessageUtils.addProposes(agreementMessage, ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent).getWonMessage().getMessageURI());
                             ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
+                            bridge.setStatus(PaymentStatus.GOALSATISFIED);
+                            PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
                         }else{
                             logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
                         }
