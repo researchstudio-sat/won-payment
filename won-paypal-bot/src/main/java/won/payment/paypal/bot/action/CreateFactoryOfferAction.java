@@ -13,19 +13,31 @@ import org.apache.jena.riot.RDFFormat;
 
 import won.bot.framework.bot.context.FactoryBotContextWrapper;
 import won.bot.framework.eventbot.EventListenerContext;
+import won.bot.framework.eventbot.action.BaseEventBotAction;
+import won.bot.framework.eventbot.action.EventBotAction;
 import won.bot.framework.eventbot.action.EventBotActionUtils;
 import won.bot.framework.eventbot.action.impl.needlifecycle.AbstractCreateNeedAction;
 import won.bot.framework.eventbot.bus.EventBus;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandEvent;
+import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandSuccessEvent;
+import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandResultEvent;
+import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandSuccessEvent;
+import won.bot.framework.eventbot.event.impl.command.open.OpenCommandSuccessEvent;
 import won.bot.framework.eventbot.event.impl.factory.FactoryHintEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.FailureResponseEvent;
+import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.listener.EventListener;
+import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
+import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
+import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.ResourceManager;
 import won.protocol.exception.WonMessageBuilderException;
 import won.protocol.message.WonMessage;
 import won.protocol.message.WonMessageBuilder;
+import won.protocol.model.Connection;
 import won.protocol.model.NeedContentPropertyType;
 import won.protocol.model.NeedGraphType;
 import won.protocol.service.WonNodeInformationService;
@@ -53,15 +65,12 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
     
     private static final String goalString;
     
-    private Map<URI, PaymentBridge> openBridges;
-
     static {
         goalString = ResourceManager.getResourceAsString("/temp/goals.trig");
     }
 	
-	public CreateFactoryOfferAction(EventListenerContext eventListenerContext, Map<URI, PaymentBridge> openBridges, URI... facets) {
+	public CreateFactoryOfferAction(EventListenerContext eventListenerContext, URI... facets) {
         super(eventListenerContext, (eventListenerContext.getBotContextWrapper()).getNeedCreateListName(), false, true, facets);
-        this.openBridges = openBridges;
     }
 	
 	@Override
@@ -89,8 +98,28 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
             logger.debug("factoryoffer creation successful, new need URI is {}", factoryOfferURI);
             //publish connect between the specific offer and the requester need
             ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryNeedURIOfferRelation(factoryOfferURI, factoryHintEvent.getFactoryNeedURI());
-            openBridges.put(factoryOfferURI, new PaymentBridge());
-            bus.publish(new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG));
+            
+            ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG); 
+            ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
+				
+				@Override
+				protected void doRun(Event event, EventListener executingListener) throws Exception {
+					
+					if (event instanceof ConnectCommandSuccessEvent) {
+						logger.info("Created successfully a connection to merchant");
+						ConnectCommandSuccessEvent connectSuccessEvent = (ConnectCommandSuccessEvent)event;
+						Connection con = connectSuccessEvent.getCon();
+						URI needUri = connectSuccessEvent.getNeedURI();
+						PaymentBridge bridge = new PaymentBridge();
+						bridge.setMerchantConnection(con);
+						bridge.setStatus(PaymentStatus.NOWHERE);
+						((PaypalBotContextWrapper)getEventListenerContext().getBotContextWrapper()).addOpenBridge(needUri, bridge);
+					}
+					
+				}
+			}));
+            
+            bus.publish(connectCommandEvent);
         };
 
         EventListener failureCallback = failureEvent -> {
@@ -116,7 +145,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         Dataset requesterNeedDataSet = ctx.getLinkedDataSource().getDataForResource(requesterURI);
         DefaultNeedModelWrapper requesterNeedModelWrapper = new DefaultNeedModelWrapper(requesterNeedDataSet);
 
-        String connectTitle =  factoryNeedModelWrapper.getSomeTitleFromIsOrAll() + "<->" + requesterNeedModelWrapper.getSomeTitleFromIsOrAll();
+        String connectTitle =  factoryNeedModelWrapper.getSomeTitleFromIsOrAll() + " <-> " + requesterNeedModelWrapper.getSomeTitleFromIsOrAll();
 
         DefaultNeedModelWrapper needModelWrapper = new DefaultNeedModelWrapper(ctx.getWonNodeInformationService().generateNeedURI(ctx.getNodeURISource().getNodeURI()).toString());
 

@@ -40,7 +40,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 
             GoalInstantiationResult preconditionEventPayload = ((PreconditionEvent) event).getPayload();
 
-            //logger.info("Precondition Met: " + preconditionEventPayload);
+            logger.info("Precondition Met");
             
             Double amount = InformationExtractor.getAmount(preconditionEventPayload);
             String currency = InformationExtractor.getCurrency(preconditionEventPayload);
@@ -70,15 +70,16 @@ public class PreconditionMetAction extends BaseEventBotAction {
             
             try {
             	validator.validate(paymentModel, con);
-            	
-            	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, preconditionEventPayload.getInstanceModel());
+            	Model payloadModel = preconditionEventPayload.getInstanceModel();
+            	WonRdfUtils.MessageUtils.addProcessing(payloadModel, "Payment summary");
+            	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, payloadModel);
 
                 ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {
                     @Override
                     protected void doRun(Event event, EventListener executingListener) throws Exception {
                         ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
                         if(connectionMessageCommandResultEvent.isSuccess()){
-                            Model agreementMessage = WonRdfUtils.MessageUtils.textMessage(amount + currency + " to " + receiver +
+                            Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(currency + " " + amount + " to " + receiver +
                             		"....Do you want to confirm the payment? Then accept the proposal");
                             WonRdfUtils.MessageUtils.addProposes(agreementMessage, ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent).getWonMessage().getMessageURI());
                             ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));

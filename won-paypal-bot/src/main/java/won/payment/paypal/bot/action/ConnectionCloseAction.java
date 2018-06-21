@@ -12,6 +12,7 @@ import won.bot.framework.eventbot.event.impl.command.connectionmessage.Connectio
 import won.bot.framework.eventbot.event.impl.command.deactivate.DeactivateNeedCommandEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
+import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
@@ -26,11 +27,8 @@ import won.protocol.util.WonRdfUtils;
  */
 public class ConnectionCloseAction extends BaseEventBotAction {
 
-	private Map<URI, PaymentBridge> openPayments;
-
-	public ConnectionCloseAction(EventListenerContext eventListenerContext, Map<URI, PaymentBridge> openPayments) {
+	public ConnectionCloseAction(EventListenerContext eventListenerContext) {
 		super(eventListenerContext);
-		this.openPayments = openPayments;
 	}
 
 	private void makeTextMsg(String msg, Connection con) {
@@ -47,7 +45,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 		if (event instanceof CloseFromOtherNeedEvent) {
 			CloseFromOtherNeedEvent closeEvent = (CloseFromOtherNeedEvent) event;
 			Connection con = closeEvent.getCon();
-			PaymentBridge bridge = openPayments.get(con.getNeedURI());
+			PaymentBridge bridge = ((PaypalBotContextWrapper)getEventListenerContext().getBotContextWrapper()).getOpenBridge(con.getNeedURI());
 
 			if (bridge.getStatus() == PaymentStatus.COMPLETED) {
 				closePaymentBridge(bridge, con);
@@ -172,7 +170,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	private void closeNeed(PaymentBridge bridge, Connection con) {
 		// Both closed
 		if (bridge.getMerchantConnection() == null && bridge.getBuyerConnection() == null) {
-			openPayments.remove(con.getNeedURI());
+			((PaypalBotContextWrapper)getEventListenerContext().getBotContextWrapper()).removeOpenBridge(con.getNeedURI());
 			getEventListenerContext().getEventBus().publish(new DeactivateNeedCommandEvent(con.getNeedURI()));
 			logger.debug("Need gets closed {}", con.getNeedURI());
 		}

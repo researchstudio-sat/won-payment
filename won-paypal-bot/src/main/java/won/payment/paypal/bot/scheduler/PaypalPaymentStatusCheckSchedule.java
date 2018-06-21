@@ -1,6 +1,7 @@
 package won.payment.paypal.bot.scheduler;
 
 import java.net.URI;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TimerTask;
 
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
+import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.EventCrawler;
@@ -33,18 +35,18 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 
 	private PaypalPaymentService paypalService;
 	private EventListenerContext ctx;
-	private Map<URI, PaymentBridge> openBridges;
 
-	public PaypalPaymentStatusCheckSchedule(EventListenerContext ctx, Map<URI, PaymentBridge> openBridges, PaypalPaymentService paypalService) {
+	public PaypalPaymentStatusCheckSchedule(EventListenerContext ctx, PaypalPaymentService paypalService) {
 		this.ctx = ctx;
-		this.openBridges = openBridges;
 		this.paypalService = paypalService;
 	}
 
 	@Override
 	public void run() {
 
-		for (PaymentBridge bridge : openBridges.values()) {
+		Iterator<PaymentBridge> itr = ((PaypalBotContextWrapper)ctx.getBotContextWrapper()).getOpenBridges();
+		while (itr.hasNext()) {
+			PaymentBridge bridge = itr.next();
 			if (bridge.getStatus() == PaymentStatus.GENERATED) {
 				String payKey = lookForOpenPayment(bridge);
 				if (payKey != null) {

@@ -51,7 +51,6 @@ public class PaypalBot extends FactoryBot {
 	private static final Long SCHEDULER_INTERVAL = 60 * 1000L;
 
 	private PaypalPaymentService paypalService;
-	private Map<URI, PaymentBridge> openBridges = new HashMap<>();
 	private Timer paymentCheckTimer;
 
 	@Override
@@ -62,6 +61,8 @@ public class PaypalBot extends FactoryBot {
 
 		AnalyzeBehaviour analyzeBehaviour = new AnalyzeBehaviour(ctx);
 		analyzeBehaviour.activate();
+		
+//		getBotContextWrapper().getBotContext().
 		
 		
 		// eagerly cache RDF data
@@ -119,19 +120,19 @@ public class PaypalBot extends FactoryBot {
 		
 		// Factory Hint Event
 		bus.subscribe(FactoryHintEvent.class,
-				new ActionOnEventListener(ctx, "FactoryHintEvent", new CreateFactoryOfferAction(ctx, openBridges)));
+				new ActionOnEventListener(ctx, "FactoryHintEvent", new CreateFactoryOfferAction(ctx)));
 
 		// Broker for Merchant and Buyer Messages
-		EventBotAction merchantAction = new MerchantMessageReceiverAction(ctx, openBridges);
-		EventBotAction buyerAction = new BuyerMessageReceiverAction(ctx, openBridges, paypalService);
-		EventListener broker = new ActionOnEventListener(ctx,
-				new MessageBrokerAction(ctx, openBridges, merchantAction, buyerAction));
+//		EventBotAction merchantAction = new MerchantMessageReceiverAction(ctx, openBridges);
+//		EventBotAction buyerAction = new BuyerMessageReceiverAction(ctx, openBridges, paypalService);
+//		EventListener broker = new ActionOnEventListener(ctx,
+//				new MessageBrokerAction(ctx, openBridges, merchantAction, buyerAction));
 		//bus.subscribe(MessageFromOtherNeedEvent.class, broker);
 		//bus.subscribe(OpenFromOtherNeedEvent.class, broker);
 
 		// Client closes the connection
 		bus.subscribe(CloseFromOtherNeedEvent.class,
-				new ActionOnEventListener(ctx, new ConnectionCloseAction(ctx, openBridges)));
+				new ActionOnEventListener(ctx, new ConnectionCloseAction(ctx)));
 
 		// If someone wants to connect to a instance
 		// Need then send a deny message and close the connection
@@ -139,7 +140,7 @@ public class PaypalBot extends FactoryBot {
 
 		// Start PaypalPaymentStatusCheckScheduler
 		PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(
-				getEventListenerContext(), openBridges, paypalService);
+				getEventListenerContext(), paypalService);
 		paymentCheckTimer = new Timer(true);
 		//paymentCheckTimer.scheduleAtFixedRate(statusScheduler, SCHEDULER_INTERVAL, SCHEDULER_INTERVAL);
 	}

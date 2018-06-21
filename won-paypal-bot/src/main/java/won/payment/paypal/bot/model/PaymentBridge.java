@@ -1,5 +1,7 @@
 package won.payment.paypal.bot.model;
 
+import java.io.Serializable;
+
 import won.protocol.model.Connection;
 
 /**
@@ -9,7 +11,7 @@ import won.protocol.model.Connection;
  * @author schokobaer
  *
  */
-public class PaymentBridge {
+public class PaymentBridge implements Serializable {
 
 	private Connection merchantConnection;
 	private Connection buyerConnection;

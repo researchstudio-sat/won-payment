@@ -21,7 +21,11 @@ public class ProposalReceivedAction extends BaseEventBotAction {
 		
 		ProposalReceivedEvent proposalReceivedEvent = (ProposalReceivedEvent) event;
 		
-		logger.info("Received Proposal " + proposalReceivedEvent);
+		String proposeType = proposalReceivedEvent.isMixed() ? "mixed" :
+							proposalReceivedEvent.hasProposesEvents() ? "proposes" :
+								"cancel" ;
+		
+		logger.info("Received " + proposeType + " Proposal");
 
 	}
 

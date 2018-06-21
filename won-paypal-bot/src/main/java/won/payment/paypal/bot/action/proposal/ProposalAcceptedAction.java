@@ -24,6 +24,8 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             
             Model payload = proposalAcceptedEvent.getPayload();
             
+            logger.info("Accepted Proposal for " + payload.listStatements().next().getResource().getLocalName());
+            
             
 		}
 

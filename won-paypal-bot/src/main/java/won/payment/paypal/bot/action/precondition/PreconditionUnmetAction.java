@@ -38,14 +38,24 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 
             String respondWith = "Payment not possible yet, missing necessary Values: \n";
             for (ValidationResultWrapper validationResultWrapper : preconditionEventPayload.getShaclReportWrapper().getValidationResults()) {
-				respondWith += validationResultWrapper.getResultMessage() + "\n";
+				if (validationResultWrapper.getResultPath() != null || validationResultWrapper.getFocusNode() != null) {
+					String path = validationResultWrapper.getResultPath().getLocalName();
+					if (path != null && !path.isEmpty()) {
+						respondWith += path + ": ";
+					} else {
+						path = validationResultWrapper.getFocusNode().getLocalName();
+						respondWith += !path.isEmpty()  ? path + ": " : "";
+					}
+				}
+            	
+            	respondWith += validationResultWrapper.getResultMessage() + " \n";
 			}
             logger.info(respondWith);
             
 
-            //Model messageModel = WonRdfUtils.MessageUtils.textMessage(respondWith);
+            Model messageModel = WonRdfUtils.MessageUtils.processingMessage(respondWith);
             //TODO: Create Message that tells the other side which preconditions(shapes) are not yet met in a better way and not just by pushing a string into the conversation
-            //getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, messageModel));
+            getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, messageModel));
         }
 
 	}

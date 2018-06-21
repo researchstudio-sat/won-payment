@@ -1,0 +1,15 @@
+# eclipse
+.settings/*
+.project
+.classpath
+won-payment-core/.settings/*
+won-payment-core/.project
+won-payment-core/.classpath
+won-paypal-bot/.settings/*
+won-paypal-bot/.project
+won-paypal-bot/.classpath
+
+# maven
+target/*
+won-payment-core/target/*
+won-paypal-bot/target/*

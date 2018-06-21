@@ -1,18 +1,48 @@
 package won.payment.paypal.bot.impl;
 
+import java.net.URI;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+
 import won.bot.framework.bot.context.BotContext;
 import won.bot.framework.bot.context.FactoryBotContextWrapper;
+import won.payment.paypal.bot.model.PaymentBridge;
 
 /**
- * Simple BotContextWrapper.
+ * Simple BotContextWrapper, which manages the open payment bridges.
  * 
  * @author schokobaer
  *
  */
 public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
-
+	
+	private static final String OPEN_PAYMENT_BRIDGES = ":openpaymentbridges";
+	
 	public PaypalBotContextWrapper(BotContext botContext, String botName) {
 		super(botContext, botName);
+	}
+	
+	public void addOpenBridge(URI needUri, PaymentBridge bridge) {
+		this.getBotContext().saveToObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString(), bridge);
+	}
+	
+	public PaymentBridge getOpenBridge(URI needUri) {
+		return (PaymentBridge) this.getBotContext().loadFromObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString());
+	}
+	
+	public Iterator<PaymentBridge> getOpenBridges() {
+		Map<String, Object> map = this.getBotContext().loadObjectMap(OPEN_PAYMENT_BRIDGES);
+		Collection<PaymentBridge> col = new LinkedList<>();
+		for (Object obj : map.values()) {
+			col.add((PaymentBridge)obj);
+		}
+		return col.iterator();
+	}
+	
+	public void removeOpenBridge(URI needUri) {
+		this.getBotContext().removeFromObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString());
 	}
 
 }
