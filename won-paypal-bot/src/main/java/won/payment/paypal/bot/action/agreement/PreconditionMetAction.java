@@ -21,7 +21,6 @@ import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
-import won.utils.goals.GoalInstantiationResult;
 
 public class PreconditionMetAction extends BaseEventBotAction {
 
@@ -71,7 +70,8 @@ public class PreconditionMetAction extends BaseEventBotAction {
             
             try {
             	validator.validate(preconditionEventPayload, con);
-            	WonRdfUtils.MessageUtils.addProcessing(preconditionEventPayload, "Payment summary");
+    			WonRdfUtils.MessageUtils.addProcessing(preconditionEventPayload, "Payment summary");
+    			WonRdfUtils.MessageUtils.addMessage(preconditionEventPayload, "Payment summary");
             	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, preconditionEventPayload);
 
                 ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {

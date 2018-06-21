@@ -36,7 +36,6 @@
                 <property name="fixedRate" value="false" />  <!-- fixed delay after completion -->
             </bean>
         </property>
-        <property name="paypalService" ref="paypalservice" />
     </bean>
 
     <bean id="botContextWrapper" class="won.payment.paypal.bot.impl.PaypalBotContextWrapper">

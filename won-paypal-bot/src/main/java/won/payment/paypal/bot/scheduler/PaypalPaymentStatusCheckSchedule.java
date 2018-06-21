@@ -33,12 +33,10 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 
 	private static final Logger logger = LoggerFactory.getLogger(PaypalPaymentStatusCheckSchedule.class);
 
-	private PaypalPaymentService paypalService;
 	private EventListenerContext ctx;
 
-	public PaypalPaymentStatusCheckSchedule(EventListenerContext ctx, PaypalPaymentService paypalService) {
+	public PaypalPaymentStatusCheckSchedule(EventListenerContext ctx) {
 		this.ctx = ctx;
-		this.paypalService = paypalService;
 	}
 
 	@Override
@@ -75,6 +73,7 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 	 */
 	private void checkPayment(String payKey, PaymentBridge bridge) {
 		try {
+			PaypalPaymentService paypalService = PaypalBotContextWrapper.instance(ctx).getPaypalService();
 			PaypalPaymentStatus status = paypalService.validate(payKey);
 
 			if (status == PaypalPaymentStatus.COMPLETED) {

@@ -3,6 +3,8 @@ package won.payment.paypal.bot.action;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -20,6 +22,7 @@ import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
+import won.protocol.util.RdfUtils;
 import won.protocol.util.WonConversationUtils;
 import won.protocol.util.WonRdfUtils;
 
@@ -45,14 +48,13 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 			PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());
 			
 			if (bridge.getMerchantConnection() != null &&
-					con.toString().equals(bridge.getMerchantConnection().toString())) {
+					con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
 				logger.info("merchant accepted the connection");
 				bridge.setStatus(PaymentStatus.GOALUNSATISFIED);
 				PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
 			} else if (bridge.getBuyerConnection() != null &&
-					con.toString().equals(bridge.getBuyerConnection().toString())) {
+					con.getConnectionURI().equals(bridge.getBuyerConnection().getConnectionURI())) {
 				logger.info("buyer accepted the connection");
-				PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
 				proposePaymentToBuyer(con);
 			} else {
 				logger.error("OpenFromOtherNeedEvent from not registered connection URI {}", con.toString());
@@ -65,13 +67,20 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 		EventListenerContext ctx = getEventListenerContext();
 		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());
 		
-		AgreementProtocolState state = WonConversationUtils.getAgreementProtocolState(con.getConnectionURI(),
+		AgreementProtocolState state = WonConversationUtils.getAgreementProtocolState(bridge.getMerchantConnection().getConnectionURI(),
 				ctx.getLinkedDataSource());
 		Dataset dataset = state.getAgreements();
 		Model agreements = dataset.getUnionModel();
-				
-		WonRdfUtils.MessageUtils.addProcessing(agreements, "Payment summary");
-		final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, agreements);
+		
+		Model paymentModel = WonRdfUtils.MessageUtils.processingMessage("Payment summary");
+		Resource basePayRes = RdfUtils.findOrCreateBaseResource(paymentModel);
+		StmtIterator itr = agreements.listStatements();
+		while (itr.hasNext()) {
+			Statement stmt = itr.next();
+			basePayRes.addProperty(stmt.getPredicate(), stmt.getObject());
+		}
+		
+		final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, paymentModel);
 		
 		ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {
             @Override

@@ -12,7 +12,7 @@ ex2:myPayment
 	pay:hasCurrency 'EUR' ;
 	pay:hasReceiver 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
-	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/x7l4hfbwo5y6at4w2a3j> .
+	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/ytmeibgqv5jh> .
 
 ex2:myPayment
 	pay:hasTax 0.99 .

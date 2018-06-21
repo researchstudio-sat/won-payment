@@ -35,7 +35,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 		if (con == null) {
 			return;
 		}
-		Model model = WonRdfUtils.MessageUtils.textMessage(msg);
+		Model model = WonRdfUtils.MessageUtils.processingMessage(msg);
 		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}
 

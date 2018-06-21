@@ -51,7 +51,6 @@ public class PaypalBot extends FactoryBot {
 
 	private static final Long SCHEDULER_INTERVAL = 60 * 1000L;
 
-	private PaypalPaymentService paypalService;
 	private Timer paymentCheckTimer;
 
 	@Override
@@ -60,8 +59,6 @@ public class PaypalBot extends FactoryBot {
 		EventBus bus = getEventBus();
 		EventListenerContext ctx = getEventListenerContext();
 		
-		PaypalBotContextWrapper.instance(ctx).setPaypalService(paypalService);
-
 		AnalyzeBehaviour analyzeBehaviour = new AnalyzeBehaviour(ctx);
 		analyzeBehaviour.activate();
 				
@@ -148,19 +145,10 @@ public class PaypalBot extends FactoryBot {
 
 		// Start PaypalPaymentStatusCheckScheduler
 		PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(
-				getEventListenerContext(), paypalService);
+				getEventListenerContext());
 		paymentCheckTimer = new Timer(true);
-		//paymentCheckTimer.scheduleAtFixedRate(statusScheduler, SCHEDULER_INTERVAL, SCHEDULER_INTERVAL);
+		paymentCheckTimer.scheduleAtFixedRate(statusScheduler, SCHEDULER_INTERVAL, SCHEDULER_INTERVAL);
 	}
-
-	public PaypalPaymentService getPaypalService() {
-		return paypalService;
-	}
-
-	public void setPaypalService(PaypalPaymentService paypalService) {
-		this.paypalService = paypalService;
-	}
-	
 	
 
 }

@@ -64,6 +64,14 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
 	}
 	
+	private void makeTextMsg(String msg, Connection con) {
+		if (con == null) {
+			return;
+		}
+		Model model = WonRdfUtils.MessageUtils.processingMessage(msg);
+		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
+	}
+	
 	private void connectToBuyer(ProposalAcceptedEvent event) throws URISyntaxException {
 		EventListenerContext ctx = getEventListenerContext();
 		Connection con = event.getCon();
@@ -94,6 +102,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 					bridge.setBuyerConnection(buyerCon);
 					bridge.setStatus(PaymentStatus.PUBLISHED);
 					PaypalBotContextWrapper.instance(ctx).putOpenBridge(needUri, bridge);
+					makeTextMsg("Payment published to buyer.", bridge.getMerchantConnection());
 				}
 				
 			}
