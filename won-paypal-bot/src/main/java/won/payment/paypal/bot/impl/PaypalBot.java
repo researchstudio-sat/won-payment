@@ -34,6 +34,7 @@ import won.payment.paypal.bot.action.MerchantMessageReceiverAction;
 import won.payment.paypal.bot.action.MessageBrokerAction;
 import won.payment.paypal.bot.action.StubAction;
 import won.payment.paypal.bot.action.agreement.PreconditionMetAction;
+import won.payment.paypal.bot.action.precondition.PreconditionUnemtReportAction;
 import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
 import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
@@ -125,6 +126,8 @@ public class PaypalBot extends FactoryBot {
             )
         );
 		
+        // SHAQL Validation on each incomming message 
+        bus.subscribe(MessageFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new PreconditionUnemtReportAction(ctx)));
 		
 
 		// Broker for Merchant and Buyer Messages

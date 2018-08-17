@@ -104,8 +104,8 @@ public class InformationExtractor {
     	if(payload != null) {
             QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
-            if (solution != null && solution.getLiteral(FEEPAYER) != null) {
-                return solution.getLiteral(FEEPAYER).getString();
+            if (solution != null && solution.getResource(FEEPAYER) != null) {
+                return solution.getResource(FEEPAYER).getURI();
             }
         }
         return null;

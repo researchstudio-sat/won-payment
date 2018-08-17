@@ -45,7 +45,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 		if (event instanceof CloseFromOtherNeedEvent) {
 			CloseFromOtherNeedEvent closeEvent = (CloseFromOtherNeedEvent) event;
 			Connection con = closeEvent.getCon();
-			PaymentBridge bridge = ((PaypalBotContextWrapper)getEventListenerContext().getBotContextWrapper()).getOpenBridge(con.getNeedURI());
+			PaymentBridge bridge = PaypalBotContextWrapper.instance(getEventListenerContext()).getOpenBridge(con.getNeedURI());
 
 			if (bridge.getStatus() == PaymentStatus.COMPLETED) {
 				closePaymentBridge(bridge, con);
@@ -170,7 +170,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	private void closeNeed(PaymentBridge bridge, Connection con) {
 		// Both closed
 		if (bridge.getMerchantConnection() == null && bridge.getBuyerConnection() == null) {
-			((PaypalBotContextWrapper)getEventListenerContext().getBotContextWrapper()).removeOpenBridge(con.getNeedURI());
+			PaypalBotContextWrapper.instance(getEventListenerContext()).removeOpenBridge(con.getNeedURI());
 			getEventListenerContext().getEventBus().publish(new DeactivateNeedCommandEvent(con.getNeedURI()));
 			logger.debug("Need gets closed {}", con.getNeedURI());
 		}

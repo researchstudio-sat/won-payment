@@ -54,6 +54,29 @@ public class PaypalPaymentService {
 		this.config = config;
 	}
 
+	public String create(PayRequest pay) throws Exception {
+		
+		pay.setRequestEnvelope(config.getEnvelope());
+		pay.setActionType("CREATE");
+		
+		if (pay.getFeesPayer() == null) {
+			pay.setFeesPayer("SENDER");
+		}
+		
+		pay.setReturnUrl("https://example.com/success");
+		pay.setCancelUrl("https://example.com/error");
+		
+		StringBuilder strBuilder = new StringBuilder();
+
+		executeRequest(pay, response -> {
+			strBuilder.append(((PayResponse) response).getPayKey());
+		}, errors -> {
+			throw new Exception();
+		});
+
+		return strBuilder.toString();
+	}
+	
 	/**
 	 * Creates a new Paypal Payment. Returns the pay key.
 	 * 
@@ -65,7 +88,7 @@ public class PaypalPaymentService {
 	 * @return
 	 * @throws Exception
 	 */
-	public String create(String receiver, Double amount, String currencyCode, String feePayer, String trackingId)
+	public String create2(String receiver, Double amount, String currencyCode, String feePayer, String trackingId)
 			throws Exception {
 
 		List<Receiver> receivers = new LinkedList<>();
@@ -102,23 +125,6 @@ public class PaypalPaymentService {
 		});
 
 		return strBuilder.toString();
-	}
-
-	public String create(String receiver, Double amount, String currencyCode, String feePayer) throws Exception {
-		return create(receiver, amount, currencyCode, feePayer, null);
-	}
-
-	/**
-	 * Creates a new Paypal Payment with Sender as fee payer. Returns pay key.
-	 * 
-	 * @param receiver
-	 * @param amount
-	 * @param currencyCode
-	 * @return
-	 * @throws Exception
-	 */
-	public String create(String receiver, Double amount, String currencyCode) throws Exception {
-		return create(receiver, amount, currencyCode, "SENDER", null);
 	}
 
 	/**

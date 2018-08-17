@@ -2,8 +2,19 @@ package won.payment.paypal.bot.action.proposal;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.DC;
+import org.apache.jena.vocabulary.RSS;
+import org.apache.velocity.runtime.directive.Literal;
+
+import com.paypal.svcs.types.ap.PayRequest;
+import com.paypal.svcs.types.ap.Receiver;
+import com.paypal.svcs.types.ap.ReceiverList;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -22,6 +33,7 @@ import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.util.WonPaymentRdfUtils;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.protocol.model.Connection;
+import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WONPAY;
 
@@ -86,7 +98,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		
 		String openingMsg = "Payment request\nAmount: " + currency + " " + amount + "\nReceiver: " + receiver + "\nSecret: " + secret;
 		        
-        logger.info("merchant accepted proposal for " + payload.listStatements().next().getResource().getLocalName());
+        //logger.info("merchant accepted proposal for " + payload.listStatements().next().getResource().getLocalName());
         
         ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(con.getNeedURI(), counterPartNeedUri, openingMsg);
         ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
@@ -121,20 +133,48 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		Double amount = InformationExtractor.getAmount(payload);
         String currency = InformationExtractor.getCurrency(payload);
         String receiver = InformationExtractor.getReceiver(payload);
-        String feePayer = "SENDER";
-		// TODO: InvoiceNumber, InvoiceDetails, Tax
+        String feePayer = InformationExtractor.getFeePayer(payload);
+        String expirationTime = InformationExtractor.getExpirationTime(payload);
+        String invoiceDetails = InformationExtractor.getInvoiceDetails(payload);
+        String invoiceId = InformationExtractor.getInvoiceId(payload);
+        Double tax = InformationExtractor.getTax(payload);
+		// TODO: Tax
         
         try {
+        	PayRequest pay = new PayRequest();
+    		// Set receiver
+    		Receiver rec = new Receiver();
+    		rec.setAmount(amount);
+    		rec.setEmail(receiver);
+    		pay.setReceiverList(new ReceiverList(Collections.singletonList(rec)));
+    		pay.setCurrencyCode(currency);
+    		
+    		if (feePayer != null) {
+    			feePayer = feePayer.equals(WONPAY.FEE_PAYER_SENDER.getURI()) ? "SENDER" : "RECEIVER";
+    			pay.setFeesPayer(feePayer);
+    		}
+    		if (expirationTime != null) {
+    			pay.setPayKeyDuration(expirationTime);
+    		}
+    		if (invoiceDetails != null) {
+    			pay.setMemo(invoiceDetails);
+    		}
+    		if (invoiceId != null) {
+    			rec.setInvoiceId(invoiceId);
+    		}   		
+    		
+
         	PaypalPaymentService paypalService = PaypalBotContextWrapper.instance(ctx).getPaypalService();
-			String payKey = paypalService.create(receiver, amount, currency, feePayer);
+			String payKey = paypalService.create(pay);
 			String url = paypalService.getPaymentUrl(payKey);
 
 			bridge.setStatus(PaymentStatus.GENERATED);
 			bridge.setPayKey(payKey);
 			PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
 			
-			// TODO: Print pay link to buyer; Tell merchant everything is fine
+			// Print pay link to buyer; Tell merchant everything is fine
 			Model respBuyer = WonRdfUtils.MessageUtils.processingMessage("Click on this link for executing the payment: \n" + url);
+			RdfUtils.findOrCreateBaseResource(respBuyer).addLiteral(RSS.link, url);
 			Model respMerch = WonRdfUtils.MessageUtils.processingMessage("Payment was generated. Waiting for the buyer to execute ...");
 			
 			ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, respBuyer));

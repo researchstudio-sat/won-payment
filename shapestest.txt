@@ -12,12 +12,14 @@ ex2:myPayment
 	pay:hasCurrency 'EUR' ;
 	pay:hasReceiver 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
-	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/ytmeibgqv5jh> .
+	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/hl10x0aznues> .
 
 ex2:myPayment
-	pay:hasTax 0.99 .
-
-
+	pay:hasTax 0.99 ;
+	pay:hasFeePayer <http://purl.org/webofneeds/payment#Sender> ;
+	pay:hasInvoiceId "ID-101" ;
+	pay:hasInvoiceDetails "Simple Test Payment" ;
+	pay:haseExpirationTime "PT12H"^^xsd:duration .
 
 
 

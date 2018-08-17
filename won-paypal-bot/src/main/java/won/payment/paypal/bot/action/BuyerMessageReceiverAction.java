@@ -134,7 +134,7 @@ public class BuyerMessageReceiverAction extends BaseEventBotAction {
 		// TODO: InvoiceNumber, InvoiceDetails, Tax
 
 		try {
-			String payKey = paypalService.create(receiver, amount, currency, feePayer);
+			String payKey = paypalService.create2(receiver, amount, currency, feePayer, null);
 			String url = paypalService.getPaymentUrl(payKey);
 
 			Model buyerResponse = WonPaymentRdfUtils.generatePaypalKeyMessage(null, payKey,
