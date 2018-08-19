@@ -9,6 +9,8 @@ import com.paypal.svcs.services.AdaptivePaymentsService;
 import com.paypal.svcs.types.common.DetailLevelCode;
 import com.paypal.svcs.types.common.RequestEnvelope;
 
+import won.payment.paypal.service.impl.AdaptivePaymentsServiceStub;
+
 /**
  * Config holder for Paypal-API.
  * 
@@ -80,6 +82,10 @@ public final class Config {
 		}
 
 		aps = new AdaptivePaymentsService(getConfig());
+		
+		// TODO: Stub
+		aps = new AdaptivePaymentsServiceStub(getConfig());
+		
 		return aps;
 
 	}
