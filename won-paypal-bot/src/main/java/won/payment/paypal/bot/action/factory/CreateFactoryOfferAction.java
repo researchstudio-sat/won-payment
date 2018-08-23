@@ -40,6 +40,7 @@ import won.protocol.util.NeedModelWrapper;
 import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
+import won.protocol.vocabulary.WONPAY;
 
 /**
  * Creates a new need for a payment.
@@ -152,7 +153,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         for(URI facet : facets){
             needModelWrapper.addFacetUri(facet.toString());
         }
-
+        
         return needModelWrapper.copyNeedModel(NeedGraphType.NEED);
     }
 
@@ -160,7 +161,10 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         Dataset dataset = DatasetFactory.createGeneral();
         RDFDataMgr.read(dataset, new ByteArrayInputStream(goalString.getBytes()), RDFFormat.TRIG.getLang());
 
-        return dataset.getUnionModel();
+        Model shapeModel = dataset.getUnionModel();
+        shapeModel.setNsPrefix("pay", WONPAY.BASE_URI);
+        
+        return shapeModel;
     }
 
 

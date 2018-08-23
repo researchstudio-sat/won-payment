@@ -143,46 +143,5 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 			logger.warn("Paypal payment could not be generated.", e);
 		}
 	}
-	
-	@Deprecated
-	private void proposePaymentToBuyer(Connection con) {
-		EventListenerContext ctx = getEventListenerContext();
-		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());
-		
-		AgreementProtocolState state = WonConversationUtils.getAgreementProtocolState(bridge.getMerchantConnection().getConnectionURI(),
-				ctx.getLinkedDataSource());
-		Dataset dataset = state.getAgreements();
-		Model agreements = dataset.getUnionModel();
-		
-		Model paymentModel = WonRdfUtils.MessageUtils.processingMessage("Payment summary");
-		Resource basePayRes = RdfUtils.findOrCreateBaseResource(paymentModel);
-		StmtIterator itr = agreements.listStatements();
-		while (itr.hasNext()) {
-			Statement stmt = itr.next();
-			basePayRes.addProperty(stmt.getPredicate(), stmt.getObject());
-		}
-		
-		final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, paymentModel);
-		
-		ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {
-            @Override
-            protected void doRun(Event event, EventListener executingListener) throws Exception {
-                ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
-                if(connectionMessageCommandResultEvent.isSuccess()){
-                    Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage("You want to generate the payment? Then accept the proposal.");
-                    WonRdfUtils.MessageUtils.addProposes(agreementMessage, ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent).getWonMessage().getMessageURI());
-                    ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
-                    //bridge.setStatus(PaymentStatus.PROPOSED);
-                    PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
-                }else{
-                    logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
-                }
-            }
-        }));
-
-        ctx.getEventBus().publish(connectionMessageCommandEvent);
-		
-		
-	}
 
 }

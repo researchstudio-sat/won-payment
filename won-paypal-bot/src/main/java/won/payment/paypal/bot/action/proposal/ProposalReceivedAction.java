@@ -12,13 +12,11 @@ import won.bot.framework.eventbot.listener.EventListener;
  * @author schokobaer
  *
  */
+@Deprecated
 public class ProposalReceivedAction extends BaseEventBotAction {
-
-	private AnalyzeBehaviour analyzeBehaviour;
 	
 	public ProposalReceivedAction(EventListenerContext eventListenerContext, AnalyzeBehaviour analyzeBehaviour) {
 		super(eventListenerContext);
-		this.analyzeBehaviour = analyzeBehaviour;
 	}
 	
 	@Override
