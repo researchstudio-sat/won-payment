@@ -6,8 +6,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.DC;
 import org.apache.jena.vocabulary.RSS;
 import org.apache.velocity.runtime.directive.Literal;
@@ -26,13 +28,17 @@ import won.bot.framework.eventbot.event.impl.command.connectionmessage.Connectio
 import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
+import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.util.WonPaymentRdfUtils;
 import won.payment.paypal.service.impl.PaypalPaymentService;
+import won.protocol.message.WonMessage;
+import won.protocol.message.WonMessageBuilder;
 import won.protocol.model.Connection;
+import won.protocol.service.WonNodeInformationService;
 import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WONPAY;
@@ -95,12 +101,15 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
         String receiver = InformationExtractor.getReceiver(payload);
         String secret = InformationExtractor.getSecret(payload);
 		URI counterPartNeedUri = new URI(InformationExtractor.getCounterpart(payload));
+		payload.setNsPrefix("pay", WONPAY.BASE_URI);
 		
 		String openingMsg = "Payment request\nAmount: " + currency + " " + amount + "\nReceiver: " + receiver + "\nSecret: " + secret;
 		        
         //logger.info("merchant accepted proposal for " + payload.listStatements().next().getResource().getLocalName());
         
-        ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(con.getNeedURI(), counterPartNeedUri, openingMsg);
+		// TODO: Test to send payload instead of simple text message
+        //ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(con.getNeedURI(), counterPartNeedUri, openingMsg);
+		ComplexConnectCommandEvent connectCommandEvent = new ComplexConnectCommandEvent(con.getNeedURI(), counterPartNeedUri, openingMsg, payload);
         ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
 
 			@Override
@@ -122,6 +131,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
         }));
         
         ctx.getEventBus().publish(connectCommandEvent);
+        //sendComplexConnectMessageToBuyer(connectCommandEvent);
 	}
 	
 	private void generatePayment(ProposalAcceptedEvent event) {
@@ -174,7 +184,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 			
 			// Print pay link to buyer; Tell merchant everything is fine
 			Model respBuyer = WonRdfUtils.MessageUtils.processingMessage("Click on this link for executing the payment: \n" + url);
-			RdfUtils.findOrCreateBaseResource(respBuyer).addLiteral(RSS.link, url);
+			RdfUtils.findOrCreateBaseResource(respBuyer).addProperty(RSS.link, new ResourceImpl(url));
 			Model respMerch = WonRdfUtils.MessageUtils.processingMessage("Payment was generated. Waiting for the buyer to execute ...");
 			
 			ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, respBuyer));
@@ -183,6 +193,43 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		} catch (Exception e) {
 			logger.warn("Paypal payment could not be generated.", e);
 		}
+	}
+	
+	
+	
+	private void sendComplexConnectMessageToBuyer(ComplexConnectCommandEvent connectCommandEvent) {
+		
+		// TODO: Set a good message;
+		// Only show the important payment details (no counterpart for example)
+		// Find out if the messeage was publish successfully
+		
+		WonNodeInformationService wonNodeInformationService =
+                getEventListenerContext().getWonNodeInformationService();
+
+        Dataset localNeedRDF =
+                getEventListenerContext().getLinkedDataSource().getDataForResource(connectCommandEvent.getNeedURI());
+        Dataset remoteNeedRDF =
+                getEventListenerContext().getLinkedDataSource().getDataForResource(connectCommandEvent.getRemoteNeedURI());
+
+        URI localWonNode = WonRdfUtils.NeedUtils.getWonNodeURIFromNeed(localNeedRDF, connectCommandEvent.getNeedURI());
+        URI remoteWonNode = WonRdfUtils.NeedUtils.getWonNodeURIFromNeed(remoteNeedRDF, connectCommandEvent.getRemoteNeedURI());
+
+
+        WonMessage message = 
+                WonMessageBuilder.setMessagePropertiesForConnect(
+                        wonNodeInformationService.generateEventURI(
+                                localWonNode),
+                        connectCommandEvent.getLocalFacet(),
+                        connectCommandEvent.getNeedURI(),
+                        localWonNode,
+                        connectCommandEvent.getRemoteFacet(),
+                        connectCommandEvent.getRemoteNeedURI(),
+                        remoteWonNode,
+                        connectCommandEvent.getWelcomeMessage())
+                		.addContent(connectCommandEvent.getPayload())
+                        .build();
+		
+		getEventListenerContext().getWonMessageSender().sendWonMessage(message);
 	}
 
 }
