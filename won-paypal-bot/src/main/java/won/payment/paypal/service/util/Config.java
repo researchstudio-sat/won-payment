@@ -3,13 +3,9 @@ package won.payment.paypal.service.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import com.paypal.svcs.services.AdaptivePaymentsService;
 import com.paypal.svcs.types.common.DetailLevelCode;
 import com.paypal.svcs.types.common.RequestEnvelope;
-
-import won.payment.paypal.service.impl.AdaptivePaymentsServiceStub;
 
 /**
  * Config holder for Paypal-API.

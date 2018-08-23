@@ -1,8 +1,5 @@
 package won.payment.paypal.bot.action.connect;
 
-import java.net.URI;
-import java.util.Map;
-
 import org.apache.jena.rdf.model.Model;
 
 import won.bot.framework.eventbot.EventListenerContext;

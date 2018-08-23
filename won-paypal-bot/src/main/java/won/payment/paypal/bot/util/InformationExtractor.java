@@ -9,8 +9,6 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 
-import won.utils.goals.GoalInstantiationResult;
-
 public class InformationExtractor {
 
 	private static final String paymentDetailsQuery;

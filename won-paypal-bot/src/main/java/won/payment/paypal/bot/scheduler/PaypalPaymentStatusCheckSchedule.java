@@ -1,12 +1,9 @@
 package won.payment.paypal.bot.scheduler;
 
-import java.net.URI;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.TimerTask;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,12 +12,10 @@ import won.bot.framework.eventbot.event.impl.command.connectionmessage.Connectio
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
-import won.payment.paypal.bot.util.EventCrawler;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.payment.paypal.service.impl.PaypalPaymentStatus;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
-import won.protocol.vocabulary.WONPAY;
 
 /**
  * Scheduler which crawls for open Payments which are in the state GENERATED and
