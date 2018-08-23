@@ -68,11 +68,6 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             if (bridge.getStatus() == PaymentStatus.GOALSATISFIED) {
             	// Merchant has accepted the payment proposal
             	connectToBuyer(proposalAcceptedEvent);
-            } else if (bridge.getStatus() == PaymentStatus.PROPOSED) {
-            	// Buyer has accepted the payment
-            	bridge.setStatus(PaymentStatus.ACCEPTED);
-            	PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
-            	generatePayment(proposalAcceptedEvent);
             } else {
             	return;
             }
@@ -134,6 +129,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
         //sendComplexConnectMessageToBuyer(connectCommandEvent);
 	}
 	
+	@Deprecated
 	private void generatePayment(ProposalAcceptedEvent event) {
 		EventListenerContext ctx = getEventListenerContext();
 		Connection con = event.getCon();
@@ -196,7 +192,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 	}
 	
 	
-	
+	@Deprecated
 	private void sendComplexConnectMessageToBuyer(ComplexConnectCommandEvent connectCommandEvent) {
 		
 		// TODO: Set a good message;

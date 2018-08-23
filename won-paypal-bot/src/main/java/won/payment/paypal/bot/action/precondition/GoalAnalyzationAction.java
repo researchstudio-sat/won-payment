@@ -8,25 +8,35 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Set;
 
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.codehaus.groovy.runtime.wrappers.BooleanWrapper;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.behaviour.AnalyzeBehaviour;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
+import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAcceptedEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
+import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandSuccessEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
+import won.protocol.agreement.AgreementProtocolState;
+import won.protocol.agreement.effect.MessageEffect;
+import won.protocol.agreement.effect.MessageEffectType;
+import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
 import won.protocol.util.NeedModelWrapper;
 import won.protocol.util.WonConversationUtils;
@@ -61,49 +71,83 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 			}
 
 			// Analyze for precondition met / unmet
-			analyze((BaseNeedAndConnectionSpecificEvent)event);
+			analyze((BaseNeedAndConnectionSpecificEvent) event);
 
 		}
 	}
 
 	/**
-	 * Analyzes if the shape if confirm. Then publishes a {@link PreconditionMetEvent}
-	 * or a {@link PreconditionUnmetEvent}.
+	 * Analyzes if the shape if confirm. Then publishes a
+	 * {@link PreconditionMetEvent} or a {@link PreconditionUnmetEvent}.
+	 * If the incomming event was a special event like a accept then analyzation
+	 * is stopped and an appropriate event is published.
+	 * 
 	 * @param event
 	 */
 	private void analyze(BaseNeedAndConnectionSpecificEvent event) {
-        EventListenerContext ctx = getEventListenerContext();
+		EventListenerContext ctx = getEventListenerContext();
 
-        LinkedDataSource linkedDataSource = ctx.getLinkedDataSource();
+		LinkedDataSource linkedDataSource = ctx.getLinkedDataSource();
 
-        URI needUri = event.getNeedURI();
-        URI remoteNeedUri = event.getRemoteNeedURI();
-        URI connectionUri = event.getConnectionURI();
-        Connection connection = makeConnection(needUri, remoteNeedUri, connectionUri);
+		URI needUri = event.getNeedURI();
+		URI remoteNeedUri = event.getRemoteNeedURI();
+		URI connectionUri = event.getConnectionURI();
+		Connection connection = makeConnection(needUri, remoteNeedUri, connectionUri);
+		WonMessage wonMessage = event instanceof ConnectionMessageCommandSuccessEvent
+				? ((ConnectionMessageCommandSuccessEvent) event).getWonMessage()
+				: event instanceof WonMessageReceivedOnConnectionEvent
+						? ((WonMessageReceivedOnConnectionEvent) event).getWonMessage()
+						: null;
 
+		// Check for message effects
+		if (wonMessage != null) {
+			final MutableBoolean stopAnalyzation = new MutableBoolean(false);
+			AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(connectionUri,
+					getEventListenerContext().getLinkedDataSource());
+			Set<MessageEffect> messageEffects = agreementProtocolState.getEffects(wonMessage.getMessageURI());
+			messageEffects.forEach(messageEffect -> {
+				if (messageEffect.getType().equals(MessageEffectType.ACCEPTS)) {
+					Model agreementPayload = agreementProtocolState
+							.getAgreement(messageEffect.asAccepts().getAcceptedMessageUri());
+					if (!agreementPayload.isEmpty()) {
+						ctx.getEventBus().publish(new ProposalAcceptedEvent(connection,
+								messageEffect.asAccepts().getAcceptedMessageUri(), agreementPayload));
+						stopAnalyzation.setValue(true);
+					}
+				}
+			});
 
-        Dataset needDataset = linkedDataSource.getDataForResource(needUri);
-        Collection<Resource> goalsInNeed = new NeedModelWrapper(needDataset).getGoals();
+			if (stopAnalyzation.booleanValue()) {
+				return;
+			}
+		}
 
-        //Things to do for each individual message regardless of it being received or sent
-        Dataset remoteNeedDataset = ctx.getLinkedDataSource().getDataForResource(remoteNeedUri);
-        Dataset conversationDataset = null;  //Initialize with null, to ensure some form of lazy init for the conversationDataset
-        GoalInstantiationProducer goalInstantiationProducer = null;
+		Dataset needDataset = linkedDataSource.getDataForResource(needUri);
+		Collection<Resource> goalsInNeed = new NeedModelWrapper(needDataset).getGoals();
 
-        for (Resource goal : goalsInNeed) {
-            String preconditionUri = getUniqueGoalId(goal, needDataset, connectionUri);
+		// Things to do for each individual message regardless of it being received or
+		// sent
+		Dataset remoteNeedDataset = ctx.getLinkedDataSource().getDataForResource(remoteNeedUri);
+		Dataset conversationDataset = null; // Initialize with null, to ensure some form of lazy init for the
+											// conversationDataset
+		GoalInstantiationProducer goalInstantiationProducer = null;
 
-            conversationDataset = WonConversationUtils.getAgreementProtocolState(connectionUri, linkedDataSource).getConversationDataset();
-            goalInstantiationProducer = getGoalInstantiationProducerLazyInit(goalInstantiationProducer, needDataset, remoteNeedDataset, conversationDataset);
+		for (Resource goal : goalsInNeed) {
+			String preconditionUri = getUniqueGoalId(goal, needDataset, connectionUri);
 
-            GoalInstantiationResult result = goalInstantiationProducer.findInstantiationForGoal(goal);
-            
-            if(result.getShaclReportWrapper().isConform()) {
-            	ctx.getEventBus().publish(new PreconditionMetEvent(connection, preconditionUri, result));
-            } else {
-            	ctx.getEventBus().publish(new PreconditionUnmetEvent(connection, preconditionUri, result));
-            }
-        }
+			conversationDataset = WonConversationUtils.getAgreementProtocolState(connectionUri, linkedDataSource)
+					.getConversationDataset();
+			goalInstantiationProducer = getGoalInstantiationProducerLazyInit(goalInstantiationProducer, needDataset,
+					remoteNeedDataset, conversationDataset);
+
+			GoalInstantiationResult result = goalInstantiationProducer.findInstantiationForGoal(goal);
+
+			if (result.getShaclReportWrapper().isConform()) {
+				ctx.getEventBus().publish(new PreconditionMetEvent(connection, preconditionUri, result));
+			} else {
+				ctx.getEventBus().publish(new PreconditionUnmetEvent(connection, preconditionUri, result));
+			}
+		}
 
 	}
 
@@ -160,21 +204,24 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 
 		return strModel;
 	}
-	
-	private GoalInstantiationProducer getGoalInstantiationProducerLazyInit(GoalInstantiationProducer goalInstantiationProducer, Dataset needDataset, Dataset remoteNeedDataset, Dataset conversationDataset){
-        if(goalInstantiationProducer == null){
-        	return new GoalInstantiationProducer(needDataset, remoteNeedDataset, conversationDataset, "http://example.org/", "http://example.org/blended/");
-        }else{
-            return goalInstantiationProducer;
-        }
-    }
-	
-	private static Connection makeConnection(URI needURI, URI remoteNeedURI, URI connectionURI){
-        Connection con = new Connection();
-        con.setConnectionURI(connectionURI);
-        con.setNeedURI(needURI);
-        con.setRemoteNeedURI(remoteNeedURI);
-        return con;
-    }
+
+	private GoalInstantiationProducer getGoalInstantiationProducerLazyInit(
+			GoalInstantiationProducer goalInstantiationProducer, Dataset needDataset, Dataset remoteNeedDataset,
+			Dataset conversationDataset) {
+		if (goalInstantiationProducer == null) {
+			return new GoalInstantiationProducer(needDataset, remoteNeedDataset, conversationDataset,
+					"http://example.org/", "http://example.org/blended/");
+		} else {
+			return goalInstantiationProducer;
+		}
+	}
+
+	private static Connection makeConnection(URI needURI, URI remoteNeedURI, URI connectionURI) {
+		Connection con = new Connection();
+		con.setConnectionURI(connectionURI);
+		con.setNeedURI(needURI);
+		con.setRemoteNeedURI(remoteNeedURI);
+		return con;
+	}
 
 }
