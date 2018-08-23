@@ -84,7 +84,7 @@ public final class Config {
 		aps = new AdaptivePaymentsService(getConfig());
 		
 		// TODO: Stub
-		aps = new AdaptivePaymentsServiceStub(getConfig());
+		//aps = new AdaptivePaymentsServiceStub(getConfig());
 		
 		return aps;
 
