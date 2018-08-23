@@ -19,11 +19,14 @@ import org.apache.jena.riot.RDFDataMgr;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
+import won.bot.framework.eventbot.action.impl.factory.model.Proposal;
+import won.bot.framework.eventbot.action.impl.factory.model.ProposalState;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAcceptedEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
+import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandSuccessEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
@@ -98,7 +101,6 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 
 		// Check for message effects
 		if (wonMessage != null) {
-			final MutableBoolean stopAnalyzation = new MutableBoolean(false);
 			AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(connectionUri,
 					getEventListenerContext().getLinkedDataSource());
 			Set<MessageEffect> messageEffects = agreementProtocolState.getEffects(wonMessage.getMessageURI());
@@ -109,14 +111,14 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 					if (!agreementPayload.isEmpty()) {
 						ctx.getEventBus().publish(new ProposalAcceptedEvent(connection,
 								messageEffect.asAccepts().getAcceptedMessageUri(), agreementPayload));
-						stopAnalyzation.setValue(true);
 					}
 				}
+				else if (messageEffect.getType().equals(MessageEffectType.PROPOSES)) {
+					Proposal proposal = new Proposal(messageEffect.getMessageUri(), ProposalState.SUGGESTED);
+                    Model proposalModel = agreementProtocolState.getPendingProposal(proposal.getUri());
+                    ctx.getEventBus().publish(new ProposalReceivedEvent(connection, (WonMessageReceivedOnConnectionEvent) event));
+				}
 			});
-
-			if (stopAnalyzation.booleanValue()) {
-				return;
-			}
 		}
 
 		Dataset needDataset = linkedDataSource.getDataForResource(needUri);

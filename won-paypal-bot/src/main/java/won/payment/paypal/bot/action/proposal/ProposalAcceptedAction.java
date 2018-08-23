@@ -66,6 +66,8 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             
             if (bridge.getStatus() == PaymentStatus.GOALSATISFIED) {
             	// Merchant has accepted the payment proposal
+            	bridge.setStatus(PaymentStatus.MERCHANTACCEPTED);
+            	PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getNeedURI(), bridge);
             	connectToBuyer(proposalAcceptedEvent);
             } else {
             	return;

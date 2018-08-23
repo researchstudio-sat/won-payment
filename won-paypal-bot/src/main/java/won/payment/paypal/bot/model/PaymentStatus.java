@@ -11,6 +11,7 @@ public enum PaymentStatus {
 	NOWHERE, // Connection created; Merchant Connection stored; Merchant does not have accepted the message yet
 	GOALUNSATISFIED, // Merchant accepted the connection; The payment goal is not satisfied yet
 	GOALSATISFIED, // Goal is satisfied and proposed to Merchant but he has not accepted it yet
+	MERCHANTACCEPTED, // Merchant has accepted a proposal, but the payment could not be published yet
 	PUBLISHED, // Merchant has accepted the Payment Proposal; Connection got created to buyer but he has not accepted it yet
 	DENIED, // The buyer has denied the connection
 	
