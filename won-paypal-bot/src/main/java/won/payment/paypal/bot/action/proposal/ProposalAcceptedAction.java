@@ -105,7 +105,8 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		removeModels.add(payload.listStatements(null, WON.IS_PROCESSING, (RDFNode)null).toModel());
 		payload.remove(removeModels);
 		
-		String openingMsg = "Payment request\nAmount: " + currency + " " + amount + "\nReceiver: " + receiver + "\nSecret: " + secret;
+		String openingMsg = "Payment request\nAmount: " + currency + " " + amount + "\nReceiver: " + receiver + "\nSecret: " + secret
+				+ "\nAccept the Connection to generate the payment and receive the execution link.";
 		        
         //logger.info("merchant accepted proposal for " + payload.listStatements().next().getResource().getLocalName());
         

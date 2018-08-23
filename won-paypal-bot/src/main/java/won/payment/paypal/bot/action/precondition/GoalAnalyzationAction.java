@@ -19,8 +19,6 @@ import org.apache.jena.riot.RDFDataMgr;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
-import won.bot.framework.eventbot.action.impl.factory.model.Proposal;
-import won.bot.framework.eventbot.action.impl.factory.model.ProposalState;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAcceptedEvent;
@@ -59,7 +57,7 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 
 	@Override
 	protected void doRun(Event event, EventListener executingListener) throws Exception {
-		// TODO: Change, so that also a opening message gets accepted
+
 		EventListenerContext ctx = getEventListenerContext();
 		if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper
 				&& event instanceof BaseNeedAndConnectionSpecificEvent) {
@@ -101,6 +99,7 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 
 		// Check for message effects
 		if (wonMessage != null) {
+			MutableBoolean stopAnalyzation = new MutableBoolean(false);
 			AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(connectionUri,
 					getEventListenerContext().getLinkedDataSource());
 			Set<MessageEffect> messageEffects = agreementProtocolState.getEffects(wonMessage.getMessageURI());
@@ -109,16 +108,25 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 					Model agreementPayload = agreementProtocolState
 							.getAgreement(messageEffect.asAccepts().getAcceptedMessageUri());
 					if (!agreementPayload.isEmpty()) {
+						stopAnalyzation.setValue(true);
 						ctx.getEventBus().publish(new ProposalAcceptedEvent(connection,
 								messageEffect.asAccepts().getAcceptedMessageUri(), agreementPayload));
 					}
 				}
 				else if (messageEffect.getType().equals(MessageEffectType.PROPOSES)) {
-					Proposal proposal = new Proposal(messageEffect.getMessageUri(), ProposalState.SUGGESTED);
-                    Model proposalModel = agreementProtocolState.getPendingProposal(proposal.getUri());
+					stopAnalyzation.setValue(true);
                     ctx.getEventBus().publish(new ProposalReceivedEvent(connection, (WonMessageReceivedOnConnectionEvent) event));
 				}
+				else if (messageEffect.getType().equals(MessageEffectType.REJECTS)) {
+					stopAnalyzation.setValue(true);
+					// TODO: Publish a ProposalRejectedEvent (not existing yet)
+                    // ctx.getEventBus().publish(null);
+				}
 			});
+			
+			if (stopAnalyzation.booleanValue()) {
+				return;
+			}
 		}
 
 		Dataset needDataset = linkedDataSource.getDataForResource(needUri);

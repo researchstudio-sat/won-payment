@@ -10,6 +10,7 @@ import won.bot.framework.eventbot.bus.EventBus;
 import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAcceptedEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
+import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.event.impl.factory.FactoryHintEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherNeedEvent;
@@ -25,6 +26,7 @@ import won.payment.paypal.bot.action.precondition.GoalAnalyzationAction;
 import won.payment.paypal.bot.action.precondition.PreconditionMetAction;
 import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
+import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
 import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
 
@@ -86,6 +88,14 @@ public class PaypalBot extends FactoryBot {
                 new ProposalAcceptedAction(ctx)
             )
         );
+        
+        bus.subscribe(ProposalReceivedEvent.class,
+                new ActionOnEventListener(
+                    ctx,
+                    "ProposalReceivedEvent",
+                    new ProposalReceivedAction(ctx)
+                )
+            );
 		
         // SHAQL Validation on each incomming message 
         ActionOnEventListener goalAnalyzationEventListener = new ActionOnEventListener(ctx, new GoalAnalyzationAction(ctx));
