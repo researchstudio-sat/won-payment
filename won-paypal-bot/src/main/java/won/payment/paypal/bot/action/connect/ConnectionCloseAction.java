@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action;
+package won.payment.paypal.bot.action.connect;
 
 import java.net.URI;
 import java.util.Map;

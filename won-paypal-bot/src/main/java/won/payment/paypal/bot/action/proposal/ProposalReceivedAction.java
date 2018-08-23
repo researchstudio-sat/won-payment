@@ -7,6 +7,11 @@ import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 
+/**
+ * TODO: DELETE ME
+ * @author schokobaer
+ *
+ */
 public class ProposalReceivedAction extends BaseEventBotAction {
 
 	private AnalyzeBehaviour analyzeBehaviour;

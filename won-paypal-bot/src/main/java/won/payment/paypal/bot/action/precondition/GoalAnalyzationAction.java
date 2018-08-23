@@ -20,6 +20,7 @@ import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.behaviour.AnalyzeBehaviour;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
+import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
@@ -40,32 +41,37 @@ import won.utils.goals.GoalInstantiationResult;
  * @author schokobaer
  *
  */
-public class PreconditionUnemtReportAction extends BaseEventBotAction {
+public class GoalAnalyzationAction extends BaseEventBotAction {
 
-	public PreconditionUnemtReportAction(EventListenerContext eventListenerContext) {
+	public GoalAnalyzationAction(EventListenerContext eventListenerContext) {
 		super(eventListenerContext);
 	}
 
 	@Override
 	protected void doRun(Event event, EventListener executingListener) throws Exception {
-
+		// TODO: Change, so that also a opening message gets accepted
 		EventListenerContext ctx = getEventListenerContext();
 		if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper
-				&& event instanceof MessageFromOtherNeedEvent) {
+				&& event instanceof BaseNeedAndConnectionSpecificEvent) {
 			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
-			if (bridge.getStatus().ordinal() >= PaymentStatus.GOALSATISFIED.ordinal()) {
+			if (bridge.getStatus().ordinal() > PaymentStatus.GOALSATISFIED.ordinal()) {
 				return;
 			}
 
-			// TODO: Analyze for precondition met / unmet. then throw the message
-			analyze((MessageFromOtherNeedEvent)event);
+			// Analyze for precondition met / unmet
+			analyze((BaseNeedAndConnectionSpecificEvent)event);
 
 		}
 	}
 
-	private void analyze(MessageFromOtherNeedEvent event) {
+	/**
+	 * Analyzes if the shape if confirm. Then publishes a {@link PreconditionMetEvent}
+	 * or a {@link PreconditionUnmetEvent}.
+	 * @param event
+	 */
+	private void analyze(BaseNeedAndConnectionSpecificEvent event) {
         EventListenerContext ctx = getEventListenerContext();
 
         LinkedDataSource linkedDataSource = ctx.getLinkedDataSource();
@@ -91,10 +97,11 @@ public class PreconditionUnemtReportAction extends BaseEventBotAction {
             goalInstantiationProducer = getGoalInstantiationProducerLazyInit(goalInstantiationProducer, needDataset, remoteNeedDataset, conversationDataset);
 
             GoalInstantiationResult result = goalInstantiationProducer.findInstantiationForGoal(goal);
-            boolean newGoalState = result.getShaclReportWrapper().isConform();
-
-            if(!newGoalState) {
-                ctx.getEventBus().publish(new PreconditionUnmetEvent(connection, preconditionUri, result));
+            
+            if(result.getShaclReportWrapper().isConform()) {
+            	ctx.getEventBus().publish(new PreconditionMetEvent(connection, preconditionUri, result));
+            } else {
+            	ctx.getEventBus().publish(new PreconditionUnmetEvent(connection, preconditionUri, result));
             }
         }
 

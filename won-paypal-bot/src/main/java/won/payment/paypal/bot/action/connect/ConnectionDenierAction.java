@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action;
+package won.payment.paypal.bot.action.connect;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;

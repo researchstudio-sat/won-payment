@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action;
+package won.payment.paypal.bot.action.factory;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;

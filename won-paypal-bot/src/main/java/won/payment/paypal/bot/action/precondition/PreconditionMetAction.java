@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action.agreement;
+package won.payment.paypal.bot.action.precondition;
 
 import org.apache.jena.rdf.model.Model;
 
@@ -38,7 +38,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
             Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
             PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
             
-            if (bridge.getStatus() != PaymentStatus.GOALUNSATISFIED) {
+            if (!(bridge.getStatus() == PaymentStatus.GOALUNSATISFIED || bridge.getStatus() == PaymentStatus.GOALSATISFIED)) {
             	return;
             }
             

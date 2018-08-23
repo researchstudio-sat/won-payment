@@ -26,16 +26,16 @@ import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
 import won.payment.paypal.bot.action.BuyerMessageReceiverAction;
-import won.payment.paypal.bot.action.ConnectionAcceptedAction;
-import won.payment.paypal.bot.action.ConnectionCloseAction;
-import won.payment.paypal.bot.action.ConnectionDenierAction;
-import won.payment.paypal.bot.action.CreateFactoryOfferAction;
 import won.payment.paypal.bot.action.MerchantMessageReceiverAction;
 import won.payment.paypal.bot.action.MessageBrokerAction;
 import won.payment.paypal.bot.action.StubAction;
-import won.payment.paypal.bot.action.agreement.PreconditionMetAction;
+import won.payment.paypal.bot.action.connect.ConnectionAcceptedAction;
+import won.payment.paypal.bot.action.connect.ConnectionCloseAction;
+import won.payment.paypal.bot.action.connect.ConnectionDenierAction;
 import won.payment.paypal.bot.action.connect.ExecuteComplexConnectCommandAction;
-import won.payment.paypal.bot.action.precondition.PreconditionUnemtReportAction;
+import won.payment.paypal.bot.action.factory.CreateFactoryOfferAction;
+import won.payment.paypal.bot.action.precondition.PreconditionMetAction;
+import won.payment.paypal.bot.action.precondition.GoalAnalyzationAction;
 import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
 import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
@@ -62,8 +62,8 @@ public class PaypalBot extends FactoryBot {
 		EventBus bus = getEventBus();
 		EventListenerContext ctx = getEventListenerContext();
 		
-		AnalyzeBehaviour analyzeBehaviour = new AnalyzeBehaviour(ctx);
-		analyzeBehaviour.activate();
+		//AnalyzeBehaviour analyzeBehaviour = new AnalyzeBehaviour(ctx);
+		//analyzeBehaviour.activate();
 				
 		
 		// eagerly cache RDF data
@@ -102,34 +102,11 @@ public class PaypalBot extends FactoryBot {
                 new ProposalAcceptedAction(ctx)
             )
         );
-
-        // CLEAR ME
-        bus.subscribe(ProposalReceivedEvent.class,
-             new ActionOnEventListener(
-                 ctx,
-                 "ProposalReceivedEvent",
-                 new ProposalReceivedAction(ctx, analyzeBehaviour)
-             )
-        );
-        // CLEAR ME
-        bus.subscribe(AgreementCancellationAcceptedEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "AgreementCancellationAcceptedEvent",
-                new StubAction(ctx)
-            )
-        );
-        // CLEAR ME
-        bus.subscribe(AgreementCancellationRequestedEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "AgreementCancellationAcceptedEvent",
-                new StubAction(ctx)
-            )
-        );
 		
         // SHAQL Validation on each incomming message 
-        bus.subscribe(MessageFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new PreconditionUnemtReportAction(ctx)));
+        ActionOnEventListener goalAnalyzationEventListener = new ActionOnEventListener(ctx, new GoalAnalyzationAction(ctx));
+        bus.subscribe(MessageFromOtherNeedEvent.class, goalAnalyzationEventListener);
+        bus.subscribe(OpenFromOtherNeedEvent.class, goalAnalyzationEventListener);
 		
         // ComplexConnectCommandEvent
         bus.subscribe(ComplexConnectCommandEvent.class, new ActionOnEventListener(ctx, new ExecuteComplexConnectCommandAction(ctx)));

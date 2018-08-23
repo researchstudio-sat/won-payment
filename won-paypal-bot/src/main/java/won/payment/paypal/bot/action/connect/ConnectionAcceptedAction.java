@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action;
+package won.payment.paypal.bot.action.connect;
 
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
