@@ -34,6 +34,7 @@ import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.agreement.effect.MessageEffect;
 import won.protocol.agreement.effect.MessageEffectType;
+import won.protocol.agreement.effect.ProposalType;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
 import won.protocol.util.NeedModelWrapper;
@@ -65,7 +66,7 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
 			if (bridge.getStatus().ordinal() > PaymentStatus.BUILDING.ordinal()) {
-				return;
+				//return;
 			}
 
 			// Analyze for precondition met / unmet

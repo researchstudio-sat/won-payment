@@ -20,7 +20,6 @@ import won.protocol.util.WonRdfUtils;
  * @author schokobaer
  *
  */
-@Deprecated
 public class ProposalReceivedAction extends BaseEventBotAction {
 
 	public ProposalReceivedAction(EventListenerContext eventListenerContext) {
@@ -36,9 +35,18 @@ public class ProposalReceivedAction extends BaseEventBotAction {
 			Connection con = proposalReceivedEvent.getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
-			Model rejectModel = WonRdfUtils.MessageUtils.textMessage("I do not accept proposals");
-			rejectModel = WonRdfUtils.MessageUtils.addRejects(rejectModel, proposalReceivedEvent.getProposalUri());
-			ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, rejectModel));
+			if (proposalReceivedEvent.hasProposesEvents()) {
+				Model rejectModel = WonRdfUtils.MessageUtils.textMessage("I do not accept proposals");
+				rejectModel = WonRdfUtils.MessageUtils.addRejects(rejectModel, proposalReceivedEvent.getProposalUri());
+				ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, rejectModel));
+			} else if (proposalReceivedEvent.hasProposesToCancelEvents()) {
+				Model rejectModel = WonRdfUtils.MessageUtils.textMessage("The payment was already published to the buyer. "
+						+ "You can not cancel anymore!");
+				rejectModel = WonRdfUtils.MessageUtils.addRejects(rejectModel, proposalReceivedEvent.getProposalUri());
+				ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, rejectModel));
+			}
+			
+			
 			
 			/*
 			if (bridge.getStatus() == PaymentStatus.GOALUNSATISFIED || bridge.getStatus() == PaymentStatus.GOALSATISFIED) {
