@@ -1,6 +1,13 @@
 package won.payment.paypal.bot.action.precondition;
 
+import java.net.URI;
+import java.util.Set;
+
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -19,8 +26,10 @@ import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
+import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
+import won.protocol.vocabulary.WONPAY;
 
 public class PreconditionMetAction extends BaseEventBotAction {
 
@@ -70,6 +79,9 @@ public class PreconditionMetAction extends BaseEventBotAction {
             
             try {
             	validator.validate(preconditionEventPayload, con);
+            	if (!retractOldPropose(con, preconditionEventPayload)) {
+            		return;
+            	}
     			WonRdfUtils.MessageUtils.addProcessing(preconditionEventPayload, "Payment summary");
     			WonRdfUtils.MessageUtils.addMessage(preconditionEventPayload, "Payment summary");
             	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, preconditionEventPayload);
@@ -99,6 +111,46 @@ public class PreconditionMetAction extends BaseEventBotAction {
             }
         }
 
+	}
+	
+	/**
+	 * If the new proposal is the same as the last one, then it returns false
+	 * and nothing should be done. If it is different, this method publishes a
+	 * retract message for the old proposal and returns true which means the new
+	 * proposal should be published.
+	 * 
+	 * @param con
+	 * @param newProposal
+	 * @return true if new proposal is different then the old one
+	 */
+	private boolean retractOldPropose(Connection con, Model newProposal) {
+		
+		AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
+				getEventListenerContext().getLinkedDataSource());
+		
+		URI lastProposalUri = agreementProtocolState.getLatestPendingProposal();
+		Model lastProposal = lastProposalUri != null ? agreementProtocolState.getPendingProposal(lastProposalUri) : null;
+		
+		if (lastProposal == null) {
+			return true;
+		}
+		Resource lastPayment = lastProposal.listResourcesWithProperty(RDF.type, WONPAY.PAYMENT).next();
+		Resource newPayment = newProposal.listResourcesWithProperty(RDF.type, WONPAY.PAYMENT).next();
+		lastProposal = ModelFactory.createDefaultModel().add(lastPayment.listProperties());
+		newProposal = ModelFactory.createDefaultModel().add(newPayment.listProperties());
+		
+		if (lastProposal.isIsomorphicWith(newProposal)) {
+			logger.debug("Same proposal as the last one");
+			// Stop publishing a new one ???
+			return false;
+		}
+		
+		// Retract the old proposal
+//		WonRdfUtils.MessageUtils.addRetracts(newProposal, lastProposalUri);
+		Model retract = WonRdfUtils.MessageUtils.retractsMessage(lastProposalUri);
+		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retract));
+		
+		return true;
 	}
 
 }

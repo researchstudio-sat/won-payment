@@ -64,7 +64,7 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
-			if (bridge.getStatus() != PaymentStatus.BUILDING) {
+			if (bridge.getStatus().ordinal() > PaymentStatus.BUILDING.ordinal()) {
 				return;
 			}
 
