@@ -61,7 +61,7 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 			if (bridge.getMerchantConnection() != null &&
 					con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
 				logger.info("merchant accepted the connection");
-				bridge.setStatus(PaymentStatus.GOALUNSATISFIED);
+				bridge.setStatus(PaymentStatus.BUILDING);
 				PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
 			} else if (bridge.getBuyerConnection() != null &&
 					con.getConnectionURI().equals(bridge.getBuyerConnection().getConnectionURI())) {

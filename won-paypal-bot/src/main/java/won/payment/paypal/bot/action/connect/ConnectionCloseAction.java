@@ -112,7 +112,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
 						bridge.getStatus().name(), con.getNeedURI());
 			}
-		} else if (bridge.getStatus() == PaymentStatus.GOALSATISFIED) {
+		} else if (bridge.getStatus() == PaymentStatus.BUILDING) {
 			// If the merchant left, tell the buyer not to do anything and leave the channel
 			// If the buyer left just tell the merchant
 			// If the buyer declines the connection just tell the merchant

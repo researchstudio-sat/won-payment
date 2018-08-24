@@ -38,7 +38,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
             Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
             PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
             
-            if (!(bridge.getStatus() == PaymentStatus.GOALUNSATISFIED || bridge.getStatus() == PaymentStatus.GOALSATISFIED)) {
+            if (bridge.getStatus() != PaymentStatus.BUILDING) {
             	return;
             }
             
@@ -83,7 +83,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
                             		"....Do you want to confirm the payment? Then accept the proposal");
                             WonRdfUtils.MessageUtils.addProposes(agreementMessage, ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent).getWonMessage().getMessageURI());
                             ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
-                            bridge.setStatus(PaymentStatus.GOALSATISFIED);
+                            bridge.setStatus(PaymentStatus.BUILDING);
                             PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
                         }else{
                             logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");

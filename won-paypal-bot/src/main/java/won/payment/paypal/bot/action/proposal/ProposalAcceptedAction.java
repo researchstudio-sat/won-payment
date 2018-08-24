@@ -64,7 +64,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             Connection con = proposalAcceptedEvent.getCon();
             PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
             
-            if (bridge.getStatus() == PaymentStatus.GOALSATISFIED) {
+            if (bridge.getStatus() == PaymentStatus.BUILDING) {
             	// Merchant has accepted the payment proposal
             	bridge.setStatus(PaymentStatus.MERCHANTACCEPTED);
             	PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getNeedURI(), bridge);

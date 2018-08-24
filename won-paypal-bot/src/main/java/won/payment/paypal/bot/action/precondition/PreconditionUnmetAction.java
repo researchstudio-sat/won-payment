@@ -34,7 +34,7 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
-			if (bridge.getStatus() != PaymentStatus.GOALUNSATISFIED) {
+			if (bridge.getStatus() != PaymentStatus.BUILDING) {
 				return;
 			}
 
