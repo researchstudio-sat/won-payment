@@ -24,6 +24,7 @@ import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
 import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
+import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
@@ -63,6 +64,7 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 				logger.info("merchant accepted the connection");
 				bridge.setStatus(PaymentStatus.BUILDING);
 				PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+				ctx.getEventBus().publish(new ConversationAnalyzationCommandEvent(con));
 			} else if (bridge.getBuyerConnection() != null &&
 					con.getConnectionURI().equals(bridge.getBuyerConnection().getConnectionURI())) {
 				logger.info("buyer accepted the connection");

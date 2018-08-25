@@ -21,6 +21,7 @@ import won.payment.paypal.bot.action.connect.ConnectionAcceptedAction;
 import won.payment.paypal.bot.action.connect.ConnectionCloseAction;
 import won.payment.paypal.bot.action.connect.ConnectionDenierAction;
 import won.payment.paypal.bot.action.connect.ExecuteComplexConnectCommandAction;
+import won.payment.paypal.bot.action.effect.MessageEffectBrokerAction;
 import won.payment.paypal.bot.action.factory.CreateFactoryOfferAction;
 import won.payment.paypal.bot.action.precondition.GoalAnalyzationAction;
 import won.payment.paypal.bot.action.precondition.PreconditionMetAction;
@@ -28,6 +29,7 @@ import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
 import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
 import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
+import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
 
 /**
@@ -97,21 +99,14 @@ public class PaypalBot extends FactoryBot {
                 )
             );
 		
-        // SHAQL Validation on each incomming message 
-        ActionOnEventListener goalAnalyzationEventListener = new ActionOnEventListener(ctx, new GoalAnalyzationAction(ctx));
-        bus.subscribe(MessageFromOtherNeedEvent.class, goalAnalyzationEventListener);
-        bus.subscribe(OpenFromOtherNeedEvent.class, goalAnalyzationEventListener);
+        // Incoming message effect broker
+        bus.subscribe(MessageFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new MessageEffectBrokerAction(ctx)));
+        
+        // SHAQL Validation for analyzation events
+        bus.subscribe(ConversationAnalyzationCommandEvent.class, new ActionOnEventListener(ctx, new GoalAnalyzationAction(ctx)));
 		
         // ComplexConnectCommandEvent
         bus.subscribe(ComplexConnectCommandEvent.class, new ActionOnEventListener(ctx, new ExecuteComplexConnectCommandAction(ctx)));
-
-		// Broker for Merchant and Buyer Messages
-//		EventBotAction merchantAction = new MerchantMessageReceiverAction(ctx, openBridges);
-//		EventBotAction buyerAction = new BuyerMessageReceiverAction(ctx, openBridges, paypalService);
-//		EventListener broker = new ActionOnEventListener(ctx,
-//				new MessageBrokerAction(ctx, openBridges, merchantAction, buyerAction));
-		//bus.subscribe(MessageFromOtherNeedEvent.class, broker);
-		//bus.subscribe(OpenFromOtherNeedEvent.class, broker);
 
 		// Client closes the connection
 		bus.subscribe(CloseFromOtherNeedEvent.class,
@@ -121,6 +116,9 @@ public class PaypalBot extends FactoryBot {
 		// Need then send a deny message and close the connection
 		bus.subscribe(ConnectFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionDenierAction(ctx)));
 
+		
+		
+		
 		// Start PaypalPaymentStatusCheckScheduler
 		PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(
 				getEventListenerContext());

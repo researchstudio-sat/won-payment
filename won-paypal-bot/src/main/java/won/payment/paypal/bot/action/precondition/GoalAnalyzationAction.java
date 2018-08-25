@@ -8,9 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Set;
 
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -21,21 +19,11 @@ import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
-import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAcceptedEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
-import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
-import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandSuccessEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
+import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
-import won.payment.paypal.bot.model.PaymentStatus;
-import won.protocol.agreement.AgreementProtocolState;
-import won.protocol.agreement.effect.MessageEffect;
-import won.protocol.agreement.effect.MessageEffectType;
-import won.protocol.agreement.effect.ProposalType;
-import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
 import won.protocol.util.NeedModelWrapper;
 import won.protocol.util.WonConversationUtils;
@@ -44,8 +32,9 @@ import won.utils.goals.GoalInstantiationProducer;
 import won.utils.goals.GoalInstantiationResult;
 
 /**
- * This action executes an analyzation of the messages in the connection if the
- * goal is not met yet. Then the shaql report is responded into the connection.
+ * This action executes an analyzation of the messages in the connection. It
+ * publishes {@link PreconditionMetEvent} and {@link PreconditionUnmetEvent}
+ * events.
  * 
  * @author schokobaer
  *
@@ -61,14 +50,8 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 
 		EventListenerContext ctx = getEventListenerContext();
 		if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper
-				&& event instanceof BaseNeedAndConnectionSpecificEvent) {
-			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
-			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
-
-			if (bridge.getStatus().ordinal() > PaymentStatus.BUILDING.ordinal()) {
-				//return;
-			}
-
+				&& event instanceof ConversationAnalyzationCommandEvent) {
+			
 			// Analyze for precondition met / unmet
 			analyze((BaseNeedAndConnectionSpecificEvent) event);
 
@@ -78,8 +61,6 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 	/**
 	 * Analyzes if the shape if confirm. Then publishes a
 	 * {@link PreconditionMetEvent} or a {@link PreconditionUnmetEvent}.
-	 * If the incomming event was a special event like a accept then analyzation
-	 * is stopped and an appropriate event is published.
 	 * 
 	 * @param event
 	 */
@@ -92,43 +73,7 @@ public class GoalAnalyzationAction extends BaseEventBotAction {
 		URI remoteNeedUri = event.getRemoteNeedURI();
 		URI connectionUri = event.getConnectionURI();
 		Connection connection = makeConnection(needUri, remoteNeedUri, connectionUri);
-		WonMessage wonMessage = event instanceof ConnectionMessageCommandSuccessEvent
-				? ((ConnectionMessageCommandSuccessEvent) event).getWonMessage()
-				: event instanceof WonMessageReceivedOnConnectionEvent
-						? ((WonMessageReceivedOnConnectionEvent) event).getWonMessage()
-						: null;
-
-		// Check for message effects
-		if (wonMessage != null) {
-			MutableBoolean stopAnalyzation = new MutableBoolean(false);
-			AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(connectionUri,
-					getEventListenerContext().getLinkedDataSource());
-			Set<MessageEffect> messageEffects = agreementProtocolState.getEffects(wonMessage.getMessageURI());
-			messageEffects.forEach(messageEffect -> {
-				if (messageEffect.getType().equals(MessageEffectType.ACCEPTS)) {
-					Model agreementPayload = agreementProtocolState
-							.getAgreement(messageEffect.asAccepts().getAcceptedMessageUri());
-					if (!agreementPayload.isEmpty()) {
-						stopAnalyzation.setValue(true);
-						ctx.getEventBus().publish(new ProposalAcceptedEvent(connection,
-								messageEffect.asAccepts().getAcceptedMessageUri(), agreementPayload));
-					}
-				}
-				else if (messageEffect.getType().equals(MessageEffectType.PROPOSES)) {
-					stopAnalyzation.setValue(true);
-                    ctx.getEventBus().publish(new ProposalReceivedEvent(connection, (WonMessageReceivedOnConnectionEvent) event));
-				}
-				else if (messageEffect.getType().equals(MessageEffectType.REJECTS)) {
-					stopAnalyzation.setValue(true);
-					// TODO: Publish a ProposalRejectedEvent (not existing yet)
-                    // ctx.getEventBus().publish(null);
-				}
-			});
-			
-			if (stopAnalyzation.booleanValue()) {
-				return;
-			}
-		}
+		
 
 		Dataset needDataset = linkedDataSource.getDataForResource(needUri);
 		Collection<Resource> goalsInNeed = new NeedModelWrapper(needDataset).getGoals();
