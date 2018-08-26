@@ -26,10 +26,12 @@ import won.payment.paypal.bot.action.factory.CreateFactoryOfferAction;
 import won.payment.paypal.bot.action.precondition.GoalAnalyzationAction;
 import won.payment.paypal.bot.action.precondition.PreconditionMetAction;
 import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
+import won.payment.paypal.bot.action.proposal.MessageRetractedAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
 import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
 import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
+import won.payment.paypal.bot.event.MessageRetractedEvent;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
 
 /**
@@ -96,6 +98,14 @@ public class PaypalBot extends FactoryBot {
                     ctx,
                     "ProposalReceivedEvent",
                     new ProposalReceivedAction(ctx)
+                )
+            );
+        
+        bus.subscribe(MessageRetractedEvent.class,
+                new ActionOnEventListener(
+                    ctx,
+                    "MessageRetractedEvent",
+                    new MessageRetractedAction(ctx)
                 )
             );
 		

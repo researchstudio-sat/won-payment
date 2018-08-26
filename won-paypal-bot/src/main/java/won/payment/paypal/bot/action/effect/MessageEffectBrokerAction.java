@@ -17,12 +17,14 @@ import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEven
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
+import won.payment.paypal.bot.event.MessageRetractedEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.agreement.effect.MessageEffect;
 import won.protocol.agreement.effect.MessageEffectType;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
+import won.protocol.util.WonRdfUtils;
 
 /**
  * Analyzes all incoming messages and breaks down
@@ -100,8 +102,8 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 				// TODO: Publish a ProposalRejectedEvent (not existing yet)
 				// ctx.getEventBus().publish(null);
 			} else if (messageEffect.getType().equals(MessageEffectType.RETRACTS)) {
-				// TODO: Publish a MessageRetractEvent (not existing yet)
-				// ctx.getEventBus().publish(null);
+				URI uri = messageEffect.asRetracts().getRetractedMessageUri();
+				ctx.getEventBus().publish(new MessageRetractedEvent(connection, uri));
 			}
 		});
 		

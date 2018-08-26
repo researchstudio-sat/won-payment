@@ -1,6 +1,7 @@
 package won.payment.paypal.bot.action.precondition;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Set;
 
 import org.apache.jena.rdf.model.Model;
@@ -29,6 +30,7 @@ import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
+import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
 
 public class PreconditionMetAction extends BaseEventBotAction {
@@ -145,10 +147,19 @@ public class PreconditionMetAction extends BaseEventBotAction {
 			return false;
 		}
 		
+		// Find out payment summary URI
+		StringBuilder paymentSummaryUriBuilder = new StringBuilder();
+		agreementProtocolState.getPendingProposal(lastProposalUri).listStatements(null, WON.HAS_TEXT_MESSAGE, "Payment summary").forEachRemaining(stmt -> {
+			paymentSummaryUriBuilder.append(stmt.getSubject().getURI());
+		});
+		
 		// Retract the old proposal
-//		WonRdfUtils.MessageUtils.addRetracts(newProposal, lastProposalUri);
-		Model retract = WonRdfUtils.MessageUtils.retractsMessage(lastProposalUri);
-		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retract));
+		try {
+			Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(lastProposalUri, new URI(paymentSummaryUriBuilder.toString()));
+			getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 		
 		return true;
 	}
