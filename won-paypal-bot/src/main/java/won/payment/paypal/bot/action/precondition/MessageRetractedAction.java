@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action.proposal;
+package won.payment.paypal.bot.action.precondition;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -69,7 +69,7 @@ public class MessageRetractedAction extends BaseEventBotAction {
 	 * @return
 	 */
 	private boolean retractPayment(MessageRetractedEvent event) {
-		// TODO: Check if the retracted message has content of the current proposed payment ->
+		// Check if the retracted message has content of the current proposed payment ->
 		// Retract Summary and Proposal
 		
 		AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(event.getConnectionURI(),

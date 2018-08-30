@@ -24,14 +24,16 @@ import won.payment.paypal.bot.action.connect.ExecuteComplexConnectCommandAction;
 import won.payment.paypal.bot.action.effect.MessageEffectBrokerAction;
 import won.payment.paypal.bot.action.factory.CreateFactoryOfferAction;
 import won.payment.paypal.bot.action.precondition.GoalAnalyzationAction;
+import won.payment.paypal.bot.action.precondition.MessageRetractedAction;
 import won.payment.paypal.bot.action.precondition.PreconditionMetAction;
 import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
-import won.payment.paypal.bot.action.proposal.MessageRetractedAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
 import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
+import won.payment.paypal.bot.action.proposal.ProposalRejectedAction;
 import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.event.MessageRetractedEvent;
+import won.payment.paypal.bot.event.ProposalRejectedEvent;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
 
 /**
@@ -63,7 +65,12 @@ public class PaypalBot extends FactoryBot {
 		
 		// Factory Hint Event
 		bus.subscribe(FactoryHintEvent.class,
-				new ActionOnEventListener(ctx, "FactoryHintEvent", new CreateFactoryOfferAction(ctx)));
+			new ActionOnEventListener(
+				ctx,
+				"FactoryHintEvent",
+				new CreateFactoryOfferAction(ctx)
+			)
+		);
 		
 		// Counterpart accepted the connection
 		bus.subscribe(OpenFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionAcceptedAction(ctx)));
@@ -93,21 +100,29 @@ public class PaypalBot extends FactoryBot {
             )
         );
         
+        bus.subscribe(ProposalRejectedEvent.class,
+            new ActionOnEventListener(
+                ctx,
+                "ProposalRejectedEvent",
+                new ProposalRejectedAction(ctx)
+            )
+        );
+        
         bus.subscribe(ProposalReceivedEvent.class,
-                new ActionOnEventListener(
-                    ctx,
-                    "ProposalReceivedEvent",
-                    new ProposalReceivedAction(ctx)
-                )
-            );
+            new ActionOnEventListener(
+                ctx,
+                "ProposalReceivedEvent",
+                new ProposalReceivedAction(ctx)
+            )
+        );
         
         bus.subscribe(MessageRetractedEvent.class,
-                new ActionOnEventListener(
-                    ctx,
-                    "MessageRetractedEvent",
-                    new MessageRetractedAction(ctx)
-                )
-            );
+            new ActionOnEventListener(
+                ctx,
+                "MessageRetractedEvent",
+                new MessageRetractedAction(ctx)
+            )
+        );
 		
         // Incoming message effect broker
         bus.subscribe(MessageFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new MessageEffectBrokerAction(ctx)));
