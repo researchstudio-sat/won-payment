@@ -17,23 +17,23 @@ import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherNeedEven
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
+import won.payment.paypal.bot.action.analyze.GoalAnalyzationAction;
 import won.payment.paypal.bot.action.connect.ConnectionAcceptedAction;
 import won.payment.paypal.bot.action.connect.ConnectionCloseAction;
 import won.payment.paypal.bot.action.connect.ConnectionDenierAction;
 import won.payment.paypal.bot.action.connect.ExecuteComplexConnectCommandAction;
 import won.payment.paypal.bot.action.effect.MessageEffectBrokerAction;
 import won.payment.paypal.bot.action.factory.CreateFactoryOfferAction;
-import won.payment.paypal.bot.action.precondition.GoalAnalyzationAction;
-import won.payment.paypal.bot.action.precondition.MessageRetractedAction;
+import won.payment.paypal.bot.action.modification.MessageRetractedAction;
 import won.payment.paypal.bot.action.precondition.PreconditionMetAction;
 import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
 import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
 import won.payment.paypal.bot.action.proposal.ProposalRejectedAction;
-import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
-import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
-import won.payment.paypal.bot.event.MessageRetractedEvent;
-import won.payment.paypal.bot.event.ProposalRejectedEvent;
+import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
+import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
+import won.payment.paypal.bot.event.modification.MessageRetractedEvent;
+import won.payment.paypal.bot.event.proposal.ProposalRejectedEvent;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
 
 /**

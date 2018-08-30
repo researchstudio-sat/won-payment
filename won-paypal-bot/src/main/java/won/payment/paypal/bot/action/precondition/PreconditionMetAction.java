@@ -2,12 +2,10 @@ package won.payment.paypal.bot.action.precondition;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Set;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
@@ -33,6 +31,13 @@ import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
 
+/**
+ * Shows the report of the SHACL validation. Also retracts
+ * old proposals if available.
+ * 
+ * @author schokobaer
+ *
+ */
 public class PreconditionMetAction extends BaseEventBotAction {
 
 	private PaymentModelValidator validator = new PaymentModelValidator();
@@ -94,7 +99,8 @@ public class PreconditionMetAction extends BaseEventBotAction {
                         ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
                         if(connectionMessageCommandResultEvent.isSuccess()){
                             Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(currency + " " + amount + " to " + receiver +
-                            		"....Do you want to confirm the payment? Then accept the proposal");
+                            		"....Do you want to confirm the payment? Then accept the proposal. After accepting the payment is published"
+                            		+ " to the counterpart and you won't be able to cancle it!");
                             WonRdfUtils.MessageUtils.addProposes(agreementMessage, ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent).getWonMessage().getMessageURI());
                             ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
                             bridge.setStatus(PaymentStatus.BUILDING);

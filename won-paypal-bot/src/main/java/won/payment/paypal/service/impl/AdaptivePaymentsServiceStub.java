@@ -20,6 +20,12 @@ import com.paypal.svcs.types.ap.PaymentDetailsResponse;
 import com.paypal.svcs.types.common.AckCode;
 import com.paypal.svcs.types.common.ResponseEnvelope;
 
+/**
+ * Simple stub for testing or if the real APA-Service is down.
+ * 
+ * @author schokobaer
+ *
+ */
 public class AdaptivePaymentsServiceStub extends AdaptivePaymentsService {
 
 	private int payKeyIndex = 0;

@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.event;
+package won.payment.paypal.bot.event.connect;
 
 import java.net.URI;
 
@@ -10,6 +10,13 @@ import won.bot.framework.eventbot.event.impl.command.MessageCommandEvent;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandEvent;
 import won.protocol.message.WonMessageType;
 
+/**
+ * To publish a more complex connection Opening message with more content
+ * then a simple text message.
+ * 
+ * @author schokobaer
+ *
+ */
 public class ComplexConnectCommandEvent extends BaseNeedSpecificEvent implements MessageCommandEvent, RemoteNeedSpecificEvent {
 
 	private Model payload;

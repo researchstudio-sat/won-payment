@@ -1,7 +1,11 @@
 package won.payment.paypal.bot.action.precondition;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.topbraid.shacl.vocabulary.SH;
 
 import won.bot.framework.eventbot.EventListenerContext;
@@ -15,11 +19,21 @@ import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
+import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
+import won.protocol.vocabulary.WON;
 import won.utils.goals.GoalInstantiationResult;
 import won.utils.shacl.ValidationResultWrapper;
 
+/**
+ * When the analyzation throws a precondition met event.
+ * Then a new proposal is made, if there is no old one which
+ * has exactly the same content.
+ * 
+ * @author schokobaer
+ *
+ */
 public class PreconditionUnmetAction extends BaseEventBotAction {
 
 	public PreconditionUnmetAction(EventListenerContext eventListenerContext) {
@@ -40,10 +54,12 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 
 			logger.info("Precondition unmet");
 
+			retractProposal(con);
+			
 			GoalInstantiationResult preconditionEventPayload = ((PreconditionEvent) event).getPayload();
 
 			Model messageModel = WonRdfUtils.MessageUtils
-					.processingMessage("Payment not possible yet, missing necessary values.");
+					.processingMessage("Payment not possible yet. See containing SHACL report.");
 			String respondWith = "Payment not possible yet, missing necessary Values: \n";
 			for (ValidationResultWrapper validationResultWrapper : preconditionEventPayload.getShaclReportWrapper()
 					.getValidationResults()) {
@@ -80,16 +96,42 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 				}
 
 				WonRdfUtils.MessageUtils.addToMessage(messageModel, SH.result, report);
-				// WonRdfUtils.MessageUtils.addToMessage(messageModel, RDF.first,
-				// preconditionEventPayload.getShaclReportWrapper().getReport());
 			}
 			logger.info(respondWith);
-
-			// Model messageModel = WonRdfUtils.MessageUtils.processingMessage(respondWith);
 
 			getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, messageModel));
 		}
 
+	}
+	
+	/**
+	 * Retracts the latest Proposal (if available)
+	 * together with the payment summary.
+	 * @param con
+	 */
+	private void retractProposal(Connection con) {
+		AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
+				getEventListenerContext().getLinkedDataSource());
+		
+		URI proposalUri = agreementProtocolState.getLatestPendingProposal();
+		if (proposalUri == null) {
+			return;
+		}
+		Model proposalModel = agreementProtocolState.getPendingProposal(proposalUri);
+		
+		StmtIterator itr = proposalModel.listStatements(null, WON.HAS_TEXT_MESSAGE, "Payment summary");
+		if (!itr.hasNext()) {
+			return;
+		}
+		Resource paymentSummary = itr.next().getSubject();
+		
+		try {
+			Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(new URI(paymentSummary.getURI()), proposalUri);
+			getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }

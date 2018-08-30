@@ -8,8 +8,6 @@ import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.listener.EventListener;
-import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
 
@@ -33,7 +31,6 @@ public class ProposalReceivedAction extends BaseEventBotAction {
 		if (event instanceof ProposalReceivedEvent) {
 			ProposalReceivedEvent proposalReceivedEvent = (ProposalReceivedEvent) event;
 			Connection con = proposalReceivedEvent.getCon();
-			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
 			if (proposalReceivedEvent.hasProposesEvents()) {
 				Model rejectModel = WonRdfUtils.MessageUtils.textMessage("I do not accept proposals");
@@ -46,26 +43,6 @@ public class ProposalReceivedAction extends BaseEventBotAction {
 				ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, rejectModel));
 			}
 			
-			
-			
-			/*
-			if (bridge.getStatus() == PaymentStatus.GOALUNSATISFIED || bridge.getStatus() == PaymentStatus.GOALSATISFIED) {
-				//bridge.setStatus(PaymentStatus.MERCHANTACCEPTED);
-				//PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getNeedURI(),
-				//		bridge);
-				
-				AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(proposalReceivedEvent.getConnectionURI(), ctx.getLinkedDataSource());
-				Model proposalModel = agreementProtocolState.getPendingProposal(proposalReceivedEvent.getProposalUri());
-				
-				StmtIterator itr = proposalModel.listStatements();
-				while(itr.hasNext()) {
-					System.out.println(itr.next());
-				}
-				
-			} else {
-				return;
-			}
-			*/
 
 		}
 	}

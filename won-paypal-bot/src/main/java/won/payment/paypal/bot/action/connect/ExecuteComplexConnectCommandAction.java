@@ -13,7 +13,7 @@ import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandFailu
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandSuccessEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.FailureResponseEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.SuccessResponseEvent;
-import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
+import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
 import won.protocol.exception.WonMessageBuilderException;
 import won.protocol.message.WonMessage;
 import won.protocol.message.WonMessageBuilder;
@@ -50,6 +50,7 @@ public class ExecuteComplexConnectCommandAction extends ExecuteSendMessageComman
 		return null;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected MessageCommandNotSentEvent createMessageNotSentEvent(ComplexConnectCommandEvent originalCommand,
 			String message) {

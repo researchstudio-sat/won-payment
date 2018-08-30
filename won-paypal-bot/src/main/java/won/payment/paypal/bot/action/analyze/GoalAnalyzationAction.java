@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action.precondition;
+package won.payment.paypal.bot.action.analyze;
 
 import java.io.StringWriter;
 import java.net.URI;
@@ -22,7 +22,7 @@ import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
 import won.bot.framework.eventbot.listener.EventListener;
-import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
+import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.protocol.model.Connection;
 import won.protocol.util.NeedModelWrapper;

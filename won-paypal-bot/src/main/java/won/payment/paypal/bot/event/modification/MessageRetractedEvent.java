@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.event;
+package won.payment.paypal.bot.event.modification;
 
 import java.net.URI;
 

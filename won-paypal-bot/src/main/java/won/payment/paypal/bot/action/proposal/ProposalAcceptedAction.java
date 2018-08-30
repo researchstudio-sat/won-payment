@@ -2,21 +2,9 @@ package won.payment.paypal.bot.action.proposal;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 
-import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Selector;
-import org.apache.jena.rdf.model.SimpleSelector;
-import org.apache.jena.rdf.model.StmtIterator;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.rdf.model.impl.SelectorImpl;
-import org.apache.jena.vocabulary.RSS;
-
-import com.paypal.svcs.types.ap.PayRequest;
-import com.paypal.svcs.types.ap.Receiver;
-import com.paypal.svcs.types.ap.ReceiverList;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -27,17 +15,12 @@ import won.bot.framework.eventbot.event.impl.command.connectionmessage.Connectio
 import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
-import won.payment.paypal.bot.event.ComplexConnectCommandEvent;
+import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
-import won.payment.paypal.service.impl.PaypalPaymentService;
-import won.protocol.message.WonMessage;
-import won.protocol.message.WonMessageBuilder;
 import won.protocol.model.Connection;
-import won.protocol.service.WonNodeInformationService;
-import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;

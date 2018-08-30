@@ -1,4 +1,4 @@
-package won.payment.paypal.bot.action.precondition;
+package won.payment.paypal.bot.action.modification;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,21 +16,28 @@ import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.listener.EventListener;
-import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
-import won.payment.paypal.bot.event.MessageRetractedEvent;
+import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
+import won.payment.paypal.bot.event.modification.MessageRetractedEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.agreement.ConversationMessage;
 import won.protocol.agreement.ConversationMessagesReader;
-import won.protocol.message.WonMessageUtils;
 import won.protocol.model.Connection;
 import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.util.linkeddata.WonLinkedDataUtils;
 import won.protocol.vocabulary.WON;
 
+/**
+ * When the user retracts a message from himself it is computed
+ * if it was an message which has an influance on the conversation.
+ * then it throws an analyze conversation event.
+ * 
+ * @author schokobaer
+ *
+ */
 public class MessageRetractedAction extends BaseEventBotAction {
 
 	public MessageRetractedAction(EventListenerContext eventListenerContext) {
@@ -64,7 +71,8 @@ public class MessageRetractedAction extends BaseEventBotAction {
 	 * Finds out if the retracted message has an important tripple
 	 * for the payment. if yes it retracts the current payment summary
 	 * and the proposal for it (if already one exists) and returns true.
-	 * if no tripple is found it returns false.
+	 * if no tripple is found it returns false. if no proposal is available
+	 * yet it also returns true.
 	 * @param event
 	 * @return
 	 */
@@ -79,7 +87,7 @@ public class MessageRetractedAction extends BaseEventBotAction {
 		Model lastProposal = lastProposalUri != null ? agreementProtocolState.getPendingProposal(lastProposalUri) : null;
 		
 		if (lastProposal == null) {
-			return false;
+			return true;
 		}
 		
 		Model retMsg = getRetractedContent(event);
@@ -105,7 +113,7 @@ public class MessageRetractedAction extends BaseEventBotAction {
 		
 		
 		try {
-			Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(agreementProtocolState.getLatestPendingProposal(), new URI(paymentSummaryUriBuilder.toString()));
+			Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(lastProposalUri, new URI(paymentSummaryUriBuilder.toString()));
 			getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(event.getCon(), retractResponse));
 		} catch (URISyntaxException e) {
 			e.printStackTrace();

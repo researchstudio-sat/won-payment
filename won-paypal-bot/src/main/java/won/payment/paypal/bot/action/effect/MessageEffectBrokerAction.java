@@ -16,16 +16,15 @@ import won.bot.framework.eventbot.event.impl.command.connectionmessage.Connectio
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
-import won.payment.paypal.bot.event.ConversationAnalyzationCommandEvent;
-import won.payment.paypal.bot.event.MessageRetractedEvent;
-import won.payment.paypal.bot.event.ProposalRejectedEvent;
+import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
+import won.payment.paypal.bot.event.modification.MessageRetractedEvent;
+import won.payment.paypal.bot.event.proposal.ProposalRejectedEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.agreement.effect.MessageEffect;
 import won.protocol.agreement.effect.MessageEffectType;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
-import won.protocol.util.WonRdfUtils;
 
 /**
  * Analyzes all incoming messages and breaks down
