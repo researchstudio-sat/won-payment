@@ -60,9 +60,7 @@ public class ExecuteComplexConnectCommandAction extends ExecuteSendMessageComman
 	@Override
 	protected WonMessage createWonMessage(ComplexConnectCommandEvent connectCommandEvent)
 			throws WonMessageBuilderException {
-		
-		// TODO: If not possible or error, then show the invoker an error message
-		
+				
 		WonNodeInformationService wonNodeInformationService =
                 getEventListenerContext().getWonNodeInformationService();
 

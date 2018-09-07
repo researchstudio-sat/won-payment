@@ -3,10 +3,13 @@ package won.payment.paypal.bot.action.precondition;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
+import org.topbraid.shacl.vocabulary.SH;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -27,6 +30,8 @@ import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
+import won.protocol.model.NeedState;
+import won.protocol.util.NeedModelWrapper;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
@@ -89,6 +94,10 @@ public class PreconditionMetAction extends BaseEventBotAction {
             	if (!retractOldPropose(con, preconditionEventPayload)) {
             		return;
             	}
+            	if (!counterpartAccessible(counterpart, con)) {
+            		return;
+            	}
+            	
     			WonRdfUtils.MessageUtils.addProcessing(preconditionEventPayload, "Payment summary");
     			WonRdfUtils.MessageUtils.addMessage(preconditionEventPayload, "Payment summary");
             	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, preconditionEventPayload);
@@ -168,6 +177,47 @@ public class PreconditionMetAction extends BaseEventBotAction {
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Checks if the given Need uri is available and not deactivated.
+	 * 
+	 * @param counterpartNeedUri Need Uri.
+	 * @param con Connection of the merchant need.
+	 * @return true if accessible, otherwise false.
+	 */
+	private boolean counterpartAccessible(String counterpartNeedUri, Connection con) {		
+		Model result = WonRdfUtils.MessageUtils.processingMessage("Error with the counterpart need");
+		Resource report = result.createResource();
+		result = WonRdfUtils.MessageUtils.addToMessage(result, SH.result, report);
+		report.addProperty(SH.value, new ResourceImpl(counterpartNeedUri));
+		report.addProperty(SH.resultPath, WONPAY.HAS_NEED_COUNTERPART);
+		report.addProperty(SH.resultSeverity, SH.Violation);
+		report.addProperty(SH.focusNode, new ResourceImpl(con.getNeedURI().toString() + "/payment"));
+		
+		
+		try {
+			Dataset remoteNeedRDF =
+			        getEventListenerContext().getLinkedDataSource().getDataForResource(new URI(counterpartNeedUri));
+			if (remoteNeedRDF == null) {
+				throw new NullPointerException();
+			}
+			NeedModelWrapper needWrapper = new NeedModelWrapper(remoteNeedRDF);
+			if (needWrapper.getNeedState() == NeedState.ACTIVE) {
+				// Need active
+				return true;
+			}
+			// Need inactive
+			report.addProperty(SH.resultMessage, "Counterpart need is inactive");
+		} catch (NullPointerException | URISyntaxException e) {
+			// Need not accessible
+			report.addProperty(SH.resultMessage, "Counterpart need is not accessible");
+		}
+		
+		ConnectionMessageCommandEvent response = new ConnectionMessageCommandEvent(con, result);
+		getEventListenerContext().getEventBus().publish(response);
+		
+		return false;
 	}
 
 }

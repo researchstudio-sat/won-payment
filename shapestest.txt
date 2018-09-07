@@ -5,12 +5,12 @@
 
 <this:eventuri> won:hasTextMessage 'Money Money Money'. 
 
-<https://127.0.0.1:8443/won/resource/need/nxs4tgly6x0c/payment>
+<https://127.0.0.1:8443/won/resource/need/gf9zw1a8ovxuw5pwm9vb/payment>
 	pay:hasAmount 2.34 ;
 	pay:hasCurrency 'EUR' ;
 	pay:hasReceiver 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
-	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/nxs4tgly6x0c> .
+	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/p9xcwziy7pjo> .
 
 <https://127.0.0.1:8443/won/resource/need/nxs4tgly6x0c/payment>
 	pay:hasTax 0.99 ;

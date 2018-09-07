@@ -97,9 +97,10 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
             //publish connect between the specific offer and the requester need
             ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryNeedURIOfferRelation(factoryOfferURI, factoryHintEvent.getFactoryNeedURI());
             
-            //ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG);
+            String paymentUri = factoryOfferURI.toString() + "/payment";
             Model paymentModel = ModelFactory.createDefaultModel();
-            paymentModel.createResource(factoryOfferURI.toString() + "/payment").addProperty(RDF.type, WONPAY.PAYMENT);
+            paymentModel.createResource(paymentUri).addProperty(RDF.type, WONPAY.PAYMENT);
+            logger.info("Created new payment resource {}", paymentUri);
             ComplexConnectCommandEvent connectCommandEvent = new ComplexConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG, paymentModel);
             ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
 				
