@@ -5,16 +5,14 @@
 
 <this:eventuri> won:hasTextMessage 'Money Money Money'. 
 
-ex2:myPayment a pay:Payment .
-
-ex2:myPayment 
+<https://127.0.0.1:8443/won/resource/need/nxs4tgly6x0c/payment>
 	pay:hasAmount 2.34 ;
 	pay:hasCurrency 'EUR' ;
 	pay:hasReceiver 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
-	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/hl10x0aznues> .
+	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/nxs4tgly6x0c> .
 
-ex2:myPayment
+<https://127.0.0.1:8443/won/resource/need/nxs4tgly6x0c/payment>
 	pay:hasTax 0.99 ;
 	pay:hasFeePayer <http://purl.org/webofneeds/payment#Sender> ;
 	pay:hasInvoiceId "ID-101" ;
@@ -53,7 +51,7 @@ ex2:myPayment
 <this:eventuri> won:hasTextMessage 'Moneyless'. 
 
 ex2:myPayment 
-	pay:hasAmount 0.0 .
+	pay:hasAmount 1.0 .
 
 
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .

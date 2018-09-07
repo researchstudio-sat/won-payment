@@ -7,8 +7,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.bot.context.FactoryBotContextWrapper;
 import won.bot.framework.eventbot.EventListenerContext;
@@ -24,6 +26,7 @@ import won.bot.framework.eventbot.event.impl.wonmessage.FailureResponseEvent;
 import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
+import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
@@ -94,7 +97,10 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
             //publish connect between the specific offer and the requester need
             ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryNeedURIOfferRelation(factoryOfferURI, factoryHintEvent.getFactoryNeedURI());
             
-            ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG); 
+            //ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG);
+            Model paymentModel = ModelFactory.createDefaultModel();
+            paymentModel.createResource(factoryOfferURI.toString() + "/payment").addProperty(RDF.type, WONPAY.PAYMENT);
+            ComplexConnectCommandEvent connectCommandEvent = new ComplexConnectCommandEvent(factoryOfferURI, factoryHintEvent.getRequesterURI(), OPENING_MSG, paymentModel);
             ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx, new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
 				
 				@Override
