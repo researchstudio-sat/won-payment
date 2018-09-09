@@ -8,6 +8,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -157,7 +158,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 		
 		Model proposalModel = agreementProtocolState.getRejectedProposal(paymentSummaryUri);
 		
-		StmtIterator itr = proposalModel.listStatements(null, WON.HAS_TEXT_MESSAGE, "Payment summary");
+		StmtIterator itr = proposalModel.listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY);
 		if (!itr.hasNext()) {
 			return;
 		}

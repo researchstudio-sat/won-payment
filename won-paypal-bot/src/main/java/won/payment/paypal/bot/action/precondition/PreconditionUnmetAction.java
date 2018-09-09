@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.vocabulary.RDF;
 import org.topbraid.shacl.vocabulary.SH;
 
 import won.bot.framework.eventbot.EventListenerContext;
@@ -23,6 +24,7 @@ import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
+import won.protocol.vocabulary.WONPAY;
 import won.utils.goals.GoalInstantiationResult;
 import won.utils.shacl.ValidationResultWrapper;
 
@@ -119,7 +121,7 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 		}
 		Model proposalModel = agreementProtocolState.getPendingProposal(proposalUri);
 		
-		StmtIterator itr = proposalModel.listStatements(null, WON.HAS_TEXT_MESSAGE, "Payment summary");
+		StmtIterator itr = proposalModel.listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY);
 		if (!itr.hasNext()) {
 			return;
 		}

@@ -42,6 +42,7 @@ public class WONPAY {
 
 	// Payments
 	public static final Resource PAYMENT = m.createResource(MODEL_URI + "Payment");
+	public static final Resource PAYMENT_SUMMARY = m.createResource(MODEL_URI + "PaymentSummary");
 	public static final Resource PAYPAL_PAYMENT = m.createResource(MODEL_URI + "PaypalPayment");
 	public static final Resource CASH_PAYMENT = m.createResource(MODEL_URI + "Cash");
 

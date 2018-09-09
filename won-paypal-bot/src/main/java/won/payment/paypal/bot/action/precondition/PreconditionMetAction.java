@@ -27,11 +27,13 @@ import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
+import won.payment.paypal.bot.util.WonPayRdfUtils;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.model.NeedState;
 import won.protocol.util.NeedModelWrapper;
+import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
@@ -98,6 +100,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
             		return;
             	}
             	
+            	RdfUtils.findOrCreateBaseResource(preconditionEventPayload).addProperty(RDF.type, WONPAY.PAYMENT_SUMMARY);
     			WonRdfUtils.MessageUtils.addProcessing(preconditionEventPayload, "Payment summary");
     			WonRdfUtils.MessageUtils.addMessage(preconditionEventPayload, "Payment summary");
             	final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(con, preconditionEventPayload);
@@ -164,7 +167,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 		
 		// Find out payment summary URI
 		StringBuilder paymentSummaryUriBuilder = new StringBuilder();
-		agreementProtocolState.getPendingProposal(lastProposalUri).listStatements(null, WON.HAS_TEXT_MESSAGE, "Payment summary").forEachRemaining(stmt -> {
+		agreementProtocolState.getPendingProposal(lastProposalUri).listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY).forEachRemaining(stmt -> {
 			paymentSummaryUriBuilder.append(stmt.getSubject().getURI());
 		});
 		
@@ -193,7 +196,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 		report.addProperty(SH.value, new ResourceImpl(counterpartNeedUri));
 		report.addProperty(SH.resultPath, WONPAY.HAS_NEED_COUNTERPART);
 		report.addProperty(SH.resultSeverity, SH.Violation);
-		report.addProperty(SH.focusNode, new ResourceImpl(con.getNeedURI().toString() + "/payment"));
+		report.addProperty(SH.focusNode, new ResourceImpl(WonPayRdfUtils.getPaymentModelUri(con)));
 		
 		
 		try {

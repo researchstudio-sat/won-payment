@@ -7,7 +7,10 @@ import java.util.Collections;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RSS;
 
 import com.paypal.svcs.types.ap.PayRequest;
@@ -38,6 +41,7 @@ import won.protocol.util.RdfUtils;
 import won.protocol.util.WonConversationUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
+import won.protocol.vocabulary.WONMOD;
 import won.protocol.vocabulary.WONPAY;
 
 /**
@@ -69,7 +73,6 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             	generatePP(proposalAcceptedEvent);
             } else if (bridge.getStatus() == PaymentStatus.GENERATED) {
             	// Merchant has accepted the pp
-            	// TODO: Implement
             	connectToBuyer(proposalAcceptedEvent);
             } else if (bridge.getStatus() == PaymentStatus.PP_DENIED) {
             	// Merchant has accepted the cancelation of the paymodel
@@ -86,8 +89,45 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
 	}
 	
+	/**
+	 * Sets bridge.status to building and retracts the payment
+	 * summary message from the cancelation.
+	 * 
+	 * @param proposalAcceptedEvent
+	 */
 	private void cancelPaymodel(ProposalAcceptedEvent proposalAcceptedEvent) {
-		// TODO: Implement
+		Connection con = proposalAcceptedEvent.getCon();
+		EventListenerContext ctx = getEventListenerContext();
+		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());
+		bridge.setStatus(PaymentStatus.BUILDING);
+		PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+		
+		AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
+				getEventListenerContext().getLinkedDataSource());
+		
+		Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
+		
+		StmtIterator itr = conversation.listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY)
+		String paymentSummaryUri = null;
+		
+		while (itr.hasNext()) {
+			Resource subj = itr.next().getSubject();
+			if (!conversation.listStatements(null, WONMOD.RETRACTS, subj).hasNext()) {
+				paymentSummaryUri = subj.getURI();
+			}
+		}
+		
+		if (paymentSummaryUri == null) {
+			return;
+		}
+		
+		try {
+			Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(new URI(paymentSummaryUri));
+			retractResponse = WonRdfUtils.MessageUtils.addMessage(retractResponse, "You can now edit the paymodel again.");
+			getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void cancelAll(ProposalAcceptedEvent proposalAcceptedEvent) {
@@ -190,6 +230,11 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		}
 	}
 	
+	/**
+	 * TODO: Docu.
+	 * @param event
+	 * @throws URISyntaxException
+	 */
 	private void connectToBuyer(ProposalAcceptedEvent event) throws URISyntaxException {
 		EventListenerContext ctx = getEventListenerContext();
 		Connection con = event.getCon();

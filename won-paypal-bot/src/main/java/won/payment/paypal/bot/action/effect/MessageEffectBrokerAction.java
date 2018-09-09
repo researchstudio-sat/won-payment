@@ -91,10 +91,9 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 			if (messageEffect.getType().equals(MessageEffectType.ACCEPTS)) {
 				Model agreementPayload = agreementProtocolState
 						.getAgreement(messageEffect.asAccepts().getAcceptedMessageUri());
-				if (!agreementPayload.isEmpty()) {
-					ctx.getEventBus().publish(new ProposalAcceptedEvent(connection,
-							messageEffect.asAccepts().getAcceptedMessageUri(), agreementPayload));
-				}
+				ctx.getEventBus().publish(new ProposalAcceptedEvent(connection,
+						messageEffect.asAccepts().getAcceptedMessageUri(), agreementPayload));
+				
 			} else if (messageEffect.getType().equals(MessageEffectType.PROPOSES)) {
 				ctx.getEventBus()
 						.publish(new ProposalReceivedEvent(connection, (WonMessageReceivedOnConnectionEvent) event));

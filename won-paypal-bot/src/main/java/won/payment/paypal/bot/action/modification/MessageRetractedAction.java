@@ -9,6 +9,7 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -28,7 +29,7 @@ import won.protocol.model.Connection;
 import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.util.linkeddata.WonLinkedDataUtils;
-import won.protocol.vocabulary.WON;
+import won.protocol.vocabulary.WONPAY;
 
 /**
  * When the user retracts a message from himself it is computed
@@ -107,7 +108,7 @@ public class MessageRetractedAction extends BaseEventBotAction {
 		
 		// Find out payment summary URI
 		StringBuilder paymentSummaryUriBuilder = new StringBuilder();
-		lastProposal.listStatements(null, WON.HAS_TEXT_MESSAGE, "Payment summary").forEachRemaining(stmt -> {
+		lastProposal.listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY).forEachRemaining(stmt -> {
 			paymentSummaryUriBuilder.append(stmt.getSubject().getURI());
 		});
 		
