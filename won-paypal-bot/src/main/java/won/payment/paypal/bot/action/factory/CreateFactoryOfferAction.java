@@ -31,6 +31,7 @@ import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.ResourceManager;
+import won.payment.paypal.bot.util.WonPayRdfUtils;
 import won.protocol.exception.WonMessageBuilderException;
 import won.protocol.message.WonMessage;
 import won.protocol.message.WonMessageBuilder;
@@ -96,8 +97,8 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
             logger.debug("factoryoffer creation successful, new need URI is {}", factoryOfferURI);
             //publish connect between the specific offer and the requester need
             ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryNeedURIOfferRelation(factoryOfferURI, factoryHintEvent.getFactoryNeedURI());
-            
-            String paymentUri = factoryOfferURI.toString() + "/payment";
+            // TODO: WonPayRdfUtils.getPaymentModelUri(successEvent.con) 
+            String paymentUri = WonPayRdfUtils.getPaymentModelUri(factoryOfferURI);
             Model paymentModel = ModelFactory.createDefaultModel();
             paymentModel.createResource(paymentUri).addProperty(RDF.type, WONPAY.PAYMENT);
             logger.info("Created new payment resource {}", paymentUri);

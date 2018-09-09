@@ -30,6 +30,7 @@ import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
+import won.payment.paypal.bot.util.WonPayRdfUtils;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
@@ -199,7 +200,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		Dataset dataset = state.getAgreements();
 		Model agreements = dataset.getUnionModel();
         
-		String paymentUri = con.getNeedURI() + "/payment";
+		String paymentUri = WonPayRdfUtils.getPaymentModelUri(con);
 		Model paymodel = agreements.listStatements(new ResourceImpl(paymentUri), null, (RDFNode)null).toModel();
 		Double amount = InformationExtractor.getAmount(paymodel);
         String currency = InformationExtractor.getCurrency(paymodel);
