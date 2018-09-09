@@ -46,8 +46,9 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 
 			if (bridge.getStatus() == PaymentStatus.COMPLETED) {
 				closePaymentBridge(bridge, con);
-			} else if (bridge.getStatus() == PaymentStatus.DENIED) {
+			} else if (bridge.getStatus() == PaymentStatus.BUYER_DENIED) {
 				// Do nothing
+				// TODO: FIXME: pp_ack -> buy_denied
 			} else {
 				unexpectedClosure(bridge, con);
 				logger.debug("Unexpected closure in the Need {}", con.getNeedURI());
@@ -94,7 +95,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	 */
 	private void unexpectedClosure(PaymentBridge bridge, Connection con) {
 
-		if (bridge.getStatus() == PaymentStatus.PUBLISHED || bridge.getStatus() == PaymentStatus.GENERATED) {
+		if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED || bridge.getStatus() == PaymentStatus.GENERATED) {
 			if (bridge.getMerchantConnection() != null
 					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
 				bridge.setMerchantConnection(null);
@@ -133,7 +134,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 			} else if (bridge.getBuyerConnection() == null) {
 				makeTextMsg("The buyer declined the connection. Change the payment and validate it again.",
 						bridge.getMerchantConnection());
-				bridge.setStatus(PaymentStatus.DENIED);
+				bridge.setStatus(PaymentStatus.BUYER_DENIED);
 				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
 						bridge.getStatus().name(), con.getNeedURI());
 			}

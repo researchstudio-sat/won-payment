@@ -40,7 +40,7 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 		Iterator<PaymentBridge> itr = ((PaypalBotContextWrapper)ctx.getBotContextWrapper()).getOpenBridges();
 		while (itr.hasNext()) {
 			PaymentBridge bridge = itr.next();
-			if (bridge.getStatus() == PaymentStatus.GENERATED) {
+			if (bridge.getStatus() == PaymentStatus.BUYER_ACCEPTED) {
 				String payKey = bridge.getPayKey();
 				if (payKey != null) {
 					checkPayment(payKey, bridge);

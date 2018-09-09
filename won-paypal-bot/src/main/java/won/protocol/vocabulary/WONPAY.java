@@ -30,7 +30,7 @@ public class WONPAY {
 	public static Property HAS_PAYMENT_STATE = m.createProperty(BASE_URI + "hasState");
 	public static Property REFERS_TO = m.createProperty(BASE_URI + "refersTo");
 
-	public static Property HAS_PAYPAL_TX_KEY = m.createProperty(BASE_URI + "hasPaypalTxKey");
+	public static Property HAS_PAYPAL_PAYKEY = m.createProperty(BASE_URI + "hasPaypalPayKey");
 
 	public static Property HAS_SECRET = m.createProperty(BASE_URI + "hasSecret");
 	public static Property HAS_NEED_COUNTERPART = m.createProperty(BASE_URI + "hasNeedCounterpart");
