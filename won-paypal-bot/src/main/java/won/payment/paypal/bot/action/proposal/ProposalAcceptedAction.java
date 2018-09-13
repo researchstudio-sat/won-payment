@@ -96,7 +96,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 	/**
 	 * Sets bridge.status to building and retracts the payment summary message from
 	 * the cancelation.
-	 * 
+	 * @context Merchant.
 	 * @param proposalAcceptedEvent
 	 */
 	private void cancelPaymodel(ProposalAcceptedEvent proposalAcceptedEvent) {
@@ -135,9 +135,21 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		}
 	}
 
+	/**
+	 * Simply calls the cancelPaymodel method and informs the
+	 * buyer to wait for the new payment offer.
+	 * 
+	 * @context Merchant.
+	 * @param proposalAcceptedEvent
+	 */
 	private void cancelAll(ProposalAcceptedEvent proposalAcceptedEvent) {
 		// TODO: Implement
 		cancelPaymodel(proposalAcceptedEvent);
+		// Send the buyer the info, that the merchant is preparing a new offer
+		Connection con = proposalAcceptedEvent.getCon();
+		EventListenerContext ctx = getEventListenerContext();
+		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());
+		makeTextMsg("Merchant is prepearing a new payment. Wait for it ...", bridge.getBuyerConnection());
 	}
 
 	private void makeTextMsg(String msg, Connection con) {
@@ -152,8 +164,8 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 	 * Generates the PP, sends the link and paykey to the merchant and proposes this
 	 * message.
 	 * 
-	 * @param event
-	 *            the accepted paymodel event.
+	 * @context Merchant.
+	 * @param event the accepted paymodel event.
 	 */
 	private void generatePP(ProposalAcceptedEvent event) {
 		Connection con = event.getCon();
@@ -244,6 +256,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 	/**
 	 * TODO: Docu.
 	 * 
+	 * @context Merchant.
 	 * @param event
 	 * @throws URISyntaxException
 	 */
@@ -252,9 +265,10 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		Connection con = event.getCon();
 		PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
-		// TODO: If there is already an active connection to the buyer, then just send the proposal
+		// If there is already an active connection to the buyer, then just send the proposal
 		if (bridge.getBuyerConnection() != null) {
-			ctx.getEventBus().publish(new OpenFromOtherNeedEvent(bridge.getBuyerConnection(), null));
+			proposePayModelToBuyer(bridge.getBuyerConnection());
+			makeTextMsg("Proposing the new payment to the buyer.", con);
 			return;
 		}
 		
@@ -309,6 +323,61 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		ctx.getEventBus().publish(connectCommandEvent);
 	}
 	
+	/**
+	 * Is only needed, if the connection to the buyer is already established
+	 * and we can directly send him the new paymodel offer.
+	 * 
+	 * @context Merchant.
+	 * @param con
+	 */
+	private void proposePayModelToBuyer(Connection buyerConn) {
+		EventListenerContext ctx = getEventListenerContext();
+		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(buyerConn.getNeedURI());
+		bridge.setStatus(PaymentStatus.BUYER_OPENED);
+		PaypalBotContextWrapper.instance(ctx).putOpenBridge(buyerConn.getNeedURI(), bridge);
+		
+		// Get paymodel out of merchants agreement protokoll
+		AgreementProtocolState merchantAgreementProtocolState = AgreementProtocolState.of(bridge.getMerchantConnection().getConnectionURI(),
+				getEventListenerContext().getLinkedDataSource());
+
+		Model conversation = merchantAgreementProtocolState.getConversationDataset().getUnionModel();
+		String paymodelUri = WonPayRdfUtils.getPaymentModelUri(bridge.getMerchantConnection());
+		
+		Model paymodel = conversation.listStatements(new ResourceImpl(paymodelUri), null, (RDFNode)null).toModel();
+		paymodel = WonRdfUtils.MessageUtils.addMessage(paymodel, "Payment summary"); // TODO: Add the amount, currency, etc. ...
+
+		// Remove unnecesry statements (counterpart)
+		paymodel.removeAll(null, WONPAY.HAS_NEED_COUNTERPART, null);
+
+		// Publish paymodel with proposal
+		final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(buyerConn,
+				paymodel);
+		ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(ctx,
+				new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {
+					@Override
+					protected void doRun(Event event, EventListener executingListener) throws Exception {
+						ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
+						if (connectionMessageCommandResultEvent.isSuccess()) {
+							Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(
+									"Accept the paymet to receive the PayPal link to execute it.");
+							WonRdfUtils.MessageUtils.addProposes(agreementMessage,
+									((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent)
+											.getWonMessage().getMessageURI());
+							ctx.getEventBus().publish(new ConnectionMessageCommandEvent(buyerConn, agreementMessage));
+						} else {
+							logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
+						}
+					}
+				}));
+
+		ctx.getEventBus().publish(connectionMessageCommandEvent);
+		
+	}
+	
+	/**
+	 * @context Buyer.
+	 * @param con
+	 */
 	private void publishPayKey(Connection con) {
 		EventListenerContext ctx = getEventListenerContext();
 		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());

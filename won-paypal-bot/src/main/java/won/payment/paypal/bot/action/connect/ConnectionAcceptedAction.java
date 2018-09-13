@@ -72,6 +72,10 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 		
 	}
 	
+	/**
+	 * @context Buyer.
+	 * @param con
+	 */
 	private void proposePayModelToBuyer(Connection con) {
 		EventListenerContext ctx = getEventListenerContext();
 		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());

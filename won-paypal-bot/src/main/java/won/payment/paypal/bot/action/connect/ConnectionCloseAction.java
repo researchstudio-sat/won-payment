@@ -53,12 +53,8 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 			Connection con = closeEvent.getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.instance(getEventListenerContext()).getOpenBridge(con.getNeedURI());
 
-			if (bridge.getStatus() == PaymentStatus.COMPLETED) {
-				closePaymentBridge(bridge, con);
-			} else if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED) {
-				// Do nothing
-				// TODO: FIXME: pp_ack -> buy_denied
-				//buyerDenied(closeEvent);
+			if (bridge.getStatus().ordinal() >= PaymentStatus.COMPLETED.ordinal()) {
+				closeConnection(bridge, con);
 			} else {
 				unexpectedClosure(bridge, con);
 				logger.debug("Unexpected closure in the Need {}", con.getNeedURI());
@@ -112,7 +108,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	 * @param con
 	 *            Connection which was closed.
 	 */
-	private void closePaymentBridge(PaymentBridge bridge, Connection con) {
+	private void closeConnection(PaymentBridge bridge, Connection con) {		
 		// Merchant closure
 		if (bridge.getMerchantConnection() != null
 				&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
@@ -126,7 +122,9 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 			bridge.setBuyerConnection(null);
 			logger.debug("Buyer has closed the connection after completion in the Need {}", con.getNeedURI());
 		}
-
+		
+		PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
+		
 		closeNeed(bridge, con);
 	}
 
@@ -142,7 +140,27 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	private void unexpectedClosure(PaymentBridge bridge, Connection con) {
 
 		// TODO: Fix here everything !!!
+		if (bridge.getBuyerConnection() != null && bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+			// Buyer closed
+			if (bridge.getStatus().ordinal() >= PaymentStatus.BUILDING.ordinal() 
+					&& bridge.getStatus().ordinal() <= PaymentStatus.PP_DENIED.ordinal()) {
+				bridge.setBuyerConnection(null);
+				PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
+			} else {
+				// Error: It was the buyer context and he just left !
+				logger.warn("Buyer has left the connection in an unusual state: {}", bridge.getStatus());
+			}
+		} else if (bridge.getMerchantConnection() != null && bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
+			// Merchant closed: Always an error !!!
+			logger.warn("Merchant has left the connection in an unusual state: {}", bridge.getStatus());
+			
+		} else {
+			// Not possible. Neither merchant nor buyer who closed the connection !!!
+		}
 		
+		
+		
+		/*
 		if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED || bridge.getStatus() == PaymentStatus.GENERATED) {
 			if (bridge.getMerchantConnection() != null
 					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
@@ -202,6 +220,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 		}
 
 		closeNeed(bridge, con);
+		*/
 
 	}
 

@@ -74,6 +74,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 	/**
 	 * Retracts the Payment summary which belongs to the rejected proposal.
 	 * 
+	 * @context Merchant.
 	 * @param event
 	 */
 	private void paymodelRejected(ProposalRejectedEvent event) {
@@ -86,6 +87,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 	/**
 	 * Makes a proposal to reject the paymodel out of the agreement protocol.
 	 * 
+	 * @context Merchant.
 	 * @param event
 	 */
 	private void ppDenied(ProposalRejectedEvent event) {
@@ -121,6 +123,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 	 * Merchant did not want to edit the paymodel. So the pp would not change, so we
 	 * just repropose the same pp to him ...
 	 * 
+	 * @context Merchant.
 	 * @param event
 	 */
 	private void cancelPaymodelDenied(ProposalRejectedEvent event) {
@@ -150,8 +153,10 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 	}
 
 	/**
-	 * TODO: Implement.
+	 * Merchant got offered to cancel all. But he did no want to.
+	 * So we just propose the last paymentmodel again to the buyer.
 	 * 
+	 * @context Merchant.
 	 * @param event
 	 * @throws URISyntaxException
 	 */
@@ -167,13 +172,14 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 		// Find last rejected proposal from buyer
 		AgreementProtocolState agreementProtocolState = AgreementProtocolState
 				.of(bridge.getBuyerConnection().getConnectionURI(), ctx.getLinkedDataSource());
-		URI rejectUri = agreementProtocolState
-				.getLatestRejectsMessageSentByNeed(bridge.getBuyerConnection().getRemoteNeedURI());
 		Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
 		StringBuilder propUriStringbuilder = new StringBuilder();
 		agreementProtocolState.getNthLatestMessage(m -> {
 			if (m.getSenderNeedURI().equals(bridge.getBuyerConnection().getRemoteNeedURI()) && m.isRejectsMessage()) {
 				m.getRejects().forEach(propUri -> {
+					if (!propUriStringbuilder.toString().isEmpty()) {
+						propUriStringbuilder.delete(0, propUriStringbuilder.toString().length());
+					}
 					propUriStringbuilder.append(propUri.toString());
 				});
 				return true;
@@ -206,6 +212,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 	 * Buyer denied the paymodel, so we propose the merchant to cancel both, the
 	 * paymodel and the pp, so he can start over again ...
 	 * 
+	 * @context Buyer.
 	 * @param con
 	 */
 	private void buyerDenied(Connection con) {
@@ -215,7 +222,6 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 		PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getNeedURI(), bridge);
 
 		// Cancelation of paymodel and pp
-		// FIXME: No agreements found !!!
 		AgreementProtocolState agreementProtocolState = AgreementProtocolState
 				.of(bridge.getMerchantConnection().getConnectionURI(), ctx.getLinkedDataSource());
 		Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
