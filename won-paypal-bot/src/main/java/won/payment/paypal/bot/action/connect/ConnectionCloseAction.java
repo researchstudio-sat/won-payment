@@ -1,6 +1,13 @@
 package won.payment.paypal.bot.action.connect;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -12,8 +19,10 @@ import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
+import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
+import won.protocol.vocabulary.WONAGR;
 
 /**
  * Eventhandler which will be invoked when a connection was closed by the
@@ -46,15 +55,52 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 
 			if (bridge.getStatus() == PaymentStatus.COMPLETED) {
 				closePaymentBridge(bridge, con);
-			} else if (bridge.getStatus() == PaymentStatus.BUYER_DENIED) {
+			} else if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED) {
 				// Do nothing
 				// TODO: FIXME: pp_ack -> buy_denied
+				//buyerDenied(closeEvent);
 			} else {
 				unexpectedClosure(bridge, con);
 				logger.debug("Unexpected closure in the Need {}", con.getNeedURI());
 			}
 		}
 
+	}
+	
+	// FIXME: Will not be invoked in case of a DECLINE of the Buyer (architecture of WoN). But will be invoked
+	// after the buyer opened the connection, maybe already received the paymodel with its proposal, and then
+	// closes the connection ...
+	private void buyerDenied(CloseFromOtherNeedEvent event) {
+		CloseFromOtherNeedEvent closeEvent = (CloseFromOtherNeedEvent) event;
+		Connection con = closeEvent.getCon();
+		PaymentBridge bridge = PaypalBotContextWrapper.instance(getEventListenerContext()).getOpenBridge(con.getNeedURI());
+		bridge.setStatus(PaymentStatus.BUYER_DENIED);
+		
+		// Cancelation of paymodel and pp
+		AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
+				getEventListenerContext().getLinkedDataSource());
+		Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
+		final List<String> proposalsToCancelUris = new LinkedList<>();
+		agreementProtocolState.getAgreementUris().forEach(accUri -> {
+			proposalsToCancelUris.add(
+					conversation.listStatements(new ResourceImpl(accUri.toString()), WONAGR.ACCEPTS, (RDFNode)null)
+					.next()
+					.getObject()
+					.asResource()
+					.getURI()
+			);
+		});
+		
+		try {
+			Model merchantResponse = WonRdfUtils.MessageUtils.proposesToCancelMessage(
+					new URI(proposalsToCancelUris.get(0)),
+					new URI(proposalsToCancelUris.get(1)));
+			merchantResponse = WonRdfUtils.MessageUtils.addMessage(merchantResponse, "Buyer denied this payment. You want to edit the paymodel?");
+			getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(bridge.getMerchantConnection(), merchantResponse));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**
@@ -95,6 +141,8 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	 */
 	private void unexpectedClosure(PaymentBridge bridge, Connection con) {
 
+		// TODO: Fix here everything !!!
+		
 		if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED || bridge.getStatus() == PaymentStatus.GENERATED) {
 			if (bridge.getMerchantConnection() != null
 					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
