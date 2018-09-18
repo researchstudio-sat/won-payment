@@ -296,7 +296,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		Model secretModel = ModelFactory.createDefaultModel();
 		secretModel.createResource().addProperty(WONPAY.HAS_SECRET, secret);
 
-		// TODO: Only post secret in the payload
+		// Only post secret in the payload
 		ComplexConnectCommandEvent connectCommandEvent = new ComplexConnectCommandEvent(con.getNeedURI(),
 				counterPartNeedUri, openingMsg, secretModel);
 		ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx,

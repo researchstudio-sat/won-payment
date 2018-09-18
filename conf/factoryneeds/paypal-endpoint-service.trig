@@ -24,7 +24,7 @@
 
 @prefix olntest:   <http://sat.researchstudio.at/oln/test/> .
 
-{
+ {
     olntest:paypalService1
 		a             won:Need ;
 		won:hasFlag   won:NoHintForCounterpart ;

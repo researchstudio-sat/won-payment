@@ -173,7 +173,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 		AgreementProtocolState agreementProtocolState = AgreementProtocolState
 				.of(bridge.getBuyerConnection().getConnectionURI(), ctx.getLinkedDataSource());
 		Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
-		StringBuilder propUriStringbuilder = new StringBuilder();
+		final StringBuilder propUriStringbuilder = new StringBuilder();
 		agreementProtocolState.getNthLatestMessage(m -> {
 			if (m.getSenderNeedURI().equals(bridge.getBuyerConnection().getRemoteNeedURI()) && m.isRejectsMessage()) {
 				m.getRejects().forEach(propUri -> {

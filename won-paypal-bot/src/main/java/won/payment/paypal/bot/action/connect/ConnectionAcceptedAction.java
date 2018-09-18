@@ -25,6 +25,7 @@ import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
+import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.util.WonPayRdfUtils;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.protocol.agreement.AgreementProtocolState;
@@ -90,7 +91,14 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 		String paymodelUri = WonPayRdfUtils.getPaymentModelUri(bridge.getMerchantConnection());
 		
 		Model paymodel = conversation.listStatements(new ResourceImpl(paymodelUri), null, (RDFNode)null).toModel();
-		paymodel = WonRdfUtils.MessageUtils.addMessage(paymodel, "Payment summary"); // TODO: Add the amount, currency, etc. ...
+		
+		Double amount = InformationExtractor.getAmount(paymodel);
+		String currency = InformationExtractor.getCurrency(paymodel);
+		String receiver = InformationExtractor.getReceiver(paymodel);
+		String secret = InformationExtractor.getSecret(paymodel);
+		
+		String paymentText = "Amount: " + currency + " " + amount + "\nReceiver: " + receiver; 
+		paymodel = WonRdfUtils.MessageUtils.addMessage(paymodel, paymentText); // TODO: Add the amount, currency, etc. ...
 
 		// Remove unnecesry statements (counterpart)
 		paymodel.removeAll(null, WONPAY.HAS_NEED_COUNTERPART, null);

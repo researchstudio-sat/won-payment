@@ -51,7 +51,8 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 		if (event instanceof CloseFromOtherNeedEvent) {
 			CloseFromOtherNeedEvent closeEvent = (CloseFromOtherNeedEvent) event;
 			Connection con = closeEvent.getCon();
-			PaymentBridge bridge = PaypalBotContextWrapper.instance(getEventListenerContext()).getOpenBridge(con.getNeedURI());
+			PaymentBridge bridge = PaypalBotContextWrapper.instance(getEventListenerContext())
+					.getOpenBridge(con.getNeedURI());
 
 			if (bridge.getStatus().ordinal() >= PaymentStatus.COMPLETED.ordinal()) {
 				closeConnection(bridge, con);
@@ -61,42 +62,6 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 			}
 		}
 
-	}
-	
-	// FIXME: Will not be invoked in case of a DECLINE of the Buyer (architecture of WoN). But will be invoked
-	// after the buyer opened the connection, maybe already received the paymodel with its proposal, and then
-	// closes the connection ...
-	private void buyerDenied(CloseFromOtherNeedEvent event) {
-		CloseFromOtherNeedEvent closeEvent = (CloseFromOtherNeedEvent) event;
-		Connection con = closeEvent.getCon();
-		PaymentBridge bridge = PaypalBotContextWrapper.instance(getEventListenerContext()).getOpenBridge(con.getNeedURI());
-		bridge.setStatus(PaymentStatus.BUYER_DENIED);
-		
-		// Cancelation of paymodel and pp
-		AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
-				getEventListenerContext().getLinkedDataSource());
-		Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
-		final List<String> proposalsToCancelUris = new LinkedList<>();
-		agreementProtocolState.getAgreementUris().forEach(accUri -> {
-			proposalsToCancelUris.add(
-					conversation.listStatements(new ResourceImpl(accUri.toString()), WONAGR.ACCEPTS, (RDFNode)null)
-					.next()
-					.getObject()
-					.asResource()
-					.getURI()
-			);
-		});
-		
-		try {
-			Model merchantResponse = WonRdfUtils.MessageUtils.proposesToCancelMessage(
-					new URI(proposalsToCancelUris.get(0)),
-					new URI(proposalsToCancelUris.get(1)));
-			merchantResponse = WonRdfUtils.MessageUtils.addMessage(merchantResponse, "Buyer denied this payment. You want to edit the paymodel?");
-			getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(bridge.getMerchantConnection(), merchantResponse));
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		
 	}
 
 	/**
@@ -108,7 +73,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	 * @param con
 	 *            Connection which was closed.
 	 */
-	private void closeConnection(PaymentBridge bridge, Connection con) {		
+	private void closeConnection(PaymentBridge bridge, Connection con) {
 		// Merchant closure
 		if (bridge.getMerchantConnection() != null
 				&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
@@ -122,106 +87,10 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 			bridge.setBuyerConnection(null);
 			logger.debug("Buyer has closed the connection after completion in the Need {}", con.getNeedURI());
 		}
-		
+
 		PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
-		
-		closeNeed(bridge, con);
-	}
-
-	/**
-	 * Informs the counterpart if the paypal payment is already generated or
-	 * accepted.
-	 * 
-	 * @param bridge
-	 *            Bridge of the connection.
-	 * @param con
-	 *            Connection which was closed.
-	 */
-	private void unexpectedClosure(PaymentBridge bridge, Connection con) {
-
-		// TODO: Fix here everything !!!
-		if (bridge.getBuyerConnection() != null && bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-			// Buyer closed
-			if (bridge.getStatus().ordinal() >= PaymentStatus.BUILDING.ordinal() 
-					&& bridge.getStatus().ordinal() <= PaymentStatus.PP_DENIED.ordinal()) {
-				bridge.setBuyerConnection(null);
-				PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
-			} else {
-				// Error: It was the buyer context and he just left !
-				logger.warn("Buyer has left the connection in an unusual state: {}", bridge.getStatus());
-			}
-		} else if (bridge.getMerchantConnection() != null && bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
-			// Merchant closed: Always an error !!!
-			logger.warn("Merchant has left the connection in an unusual state: {}", bridge.getStatus());
-			
-		} else {
-			// Not possible. Neither merchant nor buyer who closed the connection !!!
-		}
-		
-		
-		
-		/*
-		if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED || bridge.getStatus() == PaymentStatus.GENERATED) {
-			if (bridge.getMerchantConnection() != null
-					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
-				bridge.setMerchantConnection(null);
-				makeTextMsg("ATTENTION: THE MERCHANT HAS LEFT. DO NOT EXECUTE THE PAYMENT!",
-						bridge.getBuyerConnection());
-				logger.debug("Merchant has closed the connection in status {}" + " in the Need {}",
-						bridge.getStatus().name(), con.getNeedURI());
-			}
-
-			if (bridge.getBuyerConnection() != null
-					&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-				bridge.setBuyerConnection(null);
-				makeTextMsg("The Buyer has left. Type 'payment check' for validating the payment or wait "
-						+ "until you get informed", bridge.getMerchantConnection());
-				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
-						bridge.getStatus().name(), con.getNeedURI());
-			}
-		} else if (bridge.getStatus() == PaymentStatus.BUILDING) {
-			// If the merchant left, tell the buyer not to do anything and leave the channel
-			// If the buyer left just tell the merchant
-			// If the buyer declines the connection just tell the merchant
-			if (bridge.getMerchantConnection() != null
-					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
-				bridge.setMerchantConnection(null);
-				makeTextMsg("ATTENTION: THE MERCHANT HAS LEFT. PLEASE CONTACT THE MERCHANT!",
-						bridge.getBuyerConnection());
-				logger.debug("Merchant has closed the connection in status {}" + " in the Need {}",
-						bridge.getStatus().name(), con.getNeedURI());
-			} else if (bridge.getBuyerConnection() != null
-					&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-				bridge.setBuyerConnection(null);
-				makeTextMsg("The Buyer has left without accepting. Change the payment and validate it again.",
-						bridge.getMerchantConnection());
-				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
-						bridge.getStatus().name(), con.getNeedURI());
-			} else if (bridge.getBuyerConnection() == null) {
-				makeTextMsg("The buyer declined the connection. Change the payment and validate it again.",
-						bridge.getMerchantConnection());
-				bridge.setStatus(PaymentStatus.BUYER_DENIED);
-				logger.debug("Buyer has closed the connection in status {}" + " in the Need {}",
-						bridge.getStatus().name(), con.getNeedURI());
-			}
-			
-		} else {
-			// Can only be the merchant
-			if (bridge.getMerchantConnection() != null
-					&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
-				bridge.setMerchantConnection(null);
-				logger.debug("Merchant has closed the connection in status {}" + " in the Need {}",
-						bridge.getStatus().name(), con.getNeedURI());
-			} else {
-				// Error ?! OR status == Nothing
-				logger.debug("Merchant has closed the connection in status {}" + " in the Need {}",
-						bridge.getStatus().name(), con.getNeedURI());
-			}
-		}
 
 		closeNeed(bridge, con);
-		*/
-
 	}
 
 	/**
@@ -239,6 +108,103 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 			getEventListenerContext().getEventBus().publish(new DeactivateNeedCommandEvent(con.getNeedURI()));
 			logger.debug("Need gets closed {}", con.getNeedURI());
 		}
+	}
+
+	/**
+	 * Informs the counterpart if the paypal payment is already generated or
+	 * accepted.
+	 * 
+	 * @param bridge
+	 *            Bridge of the connection.
+	 * @param con
+	 *            Connection which was closed.
+	 */
+	private void unexpectedClosure(PaymentBridge bridge, Connection con) {
+
+		// Fix here everything !!!
+		bridge.setStatus(PaymentStatus.FAILURE);
+		if (bridge.getBuyerConnection() != null
+				&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+			// Buyer closed
+			logger.info("Unexpected closure from buyer with connection {} in the need {}", con.toString(),
+					con.getNeedURI().toString());
+			bridge.setBuyerConnection(null);
+			if (bridge.getMerchantConnection() != null) {
+				makeTextMsg("Buyer closed the connection. The payment process failed. Please exit the connection.",
+						bridge.getMerchantConnection());
+			}
+		} else if (bridge.getMerchantConnection() != null
+				&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
+			// Merchant closed
+			logger.info("Unexpected closure from merchant with connection {} in the need {}", con.toString(),
+					con.getNeedURI().toString());
+			bridge.setMerchantConnection(null);
+			if (bridge.getBuyerConnection() != null) {
+				makeTextMsg("Merchant closed the connection. The payment process failed. Please exit the connection",
+						bridge.getBuyerConnection());
+			}
+		} else {
+			// Not possible. Neither merchant nor buyer who closed the connection !!!
+		}
+
+		PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
+
+		closeNeed(bridge, con);
+
+		/*
+		 * if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED || bridge.getStatus() ==
+		 * PaymentStatus.GENERATED) { if (bridge.getMerchantConnection() != null &&
+		 * bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI
+		 * ())) { bridge.setMerchantConnection(null);
+		 * makeTextMsg("ATTENTION: THE MERCHANT HAS LEFT. DO NOT EXECUTE THE PAYMENT!",
+		 * bridge.getBuyerConnection());
+		 * logger.debug("Merchant has closed the connection in status {}" +
+		 * " in the Need {}", bridge.getStatus().name(), con.getNeedURI()); }
+		 * 
+		 * if (bridge.getBuyerConnection() != null &&
+		 * bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())
+		 * ) { bridge.setBuyerConnection(null);
+		 * makeTextMsg("The Buyer has left. Type 'payment check' for validating the payment or wait "
+		 * + "until you get informed", bridge.getMerchantConnection());
+		 * logger.debug("Buyer has closed the connection in status {}" +
+		 * " in the Need {}", bridge.getStatus().name(), con.getNeedURI()); } } else if
+		 * (bridge.getStatus() == PaymentStatus.BUILDING) { // If the merchant left,
+		 * tell the buyer not to do anything and leave the channel // If the buyer left
+		 * just tell the merchant // If the buyer declines the connection just tell the
+		 * merchant if (bridge.getMerchantConnection() != null &&
+		 * bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI
+		 * ())) { bridge.setMerchantConnection(null);
+		 * makeTextMsg("ATTENTION: THE MERCHANT HAS LEFT. PLEASE CONTACT THE MERCHANT!",
+		 * bridge.getBuyerConnection());
+		 * logger.debug("Merchant has closed the connection in status {}" +
+		 * " in the Need {}", bridge.getStatus().name(), con.getNeedURI()); } else if
+		 * (bridge.getBuyerConnection() != null &&
+		 * bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())
+		 * ) { bridge.setBuyerConnection(null);
+		 * makeTextMsg("The Buyer has left without accepting. Change the payment and validate it again."
+		 * , bridge.getMerchantConnection());
+		 * logger.debug("Buyer has closed the connection in status {}" +
+		 * " in the Need {}", bridge.getStatus().name(), con.getNeedURI()); } else if
+		 * (bridge.getBuyerConnection() == null) {
+		 * makeTextMsg("The buyer declined the connection. Change the payment and validate it again."
+		 * , bridge.getMerchantConnection());
+		 * bridge.setStatus(PaymentStatus.BUYER_DENIED);
+		 * logger.debug("Buyer has closed the connection in status {}" +
+		 * " in the Need {}", bridge.getStatus().name(), con.getNeedURI()); }
+		 * 
+		 * } else { // Can only be the merchant if (bridge.getMerchantConnection() !=
+		 * null &&
+		 * bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI
+		 * ())) { bridge.setMerchantConnection(null);
+		 * logger.debug("Merchant has closed the connection in status {}" +
+		 * " in the Need {}", bridge.getStatus().name(), con.getNeedURI()); } else { //
+		 * Error ?! OR status == Nothing
+		 * logger.debug("Merchant has closed the connection in status {}" +
+		 * " in the Need {}", bridge.getStatus().name(), con.getNeedURI()); } }
+		 * 
+		 * closeNeed(bridge, con);
+		 */
+
 	}
 
 }

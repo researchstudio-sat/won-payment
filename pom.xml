@@ -8,7 +8,7 @@
 	<packaging>pom</packaging>
 	<name>won-payment</name>
 	<modules>
-		<module>won-payment-core</module>
+		
 		<module>won-paypal-bot</module>
 	</modules>
 

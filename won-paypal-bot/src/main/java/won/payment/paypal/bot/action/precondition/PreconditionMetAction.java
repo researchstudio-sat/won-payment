@@ -117,8 +117,8 @@ public class PreconditionMetAction extends BaseEventBotAction {
                         ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
                         if(connectionMessageCommandResultEvent.isSuccess()){
                             Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(currency + " " + amount + " to " + receiver +
-                            		"....Do you want to confirm the payment? Then accept the proposal. After accepting the payment is published"
-                            		+ " to the counterpart and you won't be able to cancle it!");
+                            		"....Do you want to confirm the paymodel? Then accept the proposal. After accepting the payment will be "
+                            		+ "generated and you can still verify it.");
                             WonRdfUtils.MessageUtils.addProposes(agreementMessage, ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent).getWonMessage().getMessageURI());
                             ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
                             bridge.setStatus(PaymentStatus.BUILDING);
