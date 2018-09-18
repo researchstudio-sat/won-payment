@@ -36,6 +36,7 @@ import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
 import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.util.WonPayRdfUtils;
@@ -176,40 +177,10 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
 		// TODO: Send info, that a payment is getting generated rn
 
-		Model payload = event.getPayload();
-
-		Double amount = InformationExtractor.getAmount(payload);
-		String currency = InformationExtractor.getCurrency(payload);
-		String receiver = InformationExtractor.getReceiver(payload);
-		String feePayer = InformationExtractor.getFeePayer(payload);
-		String expirationTime = InformationExtractor.getExpirationTime(payload);
-		String invoiceDetails = InformationExtractor.getInvoiceDetails(payload);
-		String invoiceId = InformationExtractor.getInvoiceId(payload);
-		Double tax = InformationExtractor.getTax(payload);
-		// TODO: Tax
-
+		PaymentModelWrapper paymodel = new PaymentModelWrapper(event.getPayload());
+		
 		try {
-			PayRequest pay = new PayRequest();
-			// Set receiver
-			Receiver rec = new Receiver();
-			rec.setAmount(amount);
-			rec.setEmail(receiver);
-			pay.setReceiverList(new ReceiverList(Collections.singletonList(rec)));
-			pay.setCurrencyCode(currency);
-
-			if (feePayer != null) {
-				feePayer = feePayer.equals(WONPAY.FEE_PAYER_SENDER.getURI()) ? "SENDER" : "RECEIVER";
-				pay.setFeesPayer(feePayer);
-			}
-			if (expirationTime != null) {
-				pay.setPayKeyDuration(expirationTime);
-			}
-			if (invoiceDetails != null) {
-				pay.setMemo(invoiceDetails);
-			}
-			if (invoiceId != null) {
-				rec.setInvoiceId(invoiceId);
-			}
+			PayRequest pay = paymodel.toPayRequest();
 
 			PaypalPaymentService paypalService = PaypalBotContextWrapper.instance(ctx).getPaypalService();
 			String payKey = paypalService.create(pay);
@@ -279,26 +250,16 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
 		String paymentUri = WonPayRdfUtils.getPaymentModelUri(con);
 		Model paymodel = agreements.listStatements(new ResourceImpl(paymentUri), null, (RDFNode) null).toModel();
-//		Double amount = InformationExtractor.getAmount(paymodel);
-//		String currency = InformationExtractor.getCurrency(paymodel);
-//		String receiver = InformationExtractor.getReceiver(paymodel);
-		String secret = InformationExtractor.getSecret(paymodel);
-		URI counterPartNeedUri = new URI(InformationExtractor.getCounterpart(paymodel));
-//		paymodel.setNsPrefix("pay", WONPAY.BASE_URI);
-//
-//		Model removeModels = paymodel.listStatements(null, WONPAY.HAS_NEED_COUNTERPART, (RDFNode) null).toModel();
-//		removeModels.add(paymodel.listStatements(null, WON.HAS_TEXT_MESSAGE, (RDFNode) null).toModel());
-//		removeModels.add(paymodel.listStatements(null, WON.IS_PROCESSING, (RDFNode) null).toModel());
-//		paymodel.remove(removeModels);
+		PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(paymodel);
 
-		String openingMsg = "Payment request with secret: " + secret
+		String openingMsg = "Payment request with secret: " + paymentWrapper.getSecret()
 				+ "\nAccept the connection to receive the payment.";
 		Model secretModel = ModelFactory.createDefaultModel();
-		secretModel.createResource().addProperty(WONPAY.HAS_SECRET, secret);
+		secretModel.createResource().addProperty(WONPAY.HAS_SECRET, paymentWrapper.getSecret());
 
 		// Only post secret in the payload
 		ComplexConnectCommandEvent connectCommandEvent = new ComplexConnectCommandEvent(con.getNeedURI(),
-				counterPartNeedUri, openingMsg, secretModel);
+				paymentWrapper.getCounterpartNeedUri(), openingMsg, secretModel);
 		ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx,
 				new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
 

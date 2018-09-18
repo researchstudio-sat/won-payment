@@ -86,24 +86,24 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getCounterpart(Model payload) {
+    public static Resource getCounterpart(Model payload) {
     	if(payload != null) {
             QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null) {
-                return solution.getResource(COUNTERPART).getURI();
+                return solution.getResource(COUNTERPART);
             }
         }
         return null;
     }
     
     // Optional
-    public static String getFeePayer(Model payload) {
+    public static Resource getFeePayer(Model payload) {
     	if(payload != null) {
             QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null && solution.getResource(FEEPAYER) != null) {
-                return solution.getResource(FEEPAYER).getURI();
+                return solution.getResource(FEEPAYER);
             }
         }
         return null;

@@ -1,15 +1,8 @@
 package won.payment.paypal.bot.action.connect;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RSS;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -24,15 +17,12 @@ import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
 import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.payment.paypal.bot.model.PaymentStatus;
-import won.payment.paypal.bot.util.InformationExtractor;
 import won.payment.paypal.bot.util.WonPayRdfUtils;
-import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
-import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
-import won.protocol.vocabulary.WONMOD;
 import won.protocol.vocabulary.WONPAY;
 
 /**
@@ -91,13 +81,9 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 		String paymodelUri = WonPayRdfUtils.getPaymentModelUri(bridge.getMerchantConnection());
 		
 		Model paymodel = conversation.listStatements(new ResourceImpl(paymodelUri), null, (RDFNode)null).toModel();
+		PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(paymodel);
 		
-		Double amount = InformationExtractor.getAmount(paymodel);
-		String currency = InformationExtractor.getCurrency(paymodel);
-		String receiver = InformationExtractor.getReceiver(paymodel);
-		String secret = InformationExtractor.getSecret(paymodel);
-		
-		String paymentText = "Amount: " + currency + " " + amount + "\nReceiver: " + receiver; 
+		String paymentText = "Amount: " + paymentWrapper.getCurrency() + " " + paymentWrapper.getAmount() + "\nReceiver: " + paymentWrapper.getReceiver(); 
 		paymodel = WonRdfUtils.MessageUtils.addMessage(paymodel, paymentText); // TODO: Add the amount, currency, etc. ...
 
 		// Remove unnecesry statements (counterpart)
