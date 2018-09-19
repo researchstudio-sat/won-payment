@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>webofneeds</groupId>
+		<groupId>at.researchstudio.sat</groupId>
 		<artifactId>won-payment</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
@@ -66,6 +66,13 @@
 			<groupId>com.paypal.sdk</groupId>
 			<artifactId>adaptivepaymentssdk</artifactId>
 			<version>2.7.117</version>
+		</dependency>
+
+		<!-- Payment-core -->
+		<dependency>
+			<groupId>at.researchstudio.sat</groupId>
+			<artifactId>won-payment-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Bean validation -->

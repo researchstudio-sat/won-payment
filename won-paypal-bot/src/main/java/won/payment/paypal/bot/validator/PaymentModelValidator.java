@@ -2,6 +2,7 @@ package won.payment.paypal.bot.validator;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -35,8 +36,14 @@ import won.protocol.vocabulary.WONPAY;
  */
 public class PaymentModelValidator {
 
-	public static final String[] CURRENCYS = new String[] { "AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF",
-			"ILS", "JPY", "MYR", "MXN", "NOK", "NZD", "PHP", "PLN", "GBP", "SGD", "SEK", "CHF", "TWD", "THB", "USD", };
+//	public static final String[] CURRENCYS = new String[] { "AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF",
+//			"ILS", "JPY", "MYR", "MXN", "NOK", "NZD", "PHP", "PLN", "GBP", "SGD", "SEK", "CHF", "TWD", "THB", "USD", };
+
+	public static final Resource[] CURRENCIES = new Resource[] { WONPAY.CUR.AUD, WONPAY.CUR.BRL, WONPAY.CUR.CAD,
+			WONPAY.CUR.CZK, WONPAY.CUR.DKK, WONPAY.CUR.EUR, WONPAY.CUR.HKD, WONPAY.CUR.HUF, WONPAY.CUR.ILS,
+			WONPAY.CUR.JPY, WONPAY.CUR.MYR, WONPAY.CUR.MXN, WONPAY.CUR.NOK, WONPAY.CUR.NZD, WONPAY.CUR.PHP,
+			WONPAY.CUR.PLN, WONPAY.CUR.GBP, WONPAY.CUR.SGD, WONPAY.CUR.SEK, WONPAY.CUR.CHF, WONPAY.CUR.TWD,
+			WONPAY.CUR.THB, WONPAY.CUR.USD, };
 
 	private EventListenerContext ctx;
 	private ValidatorFactory factory;
@@ -60,7 +67,7 @@ public class PaymentModelValidator {
 		// - 5m < expiration < 30d
 
 		// Currency
-		if (!Arrays.asList(CURRENCYS).contains(payment.getCurrency())) {
+		if (!Arrays.asList(CURRENCIES).contains(payment.getCurrency())) {
 			throw new Exception("Not a supported currency");
 		}
 

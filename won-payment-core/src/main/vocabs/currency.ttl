@@ -1,0 +1,66 @@
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix cur: <http://www.w3.org/2007/ont/currency#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix doc: <http://www.w3.org/2000/10/swap/pim/doc#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ontology
+cur:Currency a rdfs:Class ;
+    rdfs:label "currency" ;
+    rdfs:comment "An abstract currency" .
+
+<> cc:licence <http://www.w3.org/2000/10/swap/LICENSE.n3> ;
+    dc:title "An Ontology for Currencies" ;
+    rdfs:comment """Currency.
+    A naive view for deriving a common value of assets in differet currencies
+    """;
+    doc:creator <http://www.w3.org/People/Berners-Lee/card#i> .
+
+cur:code a rdf:Property ;
+    rdfs:label "code" ;
+    rdfs:comment "The three letter currency, eg: 'USD'." ;
+    rdfs:domain cur:Currency .
+
+cur:in_USD a rdf:Property ;
+    rdfs:label "value in USD" ;
+    rdfs:comment """Notional value of 1 of the currency in USD, eg: 1.0.
+    This is a naive model in that it is dollar-centric,
+    does not distinsuish beetween buy and sell rates.""";
+    rdfs:domain cur:Currency .
+
+cur:sign a rdf:Property ;
+    rdfs:label "sign" ;
+    rdfs:comment "The symbol, eg: '$'." ;
+    rdfs:domain cur:Currency .
+
+
+    
+# Resources
+cur:USD rdfs:label "USD" ;
+    dc:title "US Dollars" ;
+    cur:code "USD" ;
+    cur:in_USD 1.0 ;
+    cur:sign "$" .
+
+cur:EUR rdfs:label "EUR" ;
+    dc:title "Euro" ;
+    cur:code "EUR" ;
+    cur:sign "€" .
+
+cur:GBP rdfs:label "GBP" ;
+    dc:title "GP Pounds" ;
+    cur:code "GBP" ;
+    cur:sign "£" .
+
+cur:NZD rdfs:label "NZD" ;
+    dc:title "NZ Dollars" ;
+    cur:code "NZD" .
+
+cur:USD rdfs:label "JPY" ;
+    dc:title "JP Yen" ;
+    cur:code "JPY" ;
+    cur:sign "¥" .
+

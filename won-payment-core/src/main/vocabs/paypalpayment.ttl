@@ -1,0 +1,62 @@
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix s:     <http://schema.org/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix ex2: <http://example.org/2/> .
+@prefix pay: <http://purl.org/webofneeds/payment#> .
+@prefix cur: <http://www.w3.org/2007/ont/currency#> .
+
+pay:Payment a rdfs:Class ;
+    rdfs:label "Payment" ;
+    rdfs:comment "Payment object to execute" . 
+
+pay:FeePayer a rdfs:Class ;
+    rdfs:label "FeePayer" ;
+    rdfs:comment "Defines who has to pay the paymentfees" .
+
+pay:Sender a pay:FeePayer ;
+    a pay:FeePayer ;
+    rdfs:label "SENDER" .
+    
+pay:Receiver a pay:FeePayer ;
+    a pay:FeePayer ;
+    rdfs:label "RECEIVER" .
+    
+pay:hasAmount a rdf:Property ;
+    rdfs:label "amount" ;
+    rdfs:comment "The amount as a number" ;
+    rdfs:domain pay:Payment .
+
+pay:hasCurrency a rdf:Property ;
+    rdfs:label "currency" ;
+    rdfs:comment "Currency of the payment" ;
+    rdfs:domain pay:Payment ;
+    rdfs:range cur:Currency .
+
+pay:hasReceiver a rdf:Property ;
+    rdfs:label "receiver" ;
+    rdfs:comment "Receiver of the payment" ;
+    rdfs:domain pay:Payment .
+
+pay:hasSecret a rdf:Property ;
+    rdfs:label "secret" ;
+    rdfs:comment "Secret for the transaction" ;
+    rdfs:domain pay:Payment .
+
+pay:hasNeedCounerpart a rdf:Property ;
+    rdfs:label "counterpart" ;
+    rdfs:comment "The counterpart of the payment" ;
+    rdfs:domain pay:Payment .
+
+pay:hasTax a rdf:Property ;
+    rdfs:label "tax" ;
+    rdfs:comment "The tax as a number" ;
+    rdfs:domain pay:Payment .
+
+pay:hasExpirationTime a rdf:Property ;
+    rdfs:label "expiration" ;
+    rdfs:comment "The expiration time of a payment" ;
+    rdfs:domain pay:Payment .
+

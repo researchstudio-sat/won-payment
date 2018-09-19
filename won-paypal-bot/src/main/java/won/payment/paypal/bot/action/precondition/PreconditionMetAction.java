@@ -5,7 +5,9 @@ import java.net.URISyntaxException;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
@@ -24,6 +26,7 @@ import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.payment.paypal.bot.model.PaymentStatus;
+import won.payment.paypal.bot.util.WonPayRdfUtils;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
@@ -69,7 +72,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 
 			logger.info("Precondition Met");
 
-			PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(preconditionEventPayload);
+			final PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(preconditionEventPayload);
 
 			logger.info("Amount: " + paymentWrapper.getAmount());
 			logger.info("Currency: " + paymentWrapper.getCurrency());
@@ -88,12 +91,16 @@ public class PreconditionMetAction extends BaseEventBotAction {
 					return;
 				}
 
-				RdfUtils.findOrCreateBaseResource(preconditionEventPayload).addProperty(RDF.type,
+				// Filter out the unneceserry tripel
+				Model summaryModel = preconditionEventPayload.listStatements(
+						new ResourceImpl(WonPayRdfUtils.getPaymentModelUri(con)), null, (RDFNode)null).toModel();
+				
+				RdfUtils.findOrCreateBaseResource(summaryModel).addProperty(RDF.type,
 						WONPAY.PAYMENT_SUMMARY);
-				WonRdfUtils.MessageUtils.addProcessing(preconditionEventPayload, "Payment summary");
-				WonRdfUtils.MessageUtils.addMessage(preconditionEventPayload, "Payment summary");
+				WonRdfUtils.MessageUtils.addProcessing(summaryModel, "Payment summary");
+				WonRdfUtils.MessageUtils.addMessage(summaryModel, "Payment summary");
 				final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(
-						con, preconditionEventPayload);
+						con, summaryModel);
 
 				ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(
 						ctx, new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {
@@ -102,7 +109,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 								ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
 								if (connectionMessageCommandResultEvent.isSuccess()) {
 									Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(paymentWrapper
-											.getCurrency() + " " + paymentWrapper.getAmount() + " to "
+											.getCurrencySymbol() + " " + paymentWrapper.getAmount() + " to "
 											+ paymentWrapper.getReceiver()
 											+ "....Do you want to confirm the paymodel? Then accept the proposal. After accepting the payment will be "
 											+ "generated and you can still verify it.");

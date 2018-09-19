@@ -6,13 +6,73 @@
 @prefix dc:    <http://purl.org/dc/elements/1.1/> .
 @prefix ex2: <http://example.org/2/> .
 @prefix pay: <http://purl.org/webofneeds/payment#> .
-@prefix currency: <http://purl.org/webofneeds/currency#> .
+@prefix cur: <http://www.w3.org/2007/ont/currency#> .
 
 @prefix olntest:   <http://sat.researchstudio.at/oln/test/> .
 
 
-pay:Sender   a pay:FeePayer .
-pay:Receiver a pay:FeePayer .
+
+# Individual Definitions
+ex2:p2g-individuals {
+    # FeePayer
+    pay:Sender   a pay:FeePayer ;
+                 rdfs:label "SENDER" .
+    pay:Receiver a pay:FeePayer ;
+                 rdfs:label "RECEIVER" .
+      ## TODO: ShaclReport filter out only the payment model !!!
+    # Currencies
+    cur:AUD a cur:Currency ;
+            cur:code "AUD" .
+    cur:BRL a cur:Currency ;
+            cur:code "BRL" ;
+            cur:sign "R$"  .
+    cur:CAD a cur:Currency ;
+            cur:code "CAD" .
+    cur:CZK a cur:Currency ;
+            cur:code "CZK" .
+    cur:DKK a cur:Currency ;
+            cur:code "DKK" .
+    cur:EUR a cur:Currency ;
+            cur:code "EUR" ;
+            cur:sign "€"   .
+    cur:HKD a cur:Currency ;
+            cur:code "HKD" .
+    cur:HUF a cur:Currency ;
+            cur:code "HUF" .
+    cur:ILS a cur:Currency ;
+            cur:code "ILS" .
+    cur:JPY a cur:Currency ;
+            cur:code "JPY" ;
+            cur:sign "¥"   .
+    cur:MYR a cur:Currency ;
+            cur:code "MYR" .
+    cur:MXN a cur:Currency ;
+            cur:code "MXN" .
+    cur:NOK a cur:Currency ;
+            cur:code "NOK" .
+    cur:NZD a cur:Currency ;
+            cur:code "NZD" .
+    cur:PHP a cur:Currency ;
+            cur:code "PHP" .
+    cur:PLN a cur:Currency ;
+            cur:code "PLN" .
+    cur:GBP a cur:Currency ;
+            cur:code "GBP" ;
+            cur:sign "£"   .
+    cur:SGD a cur:Currency ;
+            cur:code "SGD" .
+    cur:SEK a cur:Currency ;
+            cur:code "SEK" .
+    cur:CHF a cur:Currency ;
+            cur:code "CHF" .
+    cur:TWD a cur:Currency ;
+            cur:code "TWD" .
+    cur:THB a cur:Currency ;
+            cur:code "THB" .
+    cur:USD a cur:Currency ;
+            cur:code "USD" ;
+            cur:sign "$"   .
+}
 
 
 ex2:p2g-shapes {
@@ -45,8 +105,10 @@ ex2:p2g-shapes {
                           ] ;
               sh:property [
                               sh:path pay:hasCurrency ;
-                              sh:datatype xsd:string ;
-                              sh:pattern "^[A-Z]{3}$" ;
+                              sh:nodeKind sh:IRI ;
+                              sh:class cur:Currency ;
+                              # sh:datatype xsd:string ;
+                              # sh:pattern "^[A-Z]{3}$" ;
                               sh:minCount 1;
                               sh:maxCount 1;
                           ] ;

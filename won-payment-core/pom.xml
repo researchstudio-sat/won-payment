@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>webofneeds</groupId>
+    <groupId>at.researchstudio.sat</groupId>
     <artifactId>won-payment</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>3.8.1</version><!--$NO-MVN-MAN-VER$-->
             <scope>test</scope>
         </dependency>
 
@@ -41,7 +41,14 @@
                     </includes>
                     <fileOptions>
                         <source>
-                            <input>src/main/vocabs/payment.ttl</input>
+                            <input>src/main/vocabs/currency.ttl</input>
+                            <package-name>won.payment.ont</package-name>
+                            <output>${project.build.directory}/generated-sources/java</output>
+                            <use-inf>true</use-inf>
+                            <ontology>true</ontology>
+                        </source>
+                        <source>
+                            <input>src/main/vocabs/paypalpayment.ttl</input>
                             <package-name>won.payment.ont</package-name>
                             <output>${project.build.directory}/generated-sources/java</output>
                             <use-inf>true</use-inf>

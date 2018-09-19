@@ -2,7 +2,9 @@ package won.payment.paypal.bot.model;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
@@ -19,6 +21,7 @@ import com.paypal.svcs.types.ap.Receiver;
 import com.paypal.svcs.types.ap.ReceiverList;
 
 import won.payment.paypal.bot.util.InformationExtractor;
+import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.vocabulary.WONPAY;
 
 public class PaymentModelWrapper {
@@ -37,8 +40,7 @@ public class PaymentModelWrapper {
 	private Double amount;
 
 	@NotNull
-	@Size(min = 3, max = 3)
-	private String currency;
+	private Resource currency;
 
 	@NotNull
 	@Size(min = 4)
@@ -69,13 +71,17 @@ public class PaymentModelWrapper {
 	public PaymentModelWrapper(Model payload) {
 		uri = InformationExtractor.getPayment(payload).getURI();
 		amount = InformationExtractor.getAmount(payload);
-		currency = InformationExtractor.getCurrency(payload);
+		Resource currencyResp = InformationExtractor.getCurrency(payload);
+		List<Resource> currencies = Arrays.asList(PaymentModelValidator.CURRENCIES);
+		currency = currencies.get(currencies.indexOf(currencyResp));
 		receiver = InformationExtractor.getReceiver(payload);
 		secret = InformationExtractor.getSecret(payload);
 		counterpartNeed = InformationExtractor.getCounterpart(payload);
 		Resource feePayerResult = InformationExtractor.getFeePayer(payload); 
 		if (feePayerResult != null) {
-			feePayer = feePayerResult;
+			feePayer = feePayerResult.equals(WONPAY.FEE_PAYER_SENDER) ? 
+						WONPAY.FEE_PAYER_SENDER :
+						WONPAY.FEE_PAYER_RECEIVER ;
 		}
 		String expirationTimeResult = InformationExtractor.getExpirationTime(payload); 
 		if (expirationTimeResult != null) {
@@ -98,7 +104,7 @@ public class PaymentModelWrapper {
 		return amount;
 	}
 
-	public String getCurrency() {
+	public Resource getCurrency() {
 		return currency;
 	}
 
@@ -133,6 +139,12 @@ public class PaymentModelWrapper {
 	public Double getTax() {
 		return tax;
 	}
+	
+	public String getCurrencySymbol() {
+		 return currency.hasProperty(WONPAY.CUR.SIGN) ?
+				    currency.getProperty(WONPAY.CUR.SIGN).getString() :
+					currency.getProperty(WONPAY.CUR.CODE).getString() ;
+	}
 
 	public PayRequest toPayRequest() {
 		PayRequest pay = new PayRequest();
@@ -141,7 +153,7 @@ public class PaymentModelWrapper {
 		rec.setAmount(amount);
 		rec.setEmail(receiver);
 		pay.setReceiverList(new ReceiverList(Collections.singletonList(rec)));
-		pay.setCurrencyCode(currency);
+		pay.setCurrencyCode(currency.getProperty(WONPAY.CUR.CODE).getString());
 		pay.setFeesPayer(feePayer.getProperty(RDFS.label).getString());
 
 		if (expirationTime != null) {

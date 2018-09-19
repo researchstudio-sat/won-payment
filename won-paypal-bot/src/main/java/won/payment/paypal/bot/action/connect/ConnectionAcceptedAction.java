@@ -83,7 +83,7 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 		Model paymodel = conversation.listStatements(new ResourceImpl(paymodelUri), null, (RDFNode)null).toModel();
 		PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(paymodel);
 		
-		String paymentText = "Amount: " + paymentWrapper.getCurrency() + " " + paymentWrapper.getAmount() + "\nReceiver: " + paymentWrapper.getReceiver(); 
+		String paymentText = "Amount: " + paymentWrapper.getCurrencySymbol() + " " + paymentWrapper.getAmount() + "\nReceiver: " + paymentWrapper.getReceiver(); 
 		paymodel = WonRdfUtils.MessageUtils.addMessage(paymodel, paymentText); // TODO: Add the amount, currency, etc. ...
 
 		// Remove unnecesry statements (counterpart)
