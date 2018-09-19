@@ -58,11 +58,7 @@ public class PaypalPaymentService {
 		
 		pay.setRequestEnvelope(config.getEnvelope());
 		pay.setActionType("CREATE");
-		
-		if (pay.getFeesPayer() == null) {
-			pay.setFeesPayer("SENDER");
-		}
-		
+				
 		pay.setReturnUrl("https://example.com/success");
 		pay.setCancelUrl("https://example.com/error");
 		

@@ -43,7 +43,7 @@ public class WONPAY {
 
 	// PaymentFeePayer
 	public static final Resource FEE_PAYER_SENDER = m.createResource(MODEL_URI + "Sender").addLiteral(RDFS.label, "SENDER");
-	public static final Resource FEE_PAYER_RECEIVER = m.createResource(MODEL_URI + "Receiver").addLiteral(RDFS.label, "RECEIVER");
+	public static final Resource FEE_PAYER_RECEIVER = m.createResource(MODEL_URI + "Receiver").addLiteral(RDFS.label, "EACHRECEIVER");
 
 	
 	public static class CUR {

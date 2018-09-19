@@ -18,7 +18,7 @@ ex2:p2g-individuals {
     pay:Sender   a pay:FeePayer ;
                  rdfs:label "SENDER" .
     pay:Receiver a pay:FeePayer ;
-                 rdfs:label "RECEIVER" .
+                 rdfs:label "EACHRECEIVER" .
       ## TODO: ShaclReport filter out only the payment model !!!
     # Currencies
     cur:AUD a cur:Currency ;
