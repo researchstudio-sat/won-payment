@@ -2,15 +2,17 @@
 @prefix pay: <http://purl.org/webofneeds/payment#> .
 @prefix ex2: <http://example.org/2/> .
 @prefix won:   <http://purl.org/webofneeds/model#> .
+@prefix cur: <http://www.w3.org/2007/ont/currency#> .
 
 <this:eventuri> won:hasTextMessage 'Money Money Money'. 
 
-<https://127.0.0.1:8443/won/resource/need/v40bepckygzxo5tlo47z/payment>
+<https://127.0.0.1:8443/won/resource/need/g0e9yzyjcak3ddgchbmr/payment>
 	pay:hasAmount 2.34 ;
-	pay:hasCurrency 'EUR' ;
+	pay:hasCurrency cur:EUR ;
 	pay:hasReceiver 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
-	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/ulhjxxnhb341> .
+	pay:hasFeePayer pay:Receiver ;
+	pay:hasNeedCounterpart <https://127.0.0.1:8443/won/resource/need/o4sstk4pv2j3> .
 
 <https://127.0.0.1:8443/won/resource/need/nxs4tgly6x0c/payment>
 	pay:hasTax 0.99 ;
