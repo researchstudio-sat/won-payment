@@ -23,6 +23,7 @@ public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
 	
 	private static final String OPEN_PAYMENT_BRIDGES = ":openpaymentbridges";
 	private PaypalPaymentService paypalService;
+	private Long schedulingInterval;
 	
 	public PaypalBotContextWrapper(BotContext botContext, String botName) {
 		super(botContext, botName);
@@ -64,6 +65,16 @@ public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
 	public PaypalPaymentService getPaypalService() {
 		return paypalService;
 	}
+
+	public Long getSchedulingInterval() {
+		return schedulingInterval;
+	}
+
+	public void setSchedulingInterval(Long schedulingInterval) {
+		this.schedulingInterval = schedulingInterval;
+	}
+	
+	
 	
 	
 

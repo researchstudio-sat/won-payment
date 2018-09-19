@@ -17,6 +17,7 @@ import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherNeedEven
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
+import won.payment.paypal.bot.action.HelpAction;
 import won.payment.paypal.bot.action.analyze.GoalAnalyzationAction;
 import won.payment.paypal.bot.action.connect.ConnectionAcceptedAction;
 import won.payment.paypal.bot.action.connect.ConnectionCloseAction;
@@ -30,6 +31,7 @@ import won.payment.paypal.bot.action.precondition.PreconditionUnmetAction;
 import won.payment.paypal.bot.action.proposal.ProposalAcceptedAction;
 import won.payment.paypal.bot.action.proposal.ProposalReceivedAction;
 import won.payment.paypal.bot.action.proposal.ProposalRejectedAction;
+import won.payment.paypal.bot.event.SimpleMessageReceivedEvent;
 import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.event.modification.MessageRetractedEvent;
@@ -43,8 +45,6 @@ import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
  *
  */
 public class PaypalBot extends FactoryBot {
-
-	private static final Long SCHEDULER_INTERVAL = 60 * 1000L;
 
 	private Timer paymentCheckTimer;
 
@@ -127,6 +127,9 @@ public class PaypalBot extends FactoryBot {
         // Incoming message effect broker
         bus.subscribe(MessageFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new MessageEffectBrokerAction(ctx)));
         
+        // Incoming simple Messages
+        bus.subscribe(SimpleMessageReceivedEvent.class, new ActionOnEventListener(ctx, new HelpAction(ctx)));
+        
         // SHAQL Validation for analyzation events
         bus.subscribe(ConversationAnalyzationCommandEvent.class, new ActionOnEventListener(ctx, new GoalAnalyzationAction(ctx)));
 		
@@ -148,7 +151,8 @@ public class PaypalBot extends FactoryBot {
 		PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(
 				getEventListenerContext());
 		paymentCheckTimer = new Timer(true);
-		paymentCheckTimer.scheduleAtFixedRate(statusScheduler, SCHEDULER_INTERVAL, SCHEDULER_INTERVAL);
+		Long interval = ((PaypalBotContextWrapper) getBotContextWrapper()).getSchedulingInterval();
+		paymentCheckTimer.scheduleAtFixedRate(statusScheduler, interval, interval);
 	}
 	
 

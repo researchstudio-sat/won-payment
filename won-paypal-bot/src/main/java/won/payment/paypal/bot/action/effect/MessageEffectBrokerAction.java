@@ -16,6 +16,7 @@ import won.bot.framework.eventbot.event.impl.command.connectionmessage.Connectio
 import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
+import won.payment.paypal.bot.event.SimpleMessageReceivedEvent;
 import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.event.modification.MessageRetractedEvent;
 import won.payment.paypal.bot.event.proposal.ProposalRejectedEvent;
@@ -27,9 +28,8 @@ import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
 
 /**
- * Analyzes all incoming messages and breaks down
- * the message effects (accepts, proposes, rejects,
- * retracts) and publishes suitable events for them.
+ * Analyzes all incoming messages and breaks down the message effects (accepts,
+ * proposes, rejects, retracts) and publishes suitable events for them.
  * 
  * @author schokobaer
  *
@@ -48,10 +48,11 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 				&& event instanceof MessageFromOtherNeedEvent) {
 
 			MessageFromOtherNeedEvent messageEvent = (MessageFromOtherNeedEvent) event;
-			
+
 			// Analyze for message effects
-			if(!breakDownEffects((BaseNeedAndConnectionSpecificEvent) event)) {
+			if (!breakDownEffects((BaseNeedAndConnectionSpecificEvent) event)) {
 				ctx.getEventBus().publish(new ConversationAnalyzationCommandEvent(messageEvent.getCon()));
+				ctx.getEventBus().publish(new SimpleMessageReceivedEvent(messageEvent));
 			}
 		}
 
@@ -93,7 +94,7 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 						.getAgreement(messageEffect.asAccepts().getAcceptedMessageUri());
 				ctx.getEventBus().publish(new ProposalAcceptedEvent(connection,
 						messageEffect.asAccepts().getAcceptedMessageUri(), agreementPayload));
-				
+
 			} else if (messageEffect.getType().equals(MessageEffectType.PROPOSES)) {
 				ctx.getEventBus()
 						.publish(new ProposalReceivedEvent(connection, (WonMessageReceivedOnConnectionEvent) event));
@@ -105,7 +106,7 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 				ctx.getEventBus().publish(new MessageRetractedEvent(connection, uri));
 			}
 		});
-		
+
 		return result.booleanValue();
 
 	}
