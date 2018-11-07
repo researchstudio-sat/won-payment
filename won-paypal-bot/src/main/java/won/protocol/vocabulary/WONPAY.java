@@ -20,18 +20,7 @@ public class WONPAY {
 
 	private static final Model m = ModelFactory.createDefaultModel();
 
-	// Propertys
-	public static final Property HAS_AMOUNT = m.createProperty(BASE_URI + "hasAmount");
-	public static final Property HAS_CURRENCY = m.createProperty(BASE_URI + "hasCurrency");
-	public static final Property HAS_RECEIVER = m.createProperty(BASE_URI + "hasReceiver");
-	public static final Property HAS_FEE_PAYER = m.createProperty(BASE_URI + "hasFeePayer");
-	public static final Property HAS_TAX = m.createProperty(BASE_URI + "hasTax");
-	public static final Property HAS_INVOICE_NUMBER = m.createProperty(BASE_URI + "hasInvoiceNumber");
-	public static final Property HAS_INVOICE_DETAILS = m.createProperty(BASE_URI + "hasInvoiceDetails");
-	public static final Property HAS_EXPIRATION_TIME = m.createProperty(BASE_URI + "haseExpirationTime");
-	public static final Property HAS_PAYMENT_STATE = m.createProperty(BASE_URI + "hasState");
-	public static final Property REFERS_TO = m.createProperty(BASE_URI + "refersTo");
-
+	// Properties
 	public static final Property HAS_PAYPAL_PAYKEY = m.createProperty(BASE_URI + "hasPaypalPayKey");
 
 	public static final Property HAS_SECRET = m.createProperty(BASE_URI + "hasSecret");
@@ -45,15 +34,15 @@ public class WONPAY {
 	public static final Resource FEE_PAYER_SENDER = m.createResource(MODEL_URI + "Sender").addLiteral(RDFS.label, "SENDER");
 	public static final Resource FEE_PAYER_RECEIVER = m.createResource(MODEL_URI + "Receiver").addLiteral(RDFS.label, "EACHRECEIVER");
 
-	
+
 	public static class CUR {
 		public static final String BASE_URI = "http://www.w3.org/2007/ont/currency#";
 		private static final Model m = ModelFactory.createDefaultModel();
-		
+
 		public static final Resource CURRENCY = m.createResource(BASE_URI + "Currency");
 		public static final Property CODE = m.createProperty(BASE_URI + "code");
 		public static final Property SIGN = m.createProperty(BASE_URI + "sign");
-		
+
 		public static final Resource AUD = m.createResource(BASE_URI + "AUD").addLiteral(CODE, "AUD");
 		public static final Resource BRL = m.createResource(BASE_URI + "BRL").addLiteral(CODE, "BRL").addLiteral(SIGN, "R$");
 		public static final Resource CAD = m.createResource(BASE_URI + "CAD").addLiteral(CODE, "CAD");
@@ -77,6 +66,6 @@ public class WONPAY {
 		public static final Resource TWD = m.createResource(BASE_URI + "TWD").addLiteral(CODE, "TWD");
 		public static final Resource THB = m.createResource(BASE_URI + "THB").addLiteral(CODE, "THB");
 		public static final Resource USD = m.createResource(BASE_URI + "USD").addLiteral(CODE, "USD").addLiteral(SIGN, "$");
-		
+
 	}
 }

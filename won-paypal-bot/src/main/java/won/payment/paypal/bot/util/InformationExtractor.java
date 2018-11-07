@@ -53,12 +53,12 @@ public class InformationExtractor {
         return null;
     }
     
-    public static Resource getCurrency(Model payload) {
+    public static String getCurrency(Model payload) {
     	if(payload != null) {
             QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
             if (solution != null) {
-                return solution.getResource(CURRENCY);
+                return solution.getLiteral(CURRENCY).getString();
             }
         }
         return null;
