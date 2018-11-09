@@ -221,6 +221,10 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
 		} catch (Exception e) {
 			logger.warn("Paypal payment could not be generated.", e);
+			makeTextMsg("PayPal payment could not be generated: " + e.getMessage(), con);
+			bridge.setStatus(PaymentStatus.FAILURE);
+			PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+			
 		}
 	}
 
