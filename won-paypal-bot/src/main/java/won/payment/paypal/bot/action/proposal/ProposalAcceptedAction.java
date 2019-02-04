@@ -248,10 +248,8 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		Dataset dataset = state.getAgreements();
 		Model agreements = dataset.getUnionModel();
 
-		String paymentUri = WonPayRdfUtils.getPaymentModelUri(con);
-		Model paymodel = agreements.listStatements(new ResourceImpl(paymentUri), null, (RDFNode) null).toModel();
-		PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(paymodel);
-
+		PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(agreements);
+        //TODO: JUST PUSH THE PAYMENT MODEL 'DETAIL' INSTEAD AS A MESSAGE (Structure see payment-detail) with the extracted values of course
 		String openingMsg = "Payment request with secret: " + paymentWrapper.getSecret()
 				+ "\nAccept the connection to receive the payment.";
 		Model secretModel = ModelFactory.createDefaultModel();
@@ -304,7 +302,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 		Model conversation = merchantAgreementProtocolState.getConversationDataset().getUnionModel();
 		String paymodelUri = WonPayRdfUtils.getPaymentModelUri(bridge.getMerchantConnection());
 		
-		Model paymodel = conversation.listStatements(new ResourceImpl(paymodelUri), null, (RDFNode)null).toModel();
+		Model paymodel = conversation;
 		paymodel = WonRdfUtils.MessageUtils.addMessage(paymodel, "Payment summary"); // TODO: Add the amount, currency, etc. ...
 
 		// Remove unnecesry statements (counterpart)

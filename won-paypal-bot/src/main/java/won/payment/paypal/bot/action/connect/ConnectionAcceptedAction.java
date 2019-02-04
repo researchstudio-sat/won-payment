@@ -80,11 +80,11 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 		Model conversation = merchantAgreementProtocolState.getConversationDataset().getUnionModel();
 		String paymodelUri = WonPayRdfUtils.getPaymentModelUri(bridge.getMerchantConnection());
 		
-		Model paymodel = conversation.listStatements(new ResourceImpl(paymodelUri), null, (RDFNode)null).toModel();
+		Model paymodel = conversation;
 		PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(paymodel);
-		
+        //TODO: JUST PUSH THE PAYMENT MODEL 'DETAIL' INSTEAD AS A MESSAGE (Structure see payment-detail)
 		String paymentText = "Amount: " + paymentWrapper.getCurrencySymbol() + " " + paymentWrapper.getAmount() + "\nReceiver: " + paymentWrapper.getReceiver(); 
-		paymodel = WonRdfUtils.MessageUtils.addMessage(paymodel, paymentText); // TODO: Add the amount, currency, etc. ...
+		paymodel = WonRdfUtils.MessageUtils.textMessage(paymentText); // TODO: Add the amount, currency, etc. ...
 
 		// Remove unnecesry statements (counterpart)
 		paymodel.removeAll(null, WONPAY.HAS_NEED_COUNTERPART, null);

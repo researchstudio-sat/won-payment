@@ -91,10 +91,9 @@ public class PreconditionMetAction extends BaseEventBotAction {
 					return;
 				}
 
-				// Filter out the unneceserry tripel
-				Model summaryModel = preconditionEventPayload.listStatements(
-						new ResourceImpl(WonPayRdfUtils.getPaymentModelUri(con)), null, (RDFNode)null).toModel();
-				
+				Model summaryModel = preconditionEventPayload;
+
+                //TODO: JUST PUSH THE PAYMENT MODEL 'DETAIL' INSTEAD AS A MESSAGE (Structure see payment-detail) with the extracted values of course
 				RdfUtils.findOrCreateBaseResource(summaryModel).addProperty(RDF.type,
 						WONPAY.PAYMENT_SUMMARY);
 				WonRdfUtils.MessageUtils.addProcessing(summaryModel, "Payment summary");
