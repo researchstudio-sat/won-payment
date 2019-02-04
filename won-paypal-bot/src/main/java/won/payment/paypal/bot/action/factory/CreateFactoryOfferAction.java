@@ -35,7 +35,6 @@ import won.protocol.exception.WonMessageBuilderException;
 import won.protocol.message.WonMessage;
 import won.protocol.message.WonMessageBuilder;
 import won.protocol.model.Connection;
-import won.protocol.model.NeedContentPropertyType;
 import won.protocol.model.NeedGraphType;
 import won.protocol.service.WonNodeInformationService;
 import won.protocol.util.DefaultNeedModelWrapper;
@@ -167,10 +166,8 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
 
         final URI needURI = ctx.getWonNodeInformationService().generateNeedURI(ctx.getNodeURISource().getNodeURI());
         DefaultNeedModelWrapper needModelWrapper = new DefaultNeedModelWrapper(needURI.toString());
-
-        needModelWrapper.setTitle(NeedContentPropertyType.IS, connectTitle);
-        needModelWrapper.setDescription(NeedContentPropertyType.IS,
-                "This is a automatically created need by the PaypalBot");
+        needModelWrapper.setTitle(connectTitle);
+        needModelWrapper.setDescription("This is a automatically created need by the PaypalBot");
         needModelWrapper.addFlag(WON.NO_HINT_FOR_COUNTERPART);
         needModelWrapper.addFlag(WON.NO_HINT_FOR_ME);
         needModelWrapper.setShapesGraphReference(STUB_SHAPES_URI);
