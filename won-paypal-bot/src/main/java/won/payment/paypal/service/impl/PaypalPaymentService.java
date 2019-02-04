@@ -67,7 +67,7 @@ public class PaypalPaymentService {
 		executeRequest(pay, response -> {
 			strBuilder.append(((PayResponse) response).getPayKey());
 		}, errors -> {
-			throw new Exception();
+			throw new Exception(errors.get(0).getMessage() + ":" + errors.get(0).getParameter().get(0).getValue());
 		});
 
 		return strBuilder.toString();
