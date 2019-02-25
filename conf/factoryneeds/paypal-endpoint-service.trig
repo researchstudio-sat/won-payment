@@ -17,28 +17,14 @@
 @prefix dc:    <http://purl.org/dc/elements/1.1/> .
 @prefix sioc:  <http://rdfs.org/sioc/ns#> .
 
-@prefix sh: <http://www.w3.org/ns/shacl#> .
-@prefix ex1: <http://example.org/1/> .
-@prefix ex2: <http://example.org/2/> .
-@prefix taxi: <http://example.org/taxi/> .
-
 @prefix olntest:   <http://sat.researchstudio.at/oln/test/> .
 
  {
     olntest:paypalService1
-		a             won:Need ;
 		won:hasFlag   won:NoHintForCounterpart ;
-		won:is [ 
-			dc:description   "next 10 minutes" ;
-			dc:title         "Paypal Payment Endpoint"@en ;
-			dc:description   "Offering Payments via Paypal"@en ;
-			won:hasTag       "Paypal",
-                             "Paypal Zahlung"@de ,
-                             "Paypal Payment"@en ;
-		] ;
+		a             won:Need , won:ServiceBot ;
+		s:title				"Paypal Payment Bot Factory Need" ;
 		won:seeks [
-            won:seeks [
-                dc:description "Paypal"
-            ]
+			a			won:PaymentServiceRequest;
 		].
 }
