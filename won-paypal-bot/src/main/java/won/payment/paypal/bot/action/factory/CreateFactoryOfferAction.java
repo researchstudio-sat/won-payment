@@ -150,11 +150,11 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
 
     private Model createFactoryOfferFromTemplate(EventListenerContext ctx, URI factoryNeedURI, URI requesterURI) {
         // TODO: retrieve real template from factory
-        Dataset factoryNeedDataSet = ctx.getLinkedDataSource().getDataForResource(factoryNeedURI);
-        DefaultNeedModelWrapper factoryNeedModelWrapper = new DefaultNeedModelWrapper(factoryNeedDataSet);
+        //Dataset factoryNeedDataSet = ctx.getLinkedDataSource().getDataForResource(factoryNeedURI);
+        //DefaultNeedModelWrapper factoryNeedModelWrapper = new DefaultNeedModelWrapper(factoryNeedDataSet);
 
-        Dataset requesterNeedDataSet = ctx.getLinkedDataSource().getDataForResource(requesterURI);
-        DefaultNeedModelWrapper requesterNeedModelWrapper = new DefaultNeedModelWrapper(requesterNeedDataSet);
+        //Dataset requesterNeedDataSet = ctx.getLinkedDataSource().getDataForResource(requesterURI);
+        //DefaultNeedModelWrapper requesterNeedModelWrapper = new DefaultNeedModelWrapper(requesterNeedDataSet);
 
 		/*String connectTitle = factoryNeedModelWrapper.getSomeTitleFromIsOrAll() + " <-> "
 				+ (requesterNeedModelWrapper.getSomeTitleFromIsOrAll() != null

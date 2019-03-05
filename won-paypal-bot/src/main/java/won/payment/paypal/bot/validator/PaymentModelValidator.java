@@ -2,10 +2,8 @@ package won.payment.paypal.bot.validator;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Currency;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;

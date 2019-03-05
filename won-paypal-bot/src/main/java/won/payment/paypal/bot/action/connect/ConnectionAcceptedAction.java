@@ -1,8 +1,6 @@
 package won.payment.paypal.bot.action.connect;
 
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
@@ -19,7 +17,6 @@ import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.payment.paypal.bot.model.PaymentStatus;
-import won.payment.paypal.bot.util.WonPayRdfUtils;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
@@ -78,7 +75,7 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
 				getEventListenerContext().getLinkedDataSource());
 
 		Model conversation = merchantAgreementProtocolState.getConversationDataset().getUnionModel();
-		String paymodelUri = WonPayRdfUtils.getPaymentModelUri(bridge.getMerchantConnection());
+		//String paymodelUri = WonPayRdfUtils.getPaymentModelUri(bridge.getMerchantConnection());
 		
 		Model paymodel = conversation;
 		PaymentModelWrapper paymentWrapper = new PaymentModelWrapper(paymodel);

@@ -17,18 +17,14 @@ import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
-import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandSuccessEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.event.proposal.ProposalRejectedEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.agreement.AgreementProtocolState;
-import won.protocol.agreement.effect.ProposalType;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
-import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONAGR;
 import won.protocol.vocabulary.WONPAY;
 
@@ -224,7 +220,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 		// Cancelation of paymodel and pp
 		AgreementProtocolState agreementProtocolState = AgreementProtocolState
 				.of(bridge.getMerchantConnection().getConnectionURI(), ctx.getLinkedDataSource());
-		Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
+		//Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
 		List<URI> proposalsToCancelUris = new LinkedList<>();
 		agreementProtocolState.getAgreementUris().forEach(propUri -> {
 			proposalsToCancelUris.add(propUri);

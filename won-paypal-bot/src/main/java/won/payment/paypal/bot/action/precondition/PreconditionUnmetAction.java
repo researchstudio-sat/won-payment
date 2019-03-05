@@ -23,7 +23,6 @@ import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
-import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
 import won.utils.goals.GoalInstantiationResult;
 import won.utils.shacl.ValidationResultWrapper;
