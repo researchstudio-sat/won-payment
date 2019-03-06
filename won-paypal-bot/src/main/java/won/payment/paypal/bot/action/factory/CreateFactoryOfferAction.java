@@ -2,6 +2,7 @@ package won.payment.paypal.bot.action.factory;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.Dataset;
@@ -55,6 +56,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
     private static final URI STUB_NEED_URI = URI.create("http://example.com/content");
     private static final URI STUB_SHAPES_URI = URI.create("http://example.com/shapes");
 
+    // TODO: change opening msg
     private static final String OPENING_MSG = "Hello low-order creature! " + "I am the mighty Paypal Bot. "
             + "You awakened me from my sleep. " + "My destiny is to satisfy your commercial necessities. "
             + "So you want to receive some money from an other poor soul..?";
@@ -85,6 +87,7 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         Model factoryOfferModel = createFactoryOfferFromTemplate(ctx, factoryHintEvent.getFactoryNeedURI(),
                 factoryHintEvent.getRequesterURI());
         URI factoryOfferURI = WonRdfUtils.NeedUtils.getNeedURI(factoryOfferModel);
+        logger.debug("creating shapes model with factory need URI {}", factoryHintEvent.getFactoryNeedURI());
         Model shapesModel = createShapesModelFromTemplate(ctx, factoryHintEvent.getFactoryNeedURI());
 
         logger.debug("creating factoryoffer on won node {} with content {} ", wonNodeUri,
@@ -183,8 +186,8 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
 
     private Model createShapesModelFromTemplate(EventListenerContext ctx, URI factoryNeedURI) {
         Dataset dataset = DatasetFactory.createGeneral();
-        RDFDataMgr.read(dataset, new ByteArrayInputStream(goalString.getBytes()), RDFFormat.TRIG.getLang());
-
+        RDFDataMgr.read(dataset, new ByteArrayInputStream(goalString.getBytes(Charset.forName("UTF-8"))), RDFFormat.TRIG.getLang());
+        
         Model shapeModel = dataset.getUnionModel();
         shapeModel.setNsPrefix("pay", WONPAY.BASE_URI);
 
