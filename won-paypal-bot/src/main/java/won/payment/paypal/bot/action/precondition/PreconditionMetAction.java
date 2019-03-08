@@ -59,11 +59,12 @@ public class PreconditionMetAction extends BaseEventBotAction {
 				return;
 			}
 
-			// Denie buyer msgs
-			if (bridge.getBuyerConnection() != null
-					&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-				return;
-			}
+			// TODO: what did this do?
+			// Deny buyer msgs
+			// if (bridge.getBuyerConnection() != null
+			// 		&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+			// 	return;
+			// }
 
 			Model preconditionEventPayload = ((PreconditionEvent) event).getPayload().getInstanceModel();
 

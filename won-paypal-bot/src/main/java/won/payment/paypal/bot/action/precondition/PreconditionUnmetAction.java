@@ -53,11 +53,12 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 				return;
 			}
 			
-			// Denie buyer msgs
-            if (bridge.getBuyerConnection() != null && 
-            		bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-            	return;
-            }
+			// TODO: what did this do?
+			// // Denie buyer msgs
+      //       if (bridge.getBuyerConnection() != null && 
+      //       		bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+      //       	return;
+      //       }
 
 			logger.info("Precondition unmet");
 

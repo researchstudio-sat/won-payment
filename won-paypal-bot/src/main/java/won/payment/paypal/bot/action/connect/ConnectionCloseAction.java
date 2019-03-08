@@ -73,11 +73,11 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 		}
 
 		// Buyer closure
-		if (bridge.getBuyerConnection() != null
-				&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-			bridge.setBuyerConnection(null);
-			logger.debug("Buyer has closed the connection after completion in the Need {}", con.getNeedURI());
-		}
+		// if (bridge.getBuyerConnection() != null
+		// 		&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+		// 	bridge.setBuyerConnection(null);
+		// 	logger.debug("Buyer has closed the connection after completion in the Need {}", con.getNeedURI());
+		// }
 
 		PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
 
@@ -94,7 +94,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 	 */
 	private void closeNeed(PaymentBridge bridge, Connection con) {
 		// Both closed
-		if (bridge.getMerchantConnection() == null && bridge.getBuyerConnection() == null) {
+		if (bridge.getMerchantConnection() == null /*&& bridge.getBuyerConnection() == null*/) {
 			PaypalBotContextWrapper.instance(getEventListenerContext()).removeOpenBridge(con.getNeedURI());
 			getEventListenerContext().getEventBus().publish(new DeactivateNeedCommandEvent(con.getNeedURI()));
 			logger.debug("Need gets closed {}", con.getNeedURI());
@@ -114,7 +114,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 
 		// Fix here everything !!!
 		bridge.setStatus(PaymentStatus.FAILURE);
-		if (bridge.getBuyerConnection() != null
+		/*if (bridge.getBuyerConnection() != null
 				&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
 			// Buyer closed
 			logger.info("Unexpected closure from buyer with connection {} in the need {}", con.toString(),
@@ -124,16 +124,16 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 				makeTextMsg("Buyer closed the connection. The payment process failed. Please exit the connection.",
 						bridge.getMerchantConnection());
 			}
-		} else if (bridge.getMerchantConnection() != null
+				} else */if (bridge.getMerchantConnection() != null
 				&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
 			// Merchant closed
 			logger.info("Unexpected closure from merchant with connection {} in the need {}", con.toString(),
 					con.getNeedURI().toString());
 			bridge.setMerchantConnection(null);
-			if (bridge.getBuyerConnection() != null) {
-				makeTextMsg("Merchant closed the connection. The payment process failed. Please exit the connection",
-						bridge.getBuyerConnection());
-			}
+			// if (bridge.getBuyerConnection() != null) {
+			// 	makeTextMsg("Merchant closed the connection. The payment process failed. Please exit the connection",
+			// 			bridge.getBuyerConnection());
+			// }
 		} else {
 			// Not possible. Neither merchant nor buyer who closed the connection !!!
 		}
