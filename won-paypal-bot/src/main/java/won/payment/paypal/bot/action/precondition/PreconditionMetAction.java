@@ -59,13 +59,6 @@ public class PreconditionMetAction extends BaseEventBotAction {
 				return;
 			}
 
-			// TODO: what did this do?
-			// Deny buyer msgs
-			// if (bridge.getBuyerConnection() != null
-			// 		&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-			// 	return;
-			// }
-
 			Model preconditionEventPayload = ((PreconditionEvent) event).getPayload().getInstanceModel();
 
 			logger.info("Precondition Met");
@@ -76,7 +69,6 @@ public class PreconditionMetAction extends BaseEventBotAction {
 			logger.info("Currency: " + paymentWrapper.getCurrency());
 			logger.info("Receiver: " + paymentWrapper.getReceiver());
 			logger.info("Secret: " + paymentWrapper.getSecret());
-			logger.info("Counterpart: " + paymentWrapper.getCounterpartNeed());
 			logger.info("FeePayer: " + paymentWrapper.getFeePayer());
 			logger.info("Tax: " + paymentWrapper.getTax());
 			logger.info("InvoiceId: " + paymentWrapper.getInvoiceId());
@@ -91,7 +83,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 
 				Model summaryModel = preconditionEventPayload;
 
-                //TODO: JUST PUSH THE PAYMENT MODEL 'DETAIL' INSTEAD AS A MESSAGE (Structure see payment-detail) with the extracted values of course
+        // TODO: JUST PUSH THE PAYMENT MODEL 'DETAIL' INSTEAD AS A MESSAGE (Structure see payment-detail) with the extracted values of course
 				RdfUtils.findOrCreateBaseResource(summaryModel).addProperty(RDF.type,
 						WONPAY.PAYMENT_SUMMARY);
 				WonRdfUtils.MessageUtils.addProcessing(summaryModel, "Payment summary");

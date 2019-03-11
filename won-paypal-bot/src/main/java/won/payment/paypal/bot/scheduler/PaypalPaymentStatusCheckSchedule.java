@@ -50,6 +50,7 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 
 	}
 
+	// TODO: think about moving this to a public method somewhere
 	private void makeTextMsg(String msg, Connection con) {
 		if (con == null) {
 			return;
@@ -74,14 +75,12 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 			if (status == PaypalPaymentStatus.COMPLETED) {
 				bridge.setStatus(PaymentStatus.COMPLETED);
 				logger.info("Payment completed with payKey {}", payKey);
-				//makeTextMsg("The payment is completed! You can now close the connection.", bridge.getBuyerConnection());
-				makeTextMsg("The payment is completed! You can now close the connection.",
+				makeTextMsg("The payment was completed! You can now close this connection.",
 						bridge.getMerchantConnection());
 			} else if (status == PaypalPaymentStatus.EXPIRED) {
-				// logger.info("Payment expired with payKey {}", payKey);
-				// makeTextMsg("The payment is expired! Type 'accept' to generate a new one.",
-				// 		bridge.getBuyerConnection());
 				logger.info("Paypal Payment expired with payKey={}", payKey);
+				makeTextMsg("The payment link expired! Type 'accept' to generate a new one.",
+				 		bridge.getMerchantConnection());
 				bridge.setStatus(PaymentStatus.EXPIRED);
 			}
 			

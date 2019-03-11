@@ -1,11 +1,8 @@
 package won.payment.paypal.bot.action.connect;
 
-import org.apache.jena.rdf.model.Model;
-
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.event.Event;
-import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.event.impl.command.deactivate.DeactivateNeedCommandEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherNeedEvent;
 import won.bot.framework.eventbot.listener.EventListener;
@@ -13,7 +10,6 @@ import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
-import won.protocol.util.WonRdfUtils;
 
 /**
  * Eventhandler which will be invoked when a connection was closed by the
@@ -26,14 +22,6 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 
 	public ConnectionCloseAction(EventListenerContext eventListenerContext) {
 		super(eventListenerContext);
-	}
-
-	private void makeTextMsg(String msg, Connection con) {
-		if (con == null) {
-			return;
-		}
-		Model model = WonRdfUtils.MessageUtils.processingMessage(msg);
-		getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
 	}
 
 	@Override
@@ -72,13 +60,6 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 			logger.debug("Merchant has closed the connection after completion in the Need {}", con.getNeedURI());
 		}
 
-		// Buyer closure
-		// if (bridge.getBuyerConnection() != null
-		// 		&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-		// 	bridge.setBuyerConnection(null);
-		// 	logger.debug("Buyer has closed the connection after completion in the Need {}", con.getNeedURI());
-		// }
-
 		PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
 
 		closeNeed(bridge, con);
@@ -114,34 +95,22 @@ public class ConnectionCloseAction extends BaseEventBotAction {
 
 		// Fix here everything !!!
 		bridge.setStatus(PaymentStatus.FAILURE);
-		/*if (bridge.getBuyerConnection() != null
-				&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-			// Buyer closed
-			logger.info("Unexpected closure from buyer with connection {} in the need {}", con.toString(),
-					con.getNeedURI().toString());
-			bridge.setBuyerConnection(null);
-			if (bridge.getMerchantConnection() != null) {
-				makeTextMsg("Buyer closed the connection. The payment process failed. Please exit the connection.",
-						bridge.getMerchantConnection());
-			}
-				} else */if (bridge.getMerchantConnection() != null
+		if (bridge.getMerchantConnection() != null
 				&& bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
 			// Merchant closed
 			logger.info("Unexpected closure from merchant with connection {} in the need {}", con.toString(),
 					con.getNeedURI().toString());
 			bridge.setMerchantConnection(null);
-			// if (bridge.getBuyerConnection() != null) {
-			// 	makeTextMsg("Merchant closed the connection. The payment process failed. Please exit the connection",
-			// 			bridge.getBuyerConnection());
-			// }
 		} else {
-			// Not possible. Neither merchant nor buyer who closed the connection !!!
+			// TODO: verify that this never happens
+			// throw exception and write log msg
 		}
 
 		PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getNeedURI(), bridge);
 
 		closeNeed(bridge, con);
 
+		// TODO: can this be deleted?
 		/*
 		 * if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED || bridge.getStatus() ==
 		 * PaymentStatus.GENERATED) { if (bridge.getMerchantConnection() != null &&
