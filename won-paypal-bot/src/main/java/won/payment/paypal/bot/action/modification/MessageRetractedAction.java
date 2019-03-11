@@ -32,9 +32,9 @@ import won.protocol.util.linkeddata.WonLinkedDataUtils;
 import won.protocol.vocabulary.WONPAY;
 
 /**
- * When the user retracts a message from himself it is computed
- * if it was an message which has an influance on the conversation.
- * then it throws an analyze conversation event.
+ * When the user retracts a message from themselves, check if
+ * the message had an influence on the conversation.
+ * If yes, throws an analyze conversation event.
  * 
  * @author schokobaer
  *
@@ -69,10 +69,10 @@ public class MessageRetractedAction extends BaseEventBotAction {
 	}
 
 	/**
-	 * Finds out if the retracted message has an important tripple
-	 * for the payment. if yes it retracts the current payment summary
+	 * Finds out if the retracted message has an important triple
+	 * for the payment. If yes it retracts the current payment summary
 	 * and the proposal for it (if already one exists) and returns true.
-	 * if no tripple is found it returns false. if no proposal is available
+	 * If no triple is found it returns false. If no proposal is available
 	 * yet it also returns true.
 	 * @param event
 	 * @return

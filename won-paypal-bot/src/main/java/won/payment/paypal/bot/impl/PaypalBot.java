@@ -70,7 +70,9 @@ public class PaypalBot extends FactoryBot {
 				"FactoryHintEvent",
 				new CreateFactoryOfferAction(ctx)
 			)
-		);
+        );
+        
+        // TODO: remove unused Events
 		
 		// Counterpart accepted the connection
 		bus.subscribe(OpenFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionAcceptedAction(ctx)));

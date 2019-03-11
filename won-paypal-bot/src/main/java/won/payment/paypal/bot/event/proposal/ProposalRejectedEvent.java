@@ -5,6 +5,8 @@ import java.net.URI;
 import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
 import won.protocol.model.Connection;
 
+// TODO: why is this a separate class? this case should be handled by won
+
 /**
  * When the user retracts a message.
  * 
