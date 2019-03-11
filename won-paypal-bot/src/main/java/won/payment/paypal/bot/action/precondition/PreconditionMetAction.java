@@ -5,9 +5,7 @@ import java.net.URISyntaxException;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
@@ -26,7 +24,6 @@ import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.payment.paypal.bot.model.PaymentStatus;
-import won.payment.paypal.bot.util.WonPayRdfUtils;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
@@ -62,11 +59,12 @@ public class PreconditionMetAction extends BaseEventBotAction {
 				return;
 			}
 
-			// Denie buyer msgs
-			if (bridge.getBuyerConnection() != null
-					&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-				return;
-			}
+			// TODO: what did this do?
+			// Deny buyer msgs
+			// if (bridge.getBuyerConnection() != null
+			// 		&& bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+			// 	return;
+			// }
 
 			Model preconditionEventPayload = ((PreconditionEvent) event).getPayload().getInstanceModel();
 
@@ -91,10 +89,9 @@ public class PreconditionMetAction extends BaseEventBotAction {
 					return;
 				}
 
-				// Filter out the unneceserry tripel
-				Model summaryModel = preconditionEventPayload.listStatements(
-						new ResourceImpl(WonPayRdfUtils.getPaymentModelUri(con)), null, (RDFNode)null).toModel();
-				
+				Model summaryModel = preconditionEventPayload;
+
+                //TODO: JUST PUSH THE PAYMENT MODEL 'DETAIL' INSTEAD AS A MESSAGE (Structure see payment-detail) with the extracted values of course
 				RdfUtils.findOrCreateBaseResource(summaryModel).addProperty(RDF.type,
 						WONPAY.PAYMENT_SUMMARY);
 				WonRdfUtils.MessageUtils.addProcessing(summaryModel, "Payment summary");

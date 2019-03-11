@@ -23,7 +23,6 @@ import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
 import won.protocol.util.WonRdfUtils;
-import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
 import won.utils.goals.GoalInstantiationResult;
 import won.utils.shacl.ValidationResultWrapper;
@@ -54,11 +53,12 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 				return;
 			}
 			
-			// Denie buyer msgs
-            if (bridge.getBuyerConnection() != null && 
-            		bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
-            	return;
-            }
+			// TODO: what did this do?
+			// // Denie buyer msgs
+      //       if (bridge.getBuyerConnection() != null && 
+      //       		bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())) {
+      //       	return;
+      //       }
 
 			logger.info("Precondition unmet");
 

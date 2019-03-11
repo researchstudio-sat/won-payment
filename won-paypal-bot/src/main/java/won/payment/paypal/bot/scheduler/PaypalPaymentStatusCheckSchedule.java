@@ -40,7 +40,7 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 		Iterator<PaymentBridge> itr = ((PaypalBotContextWrapper)ctx.getBotContextWrapper()).getOpenBridges();
 		while (itr.hasNext()) {
 			PaymentBridge bridge = itr.next();
-			if (bridge.getStatus() == PaymentStatus.BUYER_ACCEPTED) {
+			if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED) {
 				String payKey = bridge.getPayKey();
 				if (payKey != null) {
 					checkPayment(payKey, bridge);
@@ -74,13 +74,13 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 			if (status == PaypalPaymentStatus.COMPLETED) {
 				bridge.setStatus(PaymentStatus.COMPLETED);
 				logger.info("Payment completed with payKey {}", payKey);
-				makeTextMsg("The payment is completed! You can now close the connection.", bridge.getBuyerConnection());
+				//makeTextMsg("The payment is completed! You can now close the connection.", bridge.getBuyerConnection());
 				makeTextMsg("The payment is completed! You can now close the connection.",
 						bridge.getMerchantConnection());
 			} else if (status == PaypalPaymentStatus.EXPIRED) {
-				logger.info("Payment expired with payKey {}", payKey);
-				makeTextMsg("The payment is expired! Type 'accept' to generate a new one.",
-						bridge.getBuyerConnection());
+				// logger.info("Payment expired with payKey {}", payKey);
+				// makeTextMsg("The payment is expired! Type 'accept' to generate a new one.",
+				// 		bridge.getBuyerConnection());
 				logger.info("Paypal Payment expired with payKey={}", payKey);
 				bridge.setStatus(PaymentStatus.EXPIRED);
 			}

@@ -19,7 +19,7 @@
 	pay:hasFeePayer <http://purl.org/webofneeds/payment#Sender> ;
 	pay:hasInvoiceId "ID-101" ;
 	pay:hasInvoiceDetails "Simple Test Payment" ;
-	pay:haseExpirationTime "PT12H"^^xsd:duration .
+	pay:hasExpirationTime "PT12H"^^xsd:duration .
 
 
 
@@ -35,7 +35,7 @@
 
 <this:eventuri> won:hasTextMessage 'Init msg'. 
 
-ex2:myPayment a pay:Payment .
+ex2:myPayment a s:Invoice .
 
 ex2:myPayment 
 	pay:hasCurrency 'EUR' ;
@@ -82,7 +82,7 @@ ex2:myPayment
 
 
 <this:messageuri>
-	a pay:Payment ;
+	a s:Invoice ;
 	pay:hasAmount 2.34 ;
 	pay:hasCurrency 'EUR' ;
 	pay:hasReceiver 'test@won.org' ;
@@ -149,7 +149,7 @@ ex2:myPayment
                               sh:maxCount 1;
                           ] ;
               sh:property [
-                              sh:path pay:haseExpirationTime ;
+                              sh:path pay:hasExpirationTime ;
                               sh:class xsd:duration ;
                               sh:minCount 0;
                               sh:maxCount 1;

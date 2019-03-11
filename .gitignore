@@ -10,6 +10,8 @@ won-paypal-bot/.project
 won-paypal-bot/.classpath
 
 # maven
+conf.*
 target/*
 won-payment-core/target/*
 won-paypal-bot/target/*
+conf.local/bot.properties

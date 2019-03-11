@@ -1,6 +1,7 @@
 package won.payment.paypal.bot.event.connect;
 
 import java.net.URI;
+import java.util.Optional;
 
 import org.apache.jena.rdf.model.Model;
 
@@ -13,49 +14,49 @@ import won.protocol.message.WonMessageType;
 /**
  * To publish a more complex connection Opening message with more content
  * then a simple text message.
- * 
+ *
  * @author schokobaer
  *
  */
 public class ComplexConnectCommandEvent extends BaseNeedSpecificEvent implements MessageCommandEvent, RemoteNeedSpecificEvent {
 
-	private Model payload;
-	private ConnectCommandEvent connectCommandEvent;
-	
-	public ComplexConnectCommandEvent(URI needURI, URI remoteNeedURI, String welcomeMsg, Model payload) {
-		super(needURI);
-		connectCommandEvent = new ConnectCommandEvent(needURI, remoteNeedURI, welcomeMsg);
-		this.payload = payload;
-	}
+    private Model payload;
+    private ConnectCommandEvent connectCommandEvent;
 
-	public Model getPayload() {
-		return payload;
-	}
+    public ComplexConnectCommandEvent(URI needURI, URI remoteNeedURI, String welcomeMsg, Model payload) {
+        super(needURI);
+        connectCommandEvent = new ConnectCommandEvent(needURI, remoteNeedURI, welcomeMsg);
+        this.payload = payload;
+    }
 
-	public URI getNeedURI() {
-		return connectCommandEvent.getNeedURI();
-	}
+    public Model getPayload() {
+        return payload;
+    }
 
-	public URI getRemoteNeedURI() {
-		return connectCommandEvent.getRemoteNeedURI();
-	}
+    public URI getNeedURI() {
+        return connectCommandEvent.getNeedURI();
+    }
 
-	public URI getLocalFacet() {
-		return connectCommandEvent.getLocalFacet();
-	}
+    public URI getRemoteNeedURI() {
+        return connectCommandEvent.getRemoteNeedURI();
+    }
 
-	public URI getRemoteFacet() {
-		return connectCommandEvent.getRemoteFacet();
-	}
+    public Optional<URI> getLocalFacet() {
+        return connectCommandEvent.getLocalFacet();
+    }
 
-	@Override
-	public WonMessageType getWonMessageType() {
-		return WonMessageType.CONNECT;
-	}
-	
-	public String getWelcomeMessage() {
+    public Optional<URI> getRemoteFacet() {
+        return connectCommandEvent.getRemoteFacet();
+    }
+
+    @Override
+    public WonMessageType getWonMessageType() {
+        return WonMessageType.CONNECT;
+    }
+
+    public String getWelcomeMessage() {
         return connectCommandEvent.getWelcomeMessage();
     }
-	
-	
+
+
 }

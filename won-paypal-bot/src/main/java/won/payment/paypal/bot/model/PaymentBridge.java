@@ -12,9 +12,10 @@ import won.protocol.model.Connection;
  *
  */
 public class PaymentBridge implements Serializable {
+// TODO: add static final ID to prevent invalid id errors from different compilers
 
 	private Connection merchantConnection;
-	private Connection buyerConnection;
+	//private Connection buyerConnection;
 	private String payKey;
 	private PaymentStatus status = PaymentStatus.NOWHERE;
 
@@ -26,13 +27,13 @@ public class PaymentBridge implements Serializable {
 		this.merchantConnection = merchantConnectionUri;
 	}
 
-	public Connection getBuyerConnection() {
-		return buyerConnection;
-	}
+	// public Connection getBuyerConnection() {
+	// 	return buyerConnection;
+	// }
 
-	public void setBuyerConnection(Connection buyerConnectionUri) {
-		this.buyerConnection = buyerConnectionUri;
-	}
+	// public void setBuyerConnection(Connection buyerConnectionUri) {
+	// 	this.buyerConnection = buyerConnectionUri;
+	// }
 
 	public PaymentStatus getStatus() {
 		return status;

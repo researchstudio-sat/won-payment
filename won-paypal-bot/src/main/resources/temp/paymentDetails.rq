@@ -6,16 +6,18 @@ prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 Select ?main ?amount ?currency ?receiver ?secret ?counterpart ?feepayer ?tax ?invoiceid ?expirationtime ?invoicedetails
 
 where {
-    ?main a pay:Payment ;
-         pay:hasAmount ?amount ;
-         pay:hasCurrency ?currency ;
-         pay:hasReceiver ?receiver ;
-         pay:hasSecret ?secret ;
-         pay:hasNeedCounterpart ?counterpart .
+    ?main a s:Invoice ;
+         s:accountId ?receiver ;
+         s:identifier ?secret ;
+         s:customer ?counterpart ;
+         s:totalPaymentDue ?totalPaymentDue .
+    ?totalPaymentDue a s:CompoundPriceSpecification;
+         s:price ?amount ;
+         s:priceCurrency ?currency ;
      
      OPTIONAL { ?main pay:hasFeePayer ?feepayer }
      OPTIONAL { ?main pay:hasTax ?tax }
      OPTIONAL { ?main pay:hasInvoiceId ?invoiceid }
-     OPTIONAL { ?main pay:haseExpirationTime ?expirationtime }
+     OPTIONAL { ?main pay:hasExpirationTime ?expirationtime }
      OPTIONAL { ?main pay:hasInvoiceDetails ?invoicedetails } 
 }

@@ -2,9 +2,7 @@ package won.payment.paypal.bot.model;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
@@ -21,7 +19,6 @@ import com.paypal.svcs.types.ap.Receiver;
 import com.paypal.svcs.types.ap.ReceiverList;
 
 import won.payment.paypal.bot.util.InformationExtractor;
-import won.payment.paypal.bot.validator.PaymentModelValidator;
 import won.protocol.vocabulary.WONPAY;
 
 public class PaymentModelWrapper {
@@ -40,7 +37,7 @@ public class PaymentModelWrapper {
 	private Double amount;
 
 	@NotNull
-	private Resource currency;
+	private String currency;
 
 	@NotNull
 	@Size(min = 4)
@@ -71,9 +68,7 @@ public class PaymentModelWrapper {
 	public PaymentModelWrapper(Model payload) {
 		uri = InformationExtractor.getPayment(payload).getURI();
 		amount = InformationExtractor.getAmount(payload);
-		Resource currencyResp = InformationExtractor.getCurrency(payload);
-		List<Resource> currencies = Arrays.asList(PaymentModelValidator.CURRENCIES);
-		currency = currencies.get(currencies.indexOf(currencyResp));
+		currency = InformationExtractor.getCurrency(payload);
 		receiver = InformationExtractor.getReceiver(payload);
 		secret = InformationExtractor.getSecret(payload);
 		counterpartNeed = InformationExtractor.getCounterpart(payload);
@@ -104,7 +99,7 @@ public class PaymentModelWrapper {
 		return amount;
 	}
 
-	public Resource getCurrency() {
+	public String getCurrency() {
 		return currency;
 	}
 
@@ -141,9 +136,14 @@ public class PaymentModelWrapper {
 	}
 	
 	public String getCurrencySymbol() {
-		 return currency.hasProperty(WONPAY.CUR.SIGN) ?
-				    currency.getProperty(WONPAY.CUR.SIGN).getString() :
-					currency.getProperty(WONPAY.CUR.CODE).getString() ;
+        switch(currency) {
+            case "BRL": return "R$";
+            case "EUR": return "€";
+            case "JPY": return "¥";
+            case "GBP": return "£";
+            case "USD": return "$";
+            default: return currency;
+        }
 	}
 
 	public PayRequest toPayRequest() {
@@ -153,7 +153,7 @@ public class PaymentModelWrapper {
 		rec.setAmount(amount);
 		rec.setEmail(receiver);
 		pay.setReceiverList(new ReceiverList(Collections.singletonList(rec)));
-		pay.setCurrencyCode(currency.getProperty(WONPAY.CUR.CODE).getString());
+		pay.setCurrencyCode(currency);
 		pay.setFeesPayer(feePayer.getProperty(RDFS.label).getString());
 
 		if (expirationTime != null) {
