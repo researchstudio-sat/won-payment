@@ -37,9 +37,9 @@ public class PaymentModelWrapper {
 	@NotNull
 	private String currency;
 
-	@NotNull
-	@Size(min = 4)
-	private String secret;
+	// @NotNull
+	// @Size(min = 4)
+	// private String secret;
 
 	@Size(max = 127)
 	private String invoiceId;
@@ -66,7 +66,7 @@ public class PaymentModelWrapper {
 		amount = InformationExtractor.getAmount(payload);
 		currency = InformationExtractor.getCurrency(payload);
 		receiver = InformationExtractor.getReceiver(payload);
-		secret = InformationExtractor.getSecret(payload);
+		// secret = InformationExtractor.getSecret(payload);
 		Resource feePayerResult = InformationExtractor.getFeePayer(payload); 
 		if (feePayerResult != null) {
 			feePayer = feePayerResult.equals(WONPAY.FEE_PAYER_SENDER) ? 
@@ -98,9 +98,9 @@ public class PaymentModelWrapper {
 		return currency;
 	}
 
-	public String getSecret() {
-		return secret;
-	}
+	// public String getSecret() {
+	// 	return secret;
+	// }
 	
 	public String getInvoiceId() {
 		return invoiceId;

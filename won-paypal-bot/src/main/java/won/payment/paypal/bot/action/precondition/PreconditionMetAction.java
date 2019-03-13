@@ -68,7 +68,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 			logger.info("Amount: " + paymentWrapper.getAmount());
 			logger.info("Currency: " + paymentWrapper.getCurrency());
 			logger.info("Receiver: " + paymentWrapper.getReceiver());
-			logger.info("Secret: " + paymentWrapper.getSecret());
+			//logger.info("Secret: " + paymentWrapper.getSecret());
 			logger.info("FeePayer: " + paymentWrapper.getFeePayer());
 			logger.info("Tax: " + paymentWrapper.getTax());
 			logger.info("InvoiceId: " + paymentWrapper.getInvoiceId());

@@ -17,7 +17,7 @@ public class InformationExtractor {
     private static final String AMOUNT = "amount";
     private static final String CURRENCY = "currency";
     private static final String RECEIVER = "receiver";
-    private static final String SECRET = "secret";
+    // private static final String SECRET = "secret";
     private static final String FEEPAYER = "feepayer";
     private static final String TAX = "tax";
     private static final String INVOICEID = "invoiceid";
@@ -74,16 +74,16 @@ public class InformationExtractor {
         return null;
     }
     
-    public static String getSecret(Model payload) {
-    	if(payload != null) {
-            QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
+    // public static String getSecret(Model payload) {
+    // 	if(payload != null) {
+    //         QuerySolution solution = executeQuery(paymentDetailsQuery, payload);
 
-            if (solution != null) {
-                return solution.getLiteral(SECRET).getString();
-            }
-        }
-        return null;
-    }
+    //         if (solution != null) {
+    //             return solution.getLiteral(SECRET).getString();
+    //         }
+    //     }
+    //     return null;
+    // }
 
     // Optional
     // TODO: verify this works after buyer interaction removal

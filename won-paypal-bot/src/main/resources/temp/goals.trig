@@ -97,13 +97,13 @@ ex2:p2g-shapes {
         sh:minCount 0;
         sh:maxCount 1;
     ] ;
-    sh:property [
-        sh:path s:identifier ;
-        sh:datatype xsd:string ;
-        sh:minCount 1;
-        sh:maxCount 1;
-        sh:minLength 4 ;
-    ] ;
+    # sh:property [
+    #     sh:path s:identifier ;
+    #     sh:datatype xsd:string ;
+    #     sh:minCount 1;
+    #     sh:maxCount 1;
+    #     sh:minLength 4 ;
+    # ] ;
     sh:property [
         sh:path s:accountId ;
         sh:datatype xsd:string ;
