@@ -97,26 +97,19 @@ ex2:p2g-shapes {
         sh:minCount 0;
         sh:maxCount 1;
     ] ;
-    sh:property [
-        sh:path s:identifier ;
-        sh:datatype xsd:string ;
-        sh:minCount 1;
-        sh:maxCount 1;
-        sh:minLength 4 ;
-    ] ;
+    # sh:property [
+    #     sh:path s:identifier ;
+    #     sh:datatype xsd:string ;
+    #     sh:minCount 1;
+    #     sh:maxCount 1;
+    #     sh:minLength 4 ;
+    # ] ;
     sh:property [
         sh:path s:accountId ;
         sh:datatype xsd:string ;
         sh:minCount 1;
         sh:maxCount 1;
         sh:pattern "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$";
-    ] ;
-    sh:property [
-        sh:path s:customer ;
-        sh:nodeKind sh:IRI ;
-        sh:class won:Need ;
-        sh:minCount 1;
-        sh:maxCount 1;
     ] ;
     sh:property [
         sh:path s:totalPaymentDue;

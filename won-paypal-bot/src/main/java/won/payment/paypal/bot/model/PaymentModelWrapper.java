@@ -1,7 +1,5 @@
 package won.payment.paypal.bot.model;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 
 import javax.validation.constraints.DecimalMin;
@@ -39,12 +37,9 @@ public class PaymentModelWrapper {
 	@NotNull
 	private String currency;
 
-	@NotNull
-	@Size(min = 4)
-	private String secret;
-
-	@NotNull
-	private Resource counterpartNeed;
+	// @NotNull
+	// @Size(min = 4)
+	// private String secret;
 
 	@Size(max = 127)
 	private String invoiceId;
@@ -52,7 +47,8 @@ public class PaymentModelWrapper {
 	@Size(max = 1000)
 	private String invoiceDetails;
 
-	//@Pattern(regexp = "TODO") // TODO: Find out the regex for xsd:timespan
+	// TODO: Find out the regex for xsd:timespan
+	//@Pattern(regexp = "") 
 	private String expirationTime = "PT3H";
 
 	private Resource feePayer = WONPAY.FEE_PAYER_SENDER;
@@ -70,8 +66,7 @@ public class PaymentModelWrapper {
 		amount = InformationExtractor.getAmount(payload);
 		currency = InformationExtractor.getCurrency(payload);
 		receiver = InformationExtractor.getReceiver(payload);
-		secret = InformationExtractor.getSecret(payload);
-		counterpartNeed = InformationExtractor.getCounterpart(payload);
+		// secret = InformationExtractor.getSecret(payload);
 		Resource feePayerResult = InformationExtractor.getFeePayer(payload); 
 		if (feePayerResult != null) {
 			feePayer = feePayerResult.equals(WONPAY.FEE_PAYER_SENDER) ? 
@@ -103,18 +98,10 @@ public class PaymentModelWrapper {
 		return currency;
 	}
 
-	public String getSecret() {
-		return secret;
-	}
-
-	public Resource getCounterpartNeed() {
-		return counterpartNeed;
-	}
+	// public String getSecret() {
+	// 	return secret;
+	// }
 	
-	public URI getCounterpartNeedUri() throws URISyntaxException {
-		return new URI(counterpartNeed.getURI());
-	}
-
 	public String getInvoiceId() {
 		return invoiceId;
 	}
@@ -135,6 +122,7 @@ public class PaymentModelWrapper {
 		return tax;
 	}
 	
+	// TODO: this should not be hardcoded here
 	public String getCurrencySymbol() {
         switch(currency) {
             case "BRL": return "R$";

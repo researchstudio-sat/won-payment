@@ -22,7 +22,7 @@ public class WONPAY {
 	// Properties
 	public static final Property HAS_PAYPAL_PAYKEY = m.createProperty(BASE_URI + "hasPaypalPayKey");
 
-	public static final Property HAS_SECRET = m.createProperty(BASE_URI + "hasSecret");
+	// public static final Property HAS_SECRET = m.createProperty(BASE_URI + "hasSecret");
 	public static final Property HAS_NEED_COUNTERPART = m.createProperty(BASE_URI + "hasNeedCounterpart");
 
 	// Payments

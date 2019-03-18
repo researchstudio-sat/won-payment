@@ -32,13 +32,15 @@ public class ProposalReceivedAction extends BaseEventBotAction {
 			ProposalReceivedEvent proposalReceivedEvent = (ProposalReceivedEvent) event;
 			Connection con = proposalReceivedEvent.getCon();
 
+			// TODO: edit messages
+			// TODO: can the branches be merged?
+			// TODO: think about propose-to-cancel-behaviour
 			if (proposalReceivedEvent.hasProposesEvents()) {
 				Model rejectModel = WonRdfUtils.MessageUtils.textMessage("I do not accept proposals");
 				rejectModel = WonRdfUtils.MessageUtils.addRejects(rejectModel, proposalReceivedEvent.getProposalUri());
 				ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, rejectModel));
 			} else if (proposalReceivedEvent.hasProposesToCancelEvents()) {
-				Model rejectModel = WonRdfUtils.MessageUtils.textMessage("The payment was already published to the buyer. "
-						+ "You can not cancel anymore!");
+				Model rejectModel = WonRdfUtils.MessageUtils.textMessage("You can not cancel anymore!");
 				rejectModel = WonRdfUtils.MessageUtils.addRejects(rejectModel, proposalReceivedEvent.getProposalUri());
 				ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, rejectModel));
 			}

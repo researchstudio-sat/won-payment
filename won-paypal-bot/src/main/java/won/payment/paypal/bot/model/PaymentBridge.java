@@ -13,9 +13,9 @@ import won.protocol.model.Connection;
  */
 public class PaymentBridge implements Serializable {
 // TODO: add static final ID to prevent invalid id errors from different compilers
+// TODO: think about renaming merchantConnection
 
 	private Connection merchantConnection;
-	//private Connection buyerConnection;
 	private String payKey;
 	private PaymentStatus status = PaymentStatus.NOWHERE;
 
@@ -26,14 +26,6 @@ public class PaymentBridge implements Serializable {
 	public void setMerchantConnection(Connection merchantConnectionUri) {
 		this.merchantConnection = merchantConnectionUri;
 	}
-
-	// public Connection getBuyerConnection() {
-	// 	return buyerConnection;
-	// }
-
-	// public void setBuyerConnection(Connection buyerConnectionUri) {
-	// 	this.buyerConnection = buyerConnectionUri;
-	// }
 
 	public PaymentStatus getStatus() {
 		return status;
