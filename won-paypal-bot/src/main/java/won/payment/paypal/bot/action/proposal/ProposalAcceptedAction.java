@@ -85,7 +85,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
         String paymentSummaryUri = null;
         while (itr.hasNext()) {
             Resource subj = itr.next().getSubject();
-            if (!conversation.listStatements(null, WONMOD.RETRACTS, subj).hasNext()) {
+            if (!conversation.listStatements(null, WONMOD.retracts, subj).hasNext()) {
                 paymentSummaryUri = subj.getURI();
             }
         }

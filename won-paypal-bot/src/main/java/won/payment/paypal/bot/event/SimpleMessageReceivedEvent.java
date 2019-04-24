@@ -20,7 +20,7 @@ public class SimpleMessageReceivedEvent extends WonMessageReceivedOnConnectionEv
     public String getMessage() {
         try {
             return this.getWonMessage().getMessageContent().getUnionModel()
-                            .listStatements(null, WON.HAS_TEXT_MESSAGE, (RDFNode) null).next().getObject().asLiteral()
+                            .listStatements(null, WON.textMessage, (RDFNode) null).next().getObject().asLiteral()
                             .getString();
         } catch (Exception e) {
             return null;

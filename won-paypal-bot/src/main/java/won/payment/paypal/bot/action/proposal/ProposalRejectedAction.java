@@ -83,7 +83,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
         URI acceptsMsgUri = agreementProtocolState.getLatestAcceptsMessageSentByAtom(con.getTargetAtomURI());
         Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
         String proposalMsgUri = conversation
-                        .listStatements(new ResourceImpl(acceptsMsgUri.toString()), WONAGR.ACCEPTS, (RDFNode) null)
+                        .listStatements(new ResourceImpl(acceptsMsgUri.toString()), WONAGR.accepts, (RDFNode) null)
                         .next().getObject().asResource().getURI();
         try {
             Model cancelationModel = WonRdfUtils.MessageUtils.proposesToCancelMessage(new URI(proposalMsgUri));

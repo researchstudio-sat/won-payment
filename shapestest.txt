@@ -4,12 +4,12 @@
 @prefix won:   <https://w3id.org/won/core#> .
 @prefix cur: <http://www.w3.org/2007/ont/currency#> .
 
-<this:eventuri> won:hasTextMessage 'Money Money Money'. 
+<this:eventuri> won:textMessage 'Money Money Money'. 
 
 <https://127.0.0.1:8443/won/resource/atom/g0e9yzyjcak3ddgchbmr/payment>
 	pay:hasAmount 2.34 ;
-	pay:hasCurrency cur:EUR ;
-	pay:hasRecipient 'test@won.org' ;
+	pay:currency cur:EUR ;
+	pay:recipient 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
 	pay:hasFeePayer pay:Receiver ;
 	pay:hasAtomCounterpart <https://127.0.0.1:8443/won/resource/atom/o4sstk4pv2j3> .
@@ -33,13 +33,13 @@
 @prefix ex2: <http://example.org/2/> .
 @prefix won:   <https://w3id.org/won/core#> .
 
-<this:eventuri> won:hasTextMessage 'Init msg'. 
+<this:eventuri> won:textMessage 'Init msg'. 
 
 ex2:myPayment a s:Invoice .
 
 ex2:myPayment 
-	pay:hasCurrency 'EUR' ;
-	pay:hasRecipient 'test@won.org' ;
+	pay:currency 'EUR' ;
+	pay:recipient 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
 	pay:hasAtomCounterpart <https://127.0.0.1:8443/won/resource/atom/x7l4hfbwo5y6at4w2a3j> .
 
@@ -50,7 +50,7 @@ ex2:myPayment
 @prefix ex2: <http://example.org/2/> .
 @prefix won:   <https://w3id.org/won/core#> .
 
-<this:eventuri> won:hasTextMessage 'Moneyless'. 
+<this:eventuri> won:textMessage 'Moneyless'. 
 
 ex2:myPayment 
 	pay:hasAmount 1.0 .
@@ -61,7 +61,7 @@ ex2:myPayment
 @prefix ex2: <http://example.org/2/> .
 @prefix won:   <https://w3id.org/won/core#> .
 
-<this:eventuri> won:hasTextMessage 'Set Money Amount'. 
+<this:eventuri> won:textMessage 'Set Money Amount'. 
 
 ex2:myPayment 
 	pay:hasAmount 1.23 .
@@ -84,8 +84,8 @@ ex2:myPayment
 <this:messageuri>
 	a s:Invoice ;
 	pay:hasAmount 2.34 ;
-	pay:hasCurrency 'EUR' ;
-	pay:hasRecipient 'test@won.org' ;
+	pay:currency 'EUR' ;
+	pay:recipient 'test@won.org' ;
 	pay:hasSecret 'mysec' ;
 	pay:hasAtomCounterpart 'TheBuyersAtomUrl' .
 	
@@ -104,13 +104,13 @@ ex2:myPayment
                               sh:maxCount 1;
                           ] ;
               sh:property [
-                              sh:path pay:hasCurrency ;
+                              sh:path pay:currency ;
                               sh:class xsd:string ;
                               sh:minCount 1;
                               sh:maxCount 1;
                           ] ;
               sh:property [
-                              sh:path pay:hasRecipient ;
+                              sh:path pay:recipient ;
                               sh:class xsd:string ;
                               sh:minCount 1;
                               sh:maxCount 1;

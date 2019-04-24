@@ -21,7 +21,7 @@
 
  {
     olntest:paypalService1
-		won:hasFlag   won:NoHintForCounterpart ;
+		won:flag   won:NoHintForCounterpart ;
 		a             won:Atom , won:ServiceBot ;
 		s:title				"Paypal Payment Bot Factory Atom" ;
 		won:seeks [
