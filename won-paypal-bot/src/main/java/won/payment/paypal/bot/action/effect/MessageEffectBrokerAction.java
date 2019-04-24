@@ -8,12 +8,12 @@ import org.apache.jena.rdf.model.Model;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
-import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
+import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAcceptedEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandSuccessEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.event.SimpleMessageReceivedEvent;
@@ -45,12 +45,12 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 
 		EventListenerContext ctx = getEventListenerContext();
 		if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper
-				&& event instanceof MessageFromOtherNeedEvent) {
+				&& event instanceof MessageFromOtherAtomEvent) {
 
-			MessageFromOtherNeedEvent messageEvent = (MessageFromOtherNeedEvent) event;
+			MessageFromOtherAtomEvent messageEvent = (MessageFromOtherAtomEvent) event;
 
 			// Analyze for message effects
-			if (!breakDownEffects((BaseNeedAndConnectionSpecificEvent) event)) {
+			if (!breakDownEffects((BaseAtomAndConnectionSpecificEvent) event)) {
 				ctx.getEventBus().publish(new ConversationAnalyzationCommandEvent(messageEvent.getCon()));
 				ctx.getEventBus().publish(new SimpleMessageReceivedEvent(messageEvent));
 			}
@@ -65,14 +65,14 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 	 * @param event
 	 * @return true if message effects are available otherwise false.
 	 */
-	private boolean breakDownEffects(BaseNeedAndConnectionSpecificEvent event) {
+	private boolean breakDownEffects(BaseAtomAndConnectionSpecificEvent event) {
 
 		EventListenerContext ctx = getEventListenerContext();
 
-		URI needUri = event.getNeedURI();
-		URI remoteNeedUri = event.getRemoteNeedURI();
+		URI atomUri = event.getAtomURI();
+		URI targetAtomUri = event.getTargetAtomURI();
 		URI connectionUri = event.getConnectionURI();
-		Connection connection = makeConnection(needUri, remoteNeedUri, connectionUri);
+		Connection connection = makeConnection(atomUri, targetAtomUri, connectionUri);
 		WonMessage wonMessage = event instanceof ConnectionMessageCommandSuccessEvent
 				? ((ConnectionMessageCommandSuccessEvent) event).getWonMessage()
 				: event instanceof WonMessageReceivedOnConnectionEvent
@@ -111,11 +111,11 @@ public class MessageEffectBrokerAction extends BaseEventBotAction {
 
 	}
 
-	private static Connection makeConnection(URI needURI, URI remoteNeedURI, URI connectionURI) {
+	private static Connection makeConnection(URI atomURI, URI targetAtomURI, URI connectionURI) {
 		Connection con = new Connection();
 		con.setConnectionURI(connectionURI);
-		con.setNeedURI(needURI);
-		con.setRemoteNeedURI(remoteNeedURI);
+		con.setAtomURI(atomURI);
+		con.setTargetAtomURI(targetAtomURI);
 		return con;
 	}
 

@@ -12,10 +12,10 @@ import won.bot.framework.eventbot.event.impl.analyzation.precondition.Preconditi
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.event.impl.factory.FactoryHintEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherNeedEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherNeedEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherAtomEvent;
 import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
 import won.payment.paypal.bot.action.HelpAction;
 import won.payment.paypal.bot.action.analyze.GoalAnalyzationAction;
@@ -75,7 +75,7 @@ public class PaypalBot extends FactoryBot {
         // TODO: remove unused Events
 		
 		// Counterpart accepted the connection
-		bus.subscribe(OpenFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionAcceptedAction(ctx)));
+		bus.subscribe(OpenFromOtherAtomEvent.class, new ActionOnEventListener(ctx, new ConnectionAcceptedAction(ctx)));
 		
 		//Analyzation Events
 		bus.subscribe(PreconditionUnmetEvent.class,
@@ -127,7 +127,7 @@ public class PaypalBot extends FactoryBot {
         );
 		
         // Incoming message effect broker
-        bus.subscribe(MessageFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new MessageEffectBrokerAction(ctx)));
+        bus.subscribe(MessageFromOtherAtomEvent.class, new ActionOnEventListener(ctx, new MessageEffectBrokerAction(ctx)));
         
         // Incoming simple Messages
         bus.subscribe(SimpleMessageReceivedEvent.class, new ActionOnEventListener(ctx, new HelpAction(ctx)));
@@ -139,12 +139,12 @@ public class PaypalBot extends FactoryBot {
         bus.subscribe(ComplexConnectCommandEvent.class, new ActionOnEventListener(ctx, new ExecuteComplexConnectCommandAction(ctx)));
 
 		// Client closes the connection
-		bus.subscribe(CloseFromOtherNeedEvent.class,
+		bus.subscribe(CloseFromOtherAtomEvent.class,
 				new ActionOnEventListener(ctx, new ConnectionCloseAction(ctx)));
 
 		// If someone wants to connect to a instance
-		// Need then send a deny message and close the connection
-		bus.subscribe(ConnectFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionDenierAction(ctx)));
+		// Atom then send a deny message and close the connection
+		bus.subscribe(ConnectFromOtherAtomEvent.class, new ActionOnEventListener(ctx, new ConnectionDenierAction(ctx)));
 
 		
 		

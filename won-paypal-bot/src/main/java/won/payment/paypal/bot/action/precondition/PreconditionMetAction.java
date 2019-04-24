@@ -10,7 +10,7 @@ import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
-import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
+import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
@@ -52,7 +52,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 		EventListenerContext ctx = getEventListenerContext();
 
 		if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof PreconditionMetEvent) {
-			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
+			Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
 			if (bridge.getStatus() != PaymentStatus.BUILDING) {
@@ -107,7 +107,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 													.getWonMessage().getMessageURI());
 									ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
 									bridge.setStatus(PaymentStatus.BUILDING);
-									PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+									PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
 								} else {
 									logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
 								}

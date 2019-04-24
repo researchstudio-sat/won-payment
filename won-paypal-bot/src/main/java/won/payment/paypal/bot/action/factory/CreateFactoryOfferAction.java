@@ -17,7 +17,7 @@ import won.bot.framework.bot.context.FactoryBotContextWrapper;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.action.EventBotActionUtils;
-import won.bot.framework.eventbot.action.impl.needlifecycle.AbstractCreateNeedAction;
+import won.bot.framework.eventbot.action.impl.atomlifecycle.AbstractCreateAtomAction;
 import won.bot.framework.eventbot.bus.EventBus;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.command.connect.ConnectCommandSuccessEvent;
@@ -36,24 +36,24 @@ import won.protocol.exception.WonMessageBuilderException;
 import won.protocol.message.WonMessage;
 import won.protocol.message.WonMessageBuilder;
 import won.protocol.model.Connection;
-import won.protocol.model.NeedGraphType;
+import won.protocol.model.AtomGraphType;
 import won.protocol.service.WonNodeInformationService;
-import won.protocol.util.DefaultNeedModelWrapper;
-import won.protocol.util.NeedModelWrapper;
+import won.protocol.util.DefaultAtomModelWrapper;
+import won.protocol.util.AtomModelWrapper;
 import won.protocol.util.RdfUtils;
 import won.protocol.util.WonRdfUtils;
 import won.protocol.vocabulary.WON;
 import won.protocol.vocabulary.WONPAY;
 
 /**
- * Creates a new need for a payment.
+ * Creates a new atom for a payment.
  *
  * @author schokobaer
  *
  */
-public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
+public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
 
-    private static final URI STUB_NEED_URI = URI.create("http://example.com/content");
+    private static final URI STUB_ATOM_URI = URI.create("http://example.com/content");
     private static final URI STUB_SHAPES_URI = URI.create("http://example.com/shapes");
 
     // TODO: change opening msg
@@ -67,9 +67,9 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         goalString = ResourceManager.getResourceAsString("/temp/goals.trig");
     }
 
-    public CreateFactoryOfferAction(EventListenerContext eventListenerContext, URI... facets) {
-        super(eventListenerContext, (eventListenerContext.getBotContextWrapper()).getNeedCreateListName(), false, true,
-                facets);
+    public CreateFactoryOfferAction(EventListenerContext eventListenerContext, URI... sockets) {
+        super(eventListenerContext, (eventListenerContext.getBotContextWrapper()).getAtomCreateListName(), false, true,
+                sockets);
     }
 
     @Override
@@ -84,24 +84,24 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         EventListenerContext ctx = getEventListenerContext();
         final URI wonNodeUri = ctx.getNodeURISource().getNodeURI();
 
-        Model factoryOfferModel = createFactoryOfferFromTemplate(ctx, factoryHintEvent.getFactoryNeedURI(),
+        Model factoryOfferModel = createFactoryOfferFromTemplate(ctx, factoryHintEvent.getFactoryAtomURI(),
                 factoryHintEvent.getRequesterURI());
-        URI factoryOfferURI = WonRdfUtils.NeedUtils.getNeedURI(factoryOfferModel);
-        logger.debug("creating shapes model with factory need URI {}", factoryHintEvent.getFactoryNeedURI());
-        Model shapesModel = createShapesModelFromTemplate(ctx, factoryHintEvent.getFactoryNeedURI());
+        URI factoryOfferURI = WonRdfUtils.AtomUtils.getAtomURI(factoryOfferModel);
+        logger.debug("creating shapes model with factory atom URI {}", factoryHintEvent.getFactoryAtomURI());
+        Model shapesModel = createShapesModelFromTemplate(ctx, factoryHintEvent.getFactoryAtomURI());
 
         logger.debug("creating factoryoffer on won node {} with content {} ", wonNodeUri,
                 StringUtils.abbreviate(RdfUtils.toString(factoryOfferModel), 150));
 
-        WonMessage createNeedMessage = createWonMessage(ctx.getWonNodeInformationService(), factoryOfferURI, wonNodeUri,
+        WonMessage createAtomMessage = createWonMessage(ctx.getWonNodeInformationService(), factoryOfferURI, wonNodeUri,
                 factoryOfferModel, shapesModel);
         EventBotActionUtils.rememberInList(ctx, factoryOfferURI, uriListName);
 
         EventListener successCallback = successEvent -> {
-            logger.debug("factoryoffer creation successful, new need URI is {}", factoryOfferURI);
-            // publish connect between the specific offer and the requester need
-            ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryNeedURIOfferRelation(factoryOfferURI,
-                    factoryHintEvent.getFactoryNeedURI());
+            logger.debug("factoryoffer creation successful, new atom URI is {}", factoryOfferURI);
+            // publish connect between the specific offer and the requester atom
+            ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryAtomURIOfferRelation(factoryOfferURI,
+                    factoryHintEvent.getFactoryAtomURI());
             // TODO: WonPayRdfUtils.getPaymentModelUri(successEvent.con)
             String paymentUri = WonPayRdfUtils.getPaymentModelUri(factoryOfferURI);
             Model paymentModel = ModelFactory.createDefaultModel();
@@ -119,12 +119,12 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
                         logger.info("Created successfully a connection to merchant");
                         ConnectCommandSuccessEvent connectSuccessEvent = (ConnectCommandSuccessEvent) event;
                         Connection con = connectSuccessEvent.getCon();
-                        URI needUri = connectSuccessEvent.getNeedURI();
+                        URI atomUri = connectSuccessEvent.getAtomURI();
                         PaymentBridge bridge = new PaymentBridge();
                         bridge.setMerchantConnection(con);
                         bridge.setStatus(PaymentStatus.NOWHERE);
                         ((PaypalBotContextWrapper) getEventListenerContext().getBotContextWrapper())
-                                .putOpenBridge(needUri, bridge);
+                                .putOpenBridge(atomUri, bridge);
                     }
 
                 }
@@ -137,54 +137,54 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
             String textMessage = WonRdfUtils.MessageUtils
                     .getTextMessage(((FailureResponseEvent) failureEvent).getFailureMessage());
 
-            logger.debug("factoryoffer creation failed for need URI {}, original message URI {}: {}", new Object[] {
+            logger.debug("factoryoffer creation failed for atom URI {}, original message URI {}: {}", new Object[] {
                     factoryOfferURI, ((FailureResponseEvent) failureEvent).getOriginalMessageURI(), textMessage });
             EventBotActionUtils.removeFromList(getEventListenerContext(), factoryOfferURI, uriListName);
         };
 
-        EventBotActionUtils.makeAndSubscribeResponseListener(createNeedMessage, successCallback, failureCallback,
+        EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback, failureCallback,
                 getEventListenerContext());
 
-        logger.debug("registered listeners for response to message URI {}", createNeedMessage.getMessageURI());
-        getEventListenerContext().getWonMessageSender().sendWonMessage(createNeedMessage);
-        logger.debug("factoryoffer creation message sent with message URI {}", createNeedMessage.getMessageURI());
+        logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
+        getEventListenerContext().getWonMessageSender().sendWonMessage(createAtomMessage);
+        logger.debug("factoryoffer creation message sent with message URI {}", createAtomMessage.getMessageURI());
 
     }
 
-    private Model createFactoryOfferFromTemplate(EventListenerContext ctx, URI factoryNeedURI, URI requesterURI) {
+    private Model createFactoryOfferFromTemplate(EventListenerContext ctx, URI factoryAtomURI, URI requesterURI) {
         // TODO: retrieve real template from factory
-        //Dataset factoryNeedDataSet = ctx.getLinkedDataSource().getDataForResource(factoryNeedURI);
-        //DefaultNeedModelWrapper factoryNeedModelWrapper = new DefaultNeedModelWrapper(factoryNeedDataSet);
+        //Dataset factoryAtomDataSet = ctx.getLinkedDataSource().getDataForResource(factoryAtomURI);
+        //DefaultAtomModelWrapper factoryAtomModelWrapper = new DefaultAtomModelWrapper(factoryAtomDataSet);
 
-        //Dataset requesterNeedDataSet = ctx.getLinkedDataSource().getDataForResource(requesterURI);
-        //DefaultNeedModelWrapper requesterNeedModelWrapper = new DefaultNeedModelWrapper(requesterNeedDataSet);
+        //Dataset requesterAtomDataSet = ctx.getLinkedDataSource().getDataForResource(requesterURI);
+        //DefaultAtomModelWrapper requesterAtomModelWrapper = new DefaultAtomModelWrapper(requesterAtomDataSet);
 
-		/*String connectTitle = factoryNeedModelWrapper.getSomeTitleFromIsOrAll() + " <-> "
-				+ (requesterNeedModelWrapper.getSomeTitleFromIsOrAll() != null
-						? requesterNeedModelWrapper.getSomeTitleFromIsOrAll()
-						: requesterNeedModelWrapper.getNeedModel()
+		/*String connectTitle = factoryAtomModelWrapper.getSomeTitleFromIsOrAll() + " <-> "
+				+ (requesterAtomModelWrapper.getSomeTitleFromIsOrAll() != null
+						? requesterAtomModelWrapper.getSomeTitleFromIsOrAll()
+						: requesterAtomModelWrapper.getAtomModel()
 								.listStatements(null, WON.HAS_SEARCH_STRING, (RDFNode) null).next().getObject())*/;
 
-        String connectTitle = "PaymentBot Need";
+        String connectTitle = "PaymentBot Atom";
 
-        final URI needURI = ctx.getWonNodeInformationService().generateNeedURI(ctx.getNodeURISource().getNodeURI());
-        DefaultNeedModelWrapper needModelWrapper = new DefaultNeedModelWrapper(needURI.toString());
-        needModelWrapper.setTitle(connectTitle);
-        needModelWrapper.setDescription("This is a automatically created need by the PaypalBot");
-        needModelWrapper.addFlag(WON.NO_HINT_FOR_COUNTERPART);
-        needModelWrapper.addFlag(WON.NO_HINT_FOR_ME);
-        needModelWrapper.setShapesGraphReference(STUB_SHAPES_URI);
+        final URI atomURI = ctx.getWonNodeInformationService().generateAtomURI(ctx.getNodeURISource().getNodeURI());
+        DefaultAtomModelWrapper atomModelWrapper = new DefaultAtomModelWrapper(atomURI.toString());
+        atomModelWrapper.setTitle(connectTitle);
+        atomModelWrapper.setDescription("This is a automatically created atom by the PaypalBot");
+        atomModelWrapper.addFlag(WON.NO_HINT_FOR_COUNTERPART);
+        atomModelWrapper.addFlag(WON.NO_HINT_FOR_ME);
+        atomModelWrapper.setShapesGraphReference(STUB_SHAPES_URI);
 
         int i = 1;
-        for(URI facet : facets){
-            needModelWrapper.addFacet(needURI + "#facet" + i, facet.toString());
+        for(URI socket : sockets){
+            atomModelWrapper.addSocket(atomURI + "#socket" + i, socket.toString());
             i++;
         }
 
-        return needModelWrapper.copyNeedModel(NeedGraphType.NEED);
+        return atomModelWrapper.copyAtomModel(AtomGraphType.ATOM);
     }
 
-    private Model createShapesModelFromTemplate(EventListenerContext ctx, URI factoryNeedURI) {
+    private Model createShapesModelFromTemplate(EventListenerContext ctx, URI factoryAtomURI) {
         Dataset dataset = DatasetFactory.createGeneral();
         RDFDataMgr.read(dataset, new ByteArrayInputStream(goalString.getBytes(Charset.forName("UTF-8"))), RDFFormat.TRIG.getLang());
         
@@ -194,23 +194,23 @@ public class CreateFactoryOfferAction extends AbstractCreateNeedAction {
         return shapeModel;
     }
 
-    private WonMessage createWonMessage(WonNodeInformationService wonNodeInformationService, URI needURI,
-                                        URI wonNodeURI, Model needModel, Model shapesModel) throws WonMessageBuilderException {
+    private WonMessage createWonMessage(WonNodeInformationService wonNodeInformationService, URI atomURI,
+                                        URI wonNodeURI, Model atomModel, Model shapesModel) throws WonMessageBuilderException {
 
-        NeedModelWrapper needModelWrapper = new NeedModelWrapper(needModel, null);
+        AtomModelWrapper atomModelWrapper = new AtomModelWrapper(atomModel, null);
 
-        needModelWrapper.addFlag(WON.NO_HINT_FOR_ME);
-        needModelWrapper.addFlag(WON.NO_HINT_FOR_COUNTERPART);
+        atomModelWrapper.addFlag(WON.NO_HINT_FOR_ME);
+        atomModelWrapper.addFlag(WON.NO_HINT_FOR_COUNTERPART);
 
-        RdfUtils.replaceBaseURI(needModel, needURI.toString(), true);
+        RdfUtils.replaceBaseURI(atomModel, atomURI.toString(), true);
 
         Dataset contentDataset = DatasetFactory.createGeneral();
 
-        contentDataset.addNamedModel(STUB_NEED_URI.toString(), needModel);
+        contentDataset.addNamedModel(STUB_ATOM_URI.toString(), atomModel);
         contentDataset.addNamedModel(STUB_SHAPES_URI.toString(), shapesModel);
 
         return WonMessageBuilder.setMessagePropertiesForCreate(wonNodeInformationService.generateEventURI(wonNodeURI),
-                needURI, wonNodeURI).addContent(contentDataset).build();
+                atomURI, wonNodeURI).addContent(contentDataset).build();
     }
 
 }

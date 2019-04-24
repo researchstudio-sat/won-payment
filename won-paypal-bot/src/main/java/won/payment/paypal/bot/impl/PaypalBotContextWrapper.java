@@ -29,12 +29,12 @@ public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
 		super(botContext, botName);
 	}
 	
-	public void putOpenBridge(URI needUri, PaymentBridge bridge) {
-		this.getBotContext().saveToObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString(), bridge);
+	public void putOpenBridge(URI atomUri, PaymentBridge bridge) {
+		this.getBotContext().saveToObjectMap(OPEN_PAYMENT_BRIDGES, atomUri.toString(), bridge);
 	}
 	
-	public PaymentBridge getOpenBridge(URI needUri) {
-		return (PaymentBridge) this.getBotContext().loadFromObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString());
+	public PaymentBridge getOpenBridge(URI atomUri) {
+		return (PaymentBridge) this.getBotContext().loadFromObjectMap(OPEN_PAYMENT_BRIDGES, atomUri.toString());
 	}
 	
 	public Iterator<PaymentBridge> getOpenBridges() {
@@ -46,8 +46,8 @@ public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
 		return col.iterator();
 	}
 	
-	public void removeOpenBridge(URI needUri) {
-		this.getBotContext().removeFromObjectMap(OPEN_PAYMENT_BRIDGES, needUri.toString());
+	public void removeOpenBridge(URI atomUri) {
+		this.getBotContext().removeFromObjectMap(OPEN_PAYMENT_BRIDGES, atomUri.toString());
 	}
 	
 	public static PaypalBotContextWrapper instance(EventListenerContext ctx) {
@@ -55,7 +55,7 @@ public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
 	}
 	
 	public static PaymentBridge paymentBridge(EventListenerContext ctx, Connection con) {
-		return instance(ctx).getOpenBridge(con.getNeedURI());
+		return instance(ctx).getOpenBridge(con.getAtomURI());
 	}
 
 	public void setPaypalService(PaypalPaymentService paypalService) {

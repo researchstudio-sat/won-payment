@@ -11,7 +11,7 @@ import org.topbraid.shacl.vocabulary.SH;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
-import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
+import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
@@ -46,7 +46,7 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
 		EventListenerContext ctx = getEventListenerContext();
 
 		if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof PreconditionUnmetEvent) {
-			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
+			Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
 			if (bridge.getStatus() != PaymentStatus.BUILDING) {

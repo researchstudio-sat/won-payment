@@ -12,12 +12,12 @@ import won.protocol.vocabulary.WONPAY;
 
 public class WonPayRdfUtils {
 
-	public static String getPaymentModelUri(URI needUri) {
-		return needUri.toString() + "/payment";
+	public static String getPaymentModelUri(URI atomUri) {
+		return atomUri.toString() + "/payment";
 	}
 	
 	public static String getPaymentModelUri(Connection con) {
-		return getPaymentModelUri(con.getNeedURI());
+		return getPaymentModelUri(con.getAtomURI());
 	}
 	
 	public static Model paymentSummary() {

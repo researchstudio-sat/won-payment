@@ -2,7 +2,7 @@ package won.payment.paypal.bot.event.proposal;
 
 import java.net.URI;
 
-import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
+import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
 import won.protocol.model.Connection;
 
 // TODO: why is this a separate class? this case should be handled by won
@@ -13,7 +13,7 @@ import won.protocol.model.Connection;
  * @author schokobaer
  *
  */
-public class ProposalRejectedEvent extends BaseNeedAndConnectionSpecificEvent {
+public class ProposalRejectedEvent extends BaseAtomAndConnectionSpecificEvent {
 
 	private URI proposalUri;
 	

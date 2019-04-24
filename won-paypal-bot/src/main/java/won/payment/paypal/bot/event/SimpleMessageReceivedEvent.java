@@ -2,7 +2,7 @@ package won.payment.paypal.bot.event;
 
 import org.apache.jena.rdf.model.RDFNode;
 
-import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
@@ -14,7 +14,7 @@ public class SimpleMessageReceivedEvent extends WonMessageReceivedOnConnectionEv
 		super(con, wonMessage);
 	}
 	
-	public SimpleMessageReceivedEvent(MessageFromOtherNeedEvent event) {
+	public SimpleMessageReceivedEvent(MessageFromOtherAtomEvent event) {
 		this(event.getCon(), event.getWonMessage());
 	}
 	

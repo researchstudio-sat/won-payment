@@ -81,9 +81,9 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 	private void cancelPaymodel(ProposalAcceptedEvent proposalAcceptedEvent) {
 		Connection con = proposalAcceptedEvent.getCon();
 		EventListenerContext ctx = getEventListenerContext();
-		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());
+		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
 		bridge.setStatus(PaymentStatus.BUILDING);
-		PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+		PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
 
 		AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
 				getEventListenerContext().getLinkedDataSource());
@@ -133,9 +133,9 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 	private void generatePP(ProposalAcceptedEvent event) {
 		Connection con = event.getCon();
 		EventListenerContext ctx = getEventListenerContext();
-		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getNeedURI());
+		PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
 		bridge.setStatus(PaymentStatus.PAYMODEL_ACCEPTED);
-		PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+		PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
 
 		// TODO: Send info, that a payment is getting generated rn
 
@@ -151,7 +151,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
 			bridge.setStatus(PaymentStatus.GENERATED);
 			bridge.setPayKey(payKey);
-			PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+			PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
 
 			// Print pay link to merchant; Propose it to him
 			Model response = WonRdfUtils.MessageUtils.processingMessage("Generated PayPal payment: \n" + url);
@@ -184,7 +184,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 			logger.warn("Paypal payment could not be generated.", e);
 			makeTextMsg("PayPal payment could not be generated: " + e.getMessage(), con);
 			bridge.setStatus(PaymentStatus.FAILURE);
-			PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getNeedURI(), bridge);
+			PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
 			
 		}
 	}

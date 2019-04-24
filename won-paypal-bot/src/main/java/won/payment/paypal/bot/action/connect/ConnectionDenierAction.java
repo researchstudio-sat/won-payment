@@ -3,10 +3,10 @@ package won.payment.paypal.bot.action.connect;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.bus.EventBus;
-import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
+import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.command.close.CloseCommandEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherNeedEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.protocol.model.Connection;
@@ -27,14 +27,14 @@ public class ConnectionDenierAction extends BaseEventBotAction {
 
 	@Override
 	protected void doRun(Event event, EventListener executingListener) throws Exception {
-		if (!(event instanceof ConnectFromOtherNeedEvent)) {
+		if (!(event instanceof ConnectFromOtherAtomEvent)) {
 			return;
 		}
 
 		if (event instanceof WonMessageReceivedOnConnectionEvent) {
 			EventListenerContext ctx = getEventListenerContext();
 			EventBus bus = ctx.getEventBus();
-			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
+			Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
 
 			/*
 			 * // Send msg String msg =
@@ -49,8 +49,8 @@ public class ConnectionDenierAction extends BaseEventBotAction {
 			 * }
 			 */
 
-			logger.info("Need {} tryed to connect to need {} with connection {}", con.getRemoteNeedURI(),
-					con.getNeedURI(), con.getConnectionURI());
+			logger.info("Atom {} tryed to connect to atom {} with connection {}", con.getTargetAtomURI(),
+					con.getAtomURI(), con.getConnectionURI());
 
 			// Close Connection
 			bus.publish(new CloseCommandEvent(con));

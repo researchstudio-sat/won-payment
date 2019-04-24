@@ -14,8 +14,8 @@ import org.apache.jena.vocabulary.RDFS;
  */
 public class WONPAY {
 
-	public static final String BASE_URI = "http://purl.org/webofneeds/payment#";
-	public static final String MODEL_URI = "http://purl.org/webofneeds/payment#";
+	public static final String BASE_URI = "https://w3id.org/won/payment#";
+	public static final String MODEL_URI = "https://w3id.org/won/payment#";
 
 	private static final Model m = ModelFactory.createDefaultModel();
 
@@ -23,7 +23,7 @@ public class WONPAY {
 	public static final Property HAS_PAYPAL_PAYKEY = m.createProperty(BASE_URI + "hasPaypalPayKey");
 
 	// public static final Property HAS_SECRET = m.createProperty(BASE_URI + "hasSecret");
-	public static final Property HAS_NEED_COUNTERPART = m.createProperty(BASE_URI + "hasNeedCounterpart");
+	public static final Property HAS_ATOM_COUNTERPART = m.createProperty(BASE_URI + "hasAtomCounterpart");
 
 	// Payments
 	public static final Resource PAYMENT = m.createResource(MODEL_URI + "Payment");

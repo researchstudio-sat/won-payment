@@ -13,7 +13,7 @@ import org.apache.jena.vocabulary.RDF;
 
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
-import won.bot.framework.eventbot.event.BaseNeedAndConnectionSpecificEvent;
+import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
 import won.bot.framework.eventbot.event.Event;
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.listener.EventListener;
@@ -53,7 +53,7 @@ public class MessageRetractedAction extends BaseEventBotAction {
 			logger.info("Message retracted");
 			MessageRetractedEvent retractedEvent = (MessageRetractedEvent) event;
 
-			Connection con = ((BaseNeedAndConnectionSpecificEvent) event).getCon();
+			Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
 			PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
 
 			if (bridge.getStatus() != PaymentStatus.BUILDING) {
@@ -124,7 +124,7 @@ public class MessageRetractedAction extends BaseEventBotAction {
 	}
 	
 	private Model getRetractedContent(MessageRetractedEvent event) {
-		Dataset conversationDataset = WonLinkedDataUtils.getConversationAndNeedsDataset(event.getConnectionURI(),
+		Dataset conversationDataset = WonLinkedDataUtils.getConversationAndAtomsDataset(event.getConnectionURI(),
 				getEventListenerContext().getLinkedDataSource());
 		conversationDataset.begin(ReadWrite.READ);
 		Map<URI, ConversationMessage> conversationMessages = ConversationMessagesReader.readConversationMessages(conversationDataset);

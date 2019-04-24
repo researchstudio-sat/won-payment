@@ -1,6 +1,6 @@
 prefix s:     <http://schema.org/>
-prefix won:   <http://purl.org/webofneeds/model#>
-prefix pay:   <http://purl.org/webofneeds/payment#>
+prefix won:   <https://w3id.org/won/core#>
+prefix pay:   <https://w3id.org/won/payment#>
 prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 Select ?main ?amount ?currency ?receiver ?feepayer ?tax ?invoiceid ?expirationtime ?invoicedetails

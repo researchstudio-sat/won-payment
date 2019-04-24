@@ -84,7 +84,7 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 				bridge.setStatus(PaymentStatus.EXPIRED);
 			}
 			
-			PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getNeedURI(), bridge);
+			PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getAtomURI(), bridge);
 
 		} catch (Exception e) {
 			logger.warn("Paypal payment check failed.", e);
