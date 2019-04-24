@@ -24,52 +24,44 @@ import com.paypal.svcs.types.common.ResponseEnvelope;
  * Simple stub for testing or if the real APA-Service is down.
  * 
  * @author schokobaer
- *
  */
 public class AdaptivePaymentsServiceStub extends AdaptivePaymentsService {
+    private int payKeyIndex = 0;
+    private Map<String, Integer> amountCalls = new HashMap<>();
 
-	private int payKeyIndex = 0;
-	private Map<String, Integer> amountCalls = new HashMap<>();
-	
-	public AdaptivePaymentsServiceStub(Map<String, String> config) {
-		super(config);
-	}
-	
-	@Override
-	public PayResponse pay(PayRequest payRequest) throws SSLConfigurationException, InvalidCredentialException,
-			UnsupportedEncodingException, IOException, HttpErrorException, InvalidResponseDataException,
-			ClientActionRequiredException, MissingCredentialException, InterruptedException, OAuthException {
-		
-		PayResponse payResponse = new PayResponse();
-		ResponseEnvelope responseEnvelope = new ResponseEnvelope();
-		responseEnvelope.setAck(AckCode.SUCCESS);
-		payResponse.setResponseEnvelope(responseEnvelope);
-		String payKey = "AP-" + (++payKeyIndex) + "-00";
-		payResponse.setPayKey(payKey);
-		amountCalls.put(payKey, 0);
-		
-		return payResponse;
-	}
-	
-	@Override
-	public PaymentDetailsResponse paymentDetails(PaymentDetailsRequest paymentDetailsRequest)
-			throws SSLConfigurationException, InvalidCredentialException, UnsupportedEncodingException, IOException,
-			HttpErrorException, InvalidResponseDataException, ClientActionRequiredException, MissingCredentialException,
-			InterruptedException, OAuthException {
+    public AdaptivePaymentsServiceStub(Map<String, String> config) {
+        super(config);
+    }
 
-		PaymentDetailsResponse paymentDetailsResponse = new PaymentDetailsResponse();
-		ResponseEnvelope responseEnvelope = new ResponseEnvelope();
-		responseEnvelope.setAck(AckCode.SUCCESS);
-		paymentDetailsResponse.setResponseEnvelope(responseEnvelope);
-		
-		if (amountCalls.get(paymentDetailsRequest.getPayKey()) == 0) {
-			amountCalls.put(paymentDetailsRequest.getPayKey(), 1);
-			paymentDetailsResponse.setStatus("CREATED");
-		} else {
-			paymentDetailsResponse.setStatus("COMPLETED");
-		}
-		
-		return paymentDetailsResponse;
-	}
-	
+    @Override
+    public PayResponse pay(PayRequest payRequest) throws SSLConfigurationException, InvalidCredentialException,
+                    UnsupportedEncodingException, IOException, HttpErrorException, InvalidResponseDataException,
+                    ClientActionRequiredException, MissingCredentialException, InterruptedException, OAuthException {
+        PayResponse payResponse = new PayResponse();
+        ResponseEnvelope responseEnvelope = new ResponseEnvelope();
+        responseEnvelope.setAck(AckCode.SUCCESS);
+        payResponse.setResponseEnvelope(responseEnvelope);
+        String payKey = "AP-" + (++payKeyIndex) + "-00";
+        payResponse.setPayKey(payKey);
+        amountCalls.put(payKey, 0);
+        return payResponse;
+    }
+
+    @Override
+    public PaymentDetailsResponse paymentDetails(PaymentDetailsRequest paymentDetailsRequest)
+                    throws SSLConfigurationException, InvalidCredentialException, UnsupportedEncodingException,
+                    IOException, HttpErrorException, InvalidResponseDataException, ClientActionRequiredException,
+                    MissingCredentialException, InterruptedException, OAuthException {
+        PaymentDetailsResponse paymentDetailsResponse = new PaymentDetailsResponse();
+        ResponseEnvelope responseEnvelope = new ResponseEnvelope();
+        responseEnvelope.setAck(AckCode.SUCCESS);
+        paymentDetailsResponse.setResponseEnvelope(responseEnvelope);
+        if (amountCalls.get(paymentDetailsRequest.getPayKey()) == 0) {
+            amountCalls.put(paymentDetailsRequest.getPayKey(), 1);
+            paymentDetailsResponse.setStatus("CREATED");
+        } else {
+            paymentDetailsResponse.setStatus("COMPLETED");
+        }
+        return paymentDetailsResponse;
+    }
 }

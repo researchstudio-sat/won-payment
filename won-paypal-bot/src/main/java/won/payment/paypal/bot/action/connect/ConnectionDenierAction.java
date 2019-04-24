@@ -15,46 +15,35 @@ import won.protocol.model.Connection;
  * Sends a message and then immediately closes the connection.
  * 
  * @author schokobaer
- *
  */
 public class ConnectionDenierAction extends BaseEventBotAction {
+    // private static final Long WAITING_TIME = 5000L;
+    public ConnectionDenierAction(EventListenerContext eventListenerContext) {
+        super(eventListenerContext);
+    }
 
-//	private static final Long WAITING_TIME = 5000L;
-
-	public ConnectionDenierAction(EventListenerContext eventListenerContext) {
-		super(eventListenerContext);
-	}
-
-	@Override
-	protected void doRun(Event event, EventListener executingListener) throws Exception {
-		if (!(event instanceof ConnectFromOtherAtomEvent)) {
-			return;
-		}
-
-		if (event instanceof WonMessageReceivedOnConnectionEvent) {
-			EventListenerContext ctx = getEventListenerContext();
-			EventBus bus = ctx.getEventBus();
-			Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-
-			/*
-			 * // Send msg String msg =
-			 * "I am the master here. Only I am opening connections. Get off ..."; Model
-			 * model = WonRdfUtils.MessageUtils.textMessage(msg);
-			 * getEventListenerContext().getEventBus().publish(new
-			 * ConnectionMessageCommandEvent(con, model));
-			 * 
-			 * // Wait some time so the client can read the message try {
-			 * Thread.sleep(WAITING_TIME); } catch (InterruptedException e) {
-			 * 
-			 * }
-			 */
-
-			logger.info("Atom {} tryed to connect to atom {} with connection {}", con.getTargetAtomURI(),
-					con.getAtomURI(), con.getConnectionURI());
-
-			// Close Connection
-			bus.publish(new CloseCommandEvent(con));
-		}
-
-	}
+    @Override
+    protected void doRun(Event event, EventListener executingListener) throws Exception {
+        if (!(event instanceof ConnectFromOtherAtomEvent)) {
+            return;
+        }
+        if (event instanceof WonMessageReceivedOnConnectionEvent) {
+            EventListenerContext ctx = getEventListenerContext();
+            EventBus bus = ctx.getEventBus();
+            Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
+            /*
+             * // Send msg String msg =
+             * "I am the master here. Only I am opening connections. Get off ..."; Model
+             * model = WonRdfUtils.MessageUtils.textMessage(msg);
+             * getEventListenerContext().getEventBus().publish(new
+             * ConnectionMessageCommandEvent(con, model)); // Wait some time so the client
+             * can read the message try { Thread.sleep(WAITING_TIME); } catch
+             * (InterruptedException e) { }
+             */
+            logger.info("Atom {} tryed to connect to atom {} with connection {}", con.getTargetAtomURI(),
+                            con.getAtomURI(), con.getConnectionURI());
+            // Close Connection
+            bus.publish(new CloseCommandEvent(con));
+        }
+    }
 }

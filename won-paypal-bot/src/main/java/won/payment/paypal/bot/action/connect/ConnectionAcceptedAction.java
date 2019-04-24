@@ -12,38 +12,32 @@ import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
 
 /**
- * When the counterpart has accepted the connection, this action will be invoked.
- * It changes the sate of the bridge and generates the payment and sends the link
- * to the buyer.
- * TODO: can I delete this file completely?
+ * When the counterpart has accepted the connection, this action will be
+ * invoked. It changes the sate of the bridge and generates the payment and
+ * sends the link to the buyer. TODO: can I delete this file completely?
  * 
  * @author schokobaer
- *
  */
 public class ConnectionAcceptedAction extends BaseEventBotAction {
+    public ConnectionAcceptedAction(EventListenerContext eventListenerContext) {
+        super(eventListenerContext);
+    }
 
-	public ConnectionAcceptedAction(EventListenerContext eventListenerContext) {
-		super(eventListenerContext);
-	}
-
-	@Override
-	protected void doRun(Event event, EventListener executingListener) throws Exception {
-		
-		if (event instanceof OpenFromOtherAtomEvent) {
-			EventListenerContext ctx = getEventListenerContext();
-			Connection con = ((OpenFromOtherAtomEvent) event).getCon();
-			PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
-			
-			if (bridge.getMerchantConnection() != null &&
-					con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
-				logger.info("merchant accepted the connection");
-				bridge.setStatus(PaymentStatus.BUILDING);
-				PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
-				ctx.getEventBus().publish(new ConversationAnalyzationCommandEvent(con));
-			} else {
-				logger.error("OpenFromOtherAtomEvent from not registered connection URI {}", con.toString());
-			}
-		}
-		
-	}
+    @Override
+    protected void doRun(Event event, EventListener executingListener) throws Exception {
+        if (event instanceof OpenFromOtherAtomEvent) {
+            EventListenerContext ctx = getEventListenerContext();
+            Connection con = ((OpenFromOtherAtomEvent) event).getCon();
+            PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
+            if (bridge.getMerchantConnection() != null
+                            && con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
+                logger.info("merchant accepted the connection");
+                bridge.setStatus(PaymentStatus.BUILDING);
+                PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
+                ctx.getEventBus().publish(new ConversationAnalyzationCommandEvent(con));
+            } else {
+                logger.error("OpenFromOtherAtomEvent from not registered connection URI {}", con.toString());
+            }
+        }
+    }
 }

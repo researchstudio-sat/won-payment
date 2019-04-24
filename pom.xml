@@ -1,6 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>at.researchstudio.sat</groupId>
 	<artifactId>won-payment</artifactId>
@@ -8,10 +8,9 @@
 	<packaging>pom</packaging>
 	<name>won-payment</name>
 	<modules>
-        <module>won-payment-core</module>
+		<module>won-payment-core</module>
 		<module>won-paypal-bot</module>
 	</modules>
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -19,10 +18,14 @@
 				<artifactId>jena-core</artifactId>
 				<version>3.5.0</version>
 			</dependency>
-
 			<dependency>
 				<groupId>at.researchstudio.sat</groupId>
 				<artifactId>won-bot</artifactId>
+				<version>0.4-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>at.researchstudio.sat</groupId>
+				<artifactId>won-buildtools</artifactId>
 				<version>0.4-SNAPSHOT</version>
 			</dependency>
 			<dependency>
@@ -62,6 +65,22 @@
 					<configuration>
 						<source>1.8</source>
 						<target>1.8</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>net.revelc.code.formatter</groupId>
+					<artifactId>formatter-maven-plugin</artifactId>
+					<version>2.8.1</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>validate</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<configFile>${project.basedir}/../../webofneeds/webofneeds/won-buildtools/src/main/resources/eclipse/formatter.xml</configFile>
+						<encoding>UTF-8</encoding>
 					</configuration>
 				</plugin>
 			</plugins>

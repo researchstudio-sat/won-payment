@@ -13,16 +13,14 @@ import won.protocol.message.WonMessageType;
 
 // TODO: is there a simple connect event? If not, rename clas
 // also consider making this a subclass of ConnectCommandEvent
-
 /**
- * To publish a more complex connection Opening message with more content
- * then a simple text message.
+ * To publish a more complex connection Opening message with more content then a
+ * simple text message.
  *
  * @author schokobaer
- *
  */
-public class ComplexConnectCommandEvent extends BaseAtomSpecificEvent implements MessageCommandEvent, TargetAtomSpecificEvent {
-
+public class ComplexConnectCommandEvent extends BaseAtomSpecificEvent
+                implements MessageCommandEvent, TargetAtomSpecificEvent {
     private Model payload;
     private ConnectCommandEvent connectCommandEvent;
 
@@ -60,6 +58,4 @@ public class ComplexConnectCommandEvent extends BaseAtomSpecificEvent implements
     public String getWelcomeMessage() {
         return connectCommandEvent.getWelcomeMessage();
     }
-
-
 }
