@@ -86,7 +86,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
                                 ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
                                 if (connectionMessageCommandResultEvent.isSuccess()) {
                                     Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(paymentWrapper
-                                            .getCurrencySymbol() + " " + paymentWrapper.getAmount() + " to "
+                                            .getCurrency() + " " + paymentWrapper.getAmount() + " to "
                                             + paymentWrapper.getReceiver()
                                             + "....Do you want to confirm the paymodel? Then accept the proposal. After accepting the payment will be "
                                             + "generated and you can still verify it.");
