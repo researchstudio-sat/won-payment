@@ -12,10 +12,10 @@ import won.bot.framework.eventbot.event.impl.analyzation.precondition.Preconditi
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
 import won.bot.framework.eventbot.event.impl.factory.FactoryHintEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherNeedEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherNeedEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherNeedEvent;
-import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherNeedEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEvent;
+import won.bot.framework.eventbot.event.impl.wonmessage.OpenFromOtherAtomEvent;
 import won.bot.framework.eventbot.listener.impl.ActionOnEventListener;
 import won.payment.paypal.bot.action.HelpAction;
 import won.payment.paypal.bot.action.analyze.GoalAnalyzationAction;
@@ -42,120 +42,59 @@ import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
  * The bot which subscribes for the Events.
  * 
  * @author schokobaer
- *
  */
 public class PaypalBot extends FactoryBot {
+    private Timer paymentCheckTimer;
 
-	private Timer paymentCheckTimer;
-
-	@Override
-	protected void initializeFactoryEventListeners() {
-		
-		EventBus bus = getEventBus();
-		EventListenerContext ctx = getEventListenerContext();
-		
-		//AnalyzeBehaviour analyzeBehaviour = new AnalyzeBehaviour(ctx);
-		//analyzeBehaviour.activate();
-				
-		
-		// eagerly cache RDF data
-		BotBehaviour eagerlyCacheBehaviour = new EagerlyPopulateCacheBehaviour(ctx);
-		eagerlyCacheBehaviour.activate();
-
-		
-		// Factory Hint Event
-		bus.subscribe(FactoryHintEvent.class,
-			new ActionOnEventListener(
-				ctx,
-				"FactoryHintEvent",
-				new CreateFactoryOfferAction(ctx)
-			)
-        );
-        
+    @Override
+    protected void initializeFactoryEventListeners() {
+        EventBus bus = getEventBus();
+        EventListenerContext ctx = getEventListenerContext();
+        // AnalyzeBehaviour analyzeBehaviour = new AnalyzeBehaviour(ctx);
+        // analyzeBehaviour.activate();
+        // eagerly cache RDF data
+        BotBehaviour eagerlyCacheBehaviour = new EagerlyPopulateCacheBehaviour(ctx);
+        eagerlyCacheBehaviour.activate();
+        // Factory Hint Event
+        bus.subscribe(FactoryHintEvent.class,
+                        new ActionOnEventListener(ctx, "FactoryHintEvent", new CreateFactoryOfferAction(ctx)));
         // TODO: remove unused Events
-		
-		// Counterpart accepted the connection
-		bus.subscribe(OpenFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionAcceptedAction(ctx)));
-		
-		//Analyzation Events
-		bus.subscribe(PreconditionUnmetEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "PreconditionUnmetEvent",
-                new PreconditionUnmetAction(ctx)
-            )
-        );
- 
+        // Counterpart accepted the connection
+        bus.subscribe(OpenFromOtherAtomEvent.class, new ActionOnEventListener(ctx, new ConnectionAcceptedAction(ctx)));
+        // Analyzation Events
+        bus.subscribe(PreconditionUnmetEvent.class,
+                        new ActionOnEventListener(ctx, "PreconditionUnmetEvent", new PreconditionUnmetAction(ctx)));
         bus.subscribe(PreconditionMetEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "PreconditionMetEvent",
-                new PreconditionMetAction(ctx)
-            )
-        );
-
+                        new ActionOnEventListener(ctx, "PreconditionMetEvent", new PreconditionMetAction(ctx)));
         bus.subscribe(ProposalAcceptedEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "ProposalAcceptedEvent",
-                new ProposalAcceptedAction(ctx)
-            )
-        );
-        
+                        new ActionOnEventListener(ctx, "ProposalAcceptedEvent", new ProposalAcceptedAction(ctx)));
         bus.subscribe(ProposalRejectedEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "ProposalRejectedEvent",
-                new ProposalRejectedAction(ctx)
-            )
-        );
-        
+                        new ActionOnEventListener(ctx, "ProposalRejectedEvent", new ProposalRejectedAction(ctx)));
         bus.subscribe(ProposalReceivedEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "ProposalReceivedEvent",
-                new ProposalReceivedAction(ctx)
-            )
-        );
-        
+                        new ActionOnEventListener(ctx, "ProposalReceivedEvent", new ProposalReceivedAction(ctx)));
         bus.subscribe(MessageRetractedEvent.class,
-            new ActionOnEventListener(
-                ctx,
-                "MessageRetractedEvent",
-                new MessageRetractedAction(ctx)
-            )
-        );
-		
+                        new ActionOnEventListener(ctx, "MessageRetractedEvent", new MessageRetractedAction(ctx)));
         // Incoming message effect broker
-        bus.subscribe(MessageFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new MessageEffectBrokerAction(ctx)));
-        
+        bus.subscribe(MessageFromOtherAtomEvent.class,
+                        new ActionOnEventListener(ctx, new MessageEffectBrokerAction(ctx)));
         // Incoming simple Messages
         bus.subscribe(SimpleMessageReceivedEvent.class, new ActionOnEventListener(ctx, new HelpAction(ctx)));
-        
         // SHAQL Validation for analyzation events
-        bus.subscribe(ConversationAnalyzationCommandEvent.class, new ActionOnEventListener(ctx, new GoalAnalyzationAction(ctx)));
-		
+        bus.subscribe(ConversationAnalyzationCommandEvent.class,
+                        new ActionOnEventListener(ctx, new GoalAnalyzationAction(ctx)));
         // ComplexConnectCommandEvent
-        bus.subscribe(ComplexConnectCommandEvent.class, new ActionOnEventListener(ctx, new ExecuteComplexConnectCommandAction(ctx)));
-
-		// Client closes the connection
-		bus.subscribe(CloseFromOtherNeedEvent.class,
-				new ActionOnEventListener(ctx, new ConnectionCloseAction(ctx)));
-
-		// If someone wants to connect to a instance
-		// Need then send a deny message and close the connection
-		bus.subscribe(ConnectFromOtherNeedEvent.class, new ActionOnEventListener(ctx, new ConnectionDenierAction(ctx)));
-
-		
-		
-		
-		// Start PaypalPaymentStatusCheckScheduler
-		PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(
-				getEventListenerContext());
-		paymentCheckTimer = new Timer(true);
-		Long interval = ((PaypalBotContextWrapper) getBotContextWrapper()).getSchedulingInterval();
-		paymentCheckTimer.scheduleAtFixedRate(statusScheduler, interval, interval);
-	}
-	
-
+        bus.subscribe(ComplexConnectCommandEvent.class,
+                        new ActionOnEventListener(ctx, new ExecuteComplexConnectCommandAction(ctx)));
+        // Client closes the connection
+        bus.subscribe(CloseFromOtherAtomEvent.class, new ActionOnEventListener(ctx, new ConnectionCloseAction(ctx)));
+        // If someone wants to connect to a instance
+        // Atom then send a deny message and close the connection
+        bus.subscribe(ConnectFromOtherAtomEvent.class, new ActionOnEventListener(ctx, new ConnectionDenierAction(ctx)));
+        // Start PaypalPaymentStatusCheckScheduler
+        PaypalPaymentStatusCheckSchedule statusScheduler = new PaypalPaymentStatusCheckSchedule(
+                        getEventListenerContext());
+        paymentCheckTimer = new Timer(true);
+        Long interval = ((PaypalBotContextWrapper) getBotContextWrapper()).getSchedulingInterval();
+        paymentCheckTimer.scheduleAtFixedRate(statusScheduler, interval, interval);
+    }
 }

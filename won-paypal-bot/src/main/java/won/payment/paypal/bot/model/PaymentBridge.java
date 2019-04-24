@@ -9,38 +9,36 @@ import won.protocol.model.Connection;
  * and buyer, the status in which the payment is.
  * 
  * @author schokobaer
- *
  */
 public class PaymentBridge implements Serializable {
-// TODO: add static final ID to prevent invalid id errors from different compilers
-// TODO: think about renaming merchantConnection
+    // TODO: add static final ID to prevent invalid id errors from different
+    // compilers
+    // TODO: think about renaming merchantConnection
+    private Connection merchantConnection;
+    private String payKey;
+    private PaymentStatus status = PaymentStatus.NOWHERE;
 
-	private Connection merchantConnection;
-	private String payKey;
-	private PaymentStatus status = PaymentStatus.NOWHERE;
+    public Connection getMerchantConnection() {
+        return merchantConnection;
+    }
 
-	public Connection getMerchantConnection() {
-		return merchantConnection;
-	}
+    public void setMerchantConnection(Connection merchantConnectionUri) {
+        this.merchantConnection = merchantConnectionUri;
+    }
 
-	public void setMerchantConnection(Connection merchantConnectionUri) {
-		this.merchantConnection = merchantConnectionUri;
-	}
+    public PaymentStatus getStatus() {
+        return status;
+    }
 
-	public PaymentStatus getStatus() {
-		return status;
-	}
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
+    }
 
-	public void setStatus(PaymentStatus status) {
-		this.status = status;
-	}
+    public String getPayKey() {
+        return payKey;
+    }
 
-	public String getPayKey() {
-		return payKey;
-	}
-
-	public void setPayKey(String payKey) {
-		this.payKey = payKey;
-	}
-
+    public void setPayKey(String payKey) {
+        this.payKey = payKey;
+    }
 }

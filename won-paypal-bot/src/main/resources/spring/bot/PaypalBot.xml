@@ -23,11 +23,11 @@
     <import resource="classpath*:spring/component/botContext/botContext.xml"/>
 
     <bean id="paypalBot" class="won.payment.paypal.bot.impl.PaypalBot">
-        <!-- optional property, by default one echo need per each need will be created -->
+        <!-- optional property, by default one echo atom per each atom will be created -->
 
         <property name="botContextWrapper" ref="botContextWrapper" />
         <property name="taskScheduler" ref="taskScheduler" />
-        <property name="needProducer" ref="needProducer" />
+        <property name="atomProducer" ref="atomProducer" />
         <property name="trigger">
             <bean class="org.springframework.scheduling.support.PeriodicTrigger">
                 <constructor-arg name="period" value="60000" />
@@ -45,12 +45,12 @@
         <property name="schedulingInterval" value="${paypalbot.checkinterval}" />
     </bean>
 
-    <bean id="needProducer" class="won.bot.framework.component.needproducer.impl.DirectoryBasedNeedProducer">
-        <property name="directory" value="${paypalbot.bot.factoryneedfolder}"/>
+    <bean id="atomProducer" class="won.bot.framework.component.atomproducer.impl.DirectoryBasedAtomProducer">
+        <property name="directory" value="${paypalbot.bot.factoryatomfolder}"/>
         <property name="filenameFilterRegex" value="^[^\.].*\.trig"/>
         <property name="repeat" value="false"/>
-        <property name="fileBasedNeedProducer">
-            <bean class="won.bot.framework.component.needproducer.impl.TrigFileNeedProducer"/>
+        <property name="fileBasedAtomProducer">
+            <bean class="won.bot.framework.component.atomproducer.impl.TrigFileAtomProducer"/>
         </property>
     </bean>
     

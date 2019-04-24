@@ -11,21 +11,19 @@ import won.protocol.model.Connection;
 import won.protocol.vocabulary.WONPAY;
 
 public class WonPayRdfUtils {
+    public static String getPaymentModelUri(URI atomUri) {
+        return atomUri.toString() + "/payment";
+    }
 
-	public static String getPaymentModelUri(URI needUri) {
-		return needUri.toString() + "/payment";
-	}
-	
-	public static String getPaymentModelUri(Connection con) {
-		return getPaymentModelUri(con.getNeedURI());
-	}
-	
-	public static Model paymentSummary() {
-		Model model = ModelFactory.createDefaultModel();
-		model.setNsPrefix("", "no:uri");
-		Resource res = model.createResource(model.getNsPrefixURI(""));
-	    res.addProperty(RDF.type, WONPAY.PAYMENT_SUMMARY);
-	    return model;
-	}
-	
+    public static String getPaymentModelUri(Connection con) {
+        return getPaymentModelUri(con.getAtomURI());
+    }
+
+    public static Model paymentSummary() {
+        Model model = ModelFactory.createDefaultModel();
+        model.setNsPrefix("", "no:uri");
+        Resource res = model.createResource(model.getNsPrefixURI(""));
+        res.addProperty(RDF.type, WONPAY.PAYMENT_SUMMARY);
+        return model;
+    }
 }

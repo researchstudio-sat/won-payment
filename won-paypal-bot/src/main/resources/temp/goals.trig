@@ -5,8 +5,8 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix dc:    <http://purl.org/dc/elements/1.1/> .
 @prefix ex2: <http://example.org/2/> .
-@prefix pay: <http://purl.org/webofneeds/payment#> .
-@prefix won: <http://purl.org/webofneeds/model#> .
+@prefix pay: <https://w3id.org/won/payment#> .
+@prefix won: <https://w3id.org/won/core#> .
 @prefix cur: <http://www.w3.org/2007/ont/currency#> .
 
 

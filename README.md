@@ -9,7 +9,7 @@ mvn install
 ```
 
 # Skills
- - Creates a new Need for every hint it receives and opens a Connection to the hint Need
+ - Creates a new Atom for every hint it receives and opens a Connection to the hint Atom
  - Denies all incomming Connections
  - Payment-Evaluation-Scheduler which checks open payments in a fixed interval
  - Status controlled Action Handler, which act different for each state to secure a correct and safe process
@@ -21,4 +21,4 @@ mvn install
  - PayPal Credentials from the conf-properties file
  - Correct handling from Acepts-Events
  - Storage/Serialization of PaymentBridges
- - Discuss the idea of creating a new need for the buyer instead of using the same need as the merchant
+ - Discuss the idea of creating a new atom for the buyer instead of using the same atom as the merchant

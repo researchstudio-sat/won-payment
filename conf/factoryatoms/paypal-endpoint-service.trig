@@ -1,7 +1,7 @@
-@prefix msg:   <http://purl.org/webofneeds/message#> .
+@prefix msg:   <https://w3id.org/won/message#> .
 @prefix conn:  <https://localhost:8443/won/resource/connection/> .
-@prefix need:  <https://localhost:8443/won/resource/need/> .
-@prefix woncrypt: <http://purl.org/webofneeds/woncrypt#> .
+@prefix atom:  <https://localhost:8443/won/resource/atom/> .
+@prefix woncrypt: <https://w3id.org/won/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix cert:  <http://www.w3.org/ns/auth/cert#> .
@@ -11,7 +11,7 @@
 @prefix s:     <http://schema.org/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix won:   <http://purl.org/webofneeds/model#> .
+@prefix won:   <https://w3id.org/won/core#> .
 @prefix ldp:   <http://www.w3.org/ns/ldp#> .
 @prefix event: <https://localhost:8443/won/resource/event/> .
 @prefix dc:    <http://purl.org/dc/elements/1.1/> .
@@ -21,9 +21,9 @@
 
  {
     olntest:paypalService1
-		won:hasFlag   won:NoHintForCounterpart ;
-		a             won:Need , won:ServiceBot ;
-		s:title				"Paypal Payment Bot Factory Need" ;
+		won:flag   won:NoHintForCounterpart ;
+		a             won:Atom , won:ServiceBot ;
+		s:title				"Paypal Payment Bot Factory Atom" ;
 		won:seeks [
 			a			won:PaymentServiceRequest;
 		].
