@@ -11,7 +11,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
-import won.bot.framework.eventbot.EventListenerContext;
 import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.protocol.model.Connection;
 import won.protocol.vocabulary.WONPAY;
@@ -23,15 +22,12 @@ import won.protocol.vocabulary.WONPAY;
  */
 public class PaymentModelValidator {
     // TODO: should be defined by the config, not hardcoded
-    private static final List<String> SUPPORTED_CURRENCIES = Arrays.asList(
-                    new String[] { "AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
-                                    "NOK", "NZD", "PHP", "PLN", "GBP", "SGD", "SEK", "CHF", "TWD", "THB", "USD" });
-    private EventListenerContext ctx;
+    private static final List<String> SUPPORTED_CURRENCIES = Arrays
+            .asList(new String[] { "AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
+                    "NOK", "NZD", "PHP", "PLN", "GBP", "SGD", "SEK", "CHF", "TWD", "THB", "USD" });
     private ValidatorFactory factory;
 
-    // TODO: requires context as a parameter but never uses it?
-    public PaymentModelValidator(EventListenerContext ctx) {
-        this.ctx = ctx;
+    public PaymentModelValidator() {
         factory = Validation.buildDefaultValidatorFactory();
     }
 
@@ -52,7 +48,7 @@ public class PaymentModelValidator {
         }
         // Fee Payer
         if (!WONPAY.FEE_PAYER_SENDER.equals(payment.getFeePayer())
-                        && !WONPAY.FEE_PAYER_RECEIVER.equals(payment.getFeePayer())) {
+                && !WONPAY.FEE_PAYER_RECEIVER.equals(payment.getFeePayer())) {
             throw new Exception("Unvalid fees payer defined");
         }
         // Expiration
@@ -65,6 +61,6 @@ public class PaymentModelValidator {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         Duration duration = dtf.newDuration(expiration);
         return !(duration.isShorterThan(dtf.newDuration(true, 0, 0, 0, 0, 5, 0))
-                        || duration.isLongerThan(dtf.newDuration(true, 0, 0, 30, 0, 0, 0)));
+                || duration.isLongerThan(dtf.newDuration(true, 0, 0, 30, 0, 0, 0)));
     }
 }

@@ -42,7 +42,7 @@ public class PreconditionMetAction extends BaseEventBotAction {
 
     public PreconditionMetAction(EventListenerContext eventListenerContext) {
         super(eventListenerContext);
-        validator = new PaymentModelValidator(eventListenerContext);
+        validator = new PaymentModelValidator();
     }
 
     @Override
@@ -78,38 +78,29 @@ public class PreconditionMetAction extends BaseEventBotAction {
                 WonRdfUtils.MessageUtils.addProcessing(summaryModel, "Payment summary");
                 WonRdfUtils.MessageUtils.addMessage(summaryModel, "Payment summary");
                 final ConnectionMessageCommandEvent connectionMessageCommandEvent = new ConnectionMessageCommandEvent(
-                                con, summaryModel);
-                ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class,
-                                new ActionOnFirstEventListener(ctx,
-                                                new CommandResultFilter(connectionMessageCommandEvent),
-                                                new BaseEventBotAction(ctx) {
-                                                    @Override
-                                                    protected void doRun(Event event, EventListener executingListener)
-                                                                    throws Exception {
-                                                        ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
-                                                        if (connectionMessageCommandResultEvent.isSuccess()) {
-                                                            Model agreementMessage = WonRdfUtils.MessageUtils
-                                                                            .processingMessage(paymentWrapper
-                                                                                            .getCurrencySymbol() + " "
-                                                                                            + paymentWrapper.getAmount()
-                                                                                            + " to "
-                                                                                            + paymentWrapper.getReceiver()
-                                                                                            + "....Do you want to confirm the paymodel? Then accept the proposal. After accepting the payment will be "
-                                                                                            + "generated and you can still verify it.");
-                                                            WonRdfUtils.MessageUtils.addProposes(agreementMessage,
-                                                                            ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent)
-                                                                                            .getWonMessage()
-                                                                                            .getMessageURI());
-                                                            ctx.getEventBus().publish(new ConnectionMessageCommandEvent(
-                                                                            con, agreementMessage));
-                                                            bridge.setStatus(PaymentStatus.BUILDING);
-                                                            PaypalBotContextWrapper.instance(ctx)
-                                                                            .putOpenBridge(con.getAtomURI(), bridge);
-                                                        } else {
-                                                            logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
-                                                        }
-                                                    }
-                                                }));
+                        con, summaryModel);
+                ctx.getEventBus().subscribe(ConnectionMessageCommandResultEvent.class, new ActionOnFirstEventListener(
+                        ctx, new CommandResultFilter(connectionMessageCommandEvent), new BaseEventBotAction(ctx) {
+                            @Override
+                            protected void doRun(Event event, EventListener executingListener) throws Exception {
+                                ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
+                                if (connectionMessageCommandResultEvent.isSuccess()) {
+                                    Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(paymentWrapper
+                                            .getCurrencySymbol() + " " + paymentWrapper.getAmount() + " to "
+                                            + paymentWrapper.getReceiver()
+                                            + "....Do you want to confirm the paymodel? Then accept the proposal. After accepting the payment will be "
+                                            + "generated and you can still verify it.");
+                                    WonRdfUtils.MessageUtils.addProposes(agreementMessage,
+                                            ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent)
+                                                    .getWonMessage().getMessageURI());
+                                    ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
+                                    bridge.setStatus(PaymentStatus.BUILDING);
+                                    PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
+                                } else {
+                                    logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
+                                }
+                            }
+                        }));
                 ctx.getEventBus().publish(connectionMessageCommandEvent);
             } catch (Exception e) {
                 Model errorMessage = WonRdfUtils.MessageUtils.textMessage(e.getMessage());
@@ -130,10 +121,10 @@ public class PreconditionMetAction extends BaseEventBotAction {
      */
     private boolean retractOldPropose(Connection con, Model newProposal) {
         AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
-                        getEventListenerContext().getLinkedDataSource());
+                getEventListenerContext().getLinkedDataSource());
         URI lastProposalUri = agreementProtocolState.getLatestPendingProposal();
         Model lastProposal = lastProposalUri != null ? agreementProtocolState.getPendingProposal(lastProposalUri)
-                        : null;
+                : null;
         if (lastProposal == null) {
             return true;
         }
@@ -149,13 +140,13 @@ public class PreconditionMetAction extends BaseEventBotAction {
         // Find out payment summary URI
         StringBuilder paymentSummaryUriBuilder = new StringBuilder();
         agreementProtocolState.getPendingProposal(lastProposalUri)
-                        .listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY).forEachRemaining(stmt -> {
-                            paymentSummaryUriBuilder.append(stmt.getSubject().getURI());
-                        });
+                .listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY).forEachRemaining(stmt -> {
+                    paymentSummaryUriBuilder.append(stmt.getSubject().getURI());
+                });
         // Retract the old proposal
         try {
             Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(lastProposalUri,
-                            new URI(paymentSummaryUriBuilder.toString()));
+                    new URI(paymentSummaryUriBuilder.toString()));
             getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
         } catch (URISyntaxException e) {
             e.printStackTrace();
