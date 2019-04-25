@@ -55,7 +55,7 @@ public class PaymentModelWrapper {
         Resource feePayerResult = InformationExtractor.getFeePayer(payload);
         if (feePayerResult != null) {
             feePayer = feePayerResult.equals(WONPAY.FEE_PAYER_SENDER) ? WONPAY.FEE_PAYER_SENDER
-                    : WONPAY.FEE_PAYER_RECEIVER;
+                            : WONPAY.FEE_PAYER_RECEIVER;
         }
         String expirationTimeResult = InformationExtractor.getExpirationTime(payload);
         if (expirationTimeResult != null) {

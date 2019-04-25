@@ -37,10 +37,9 @@ public class PaymentModelValidator {
         // - Counterpart Accessible
         // - FeePayer is one of the Resources defined in WONPAY
         // - 5m < expiration < 30d
-
         // Fee Payer
         if (!WONPAY.FEE_PAYER_SENDER.equals(payment.getFeePayer())
-                && !WONPAY.FEE_PAYER_RECEIVER.equals(payment.getFeePayer())) {
+                        && !WONPAY.FEE_PAYER_RECEIVER.equals(payment.getFeePayer())) {
             throw new Exception("Unvalid fees payer defined");
         }
         // Expiration
@@ -53,6 +52,6 @@ public class PaymentModelValidator {
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         Duration duration = dtf.newDuration(expiration);
         return !(duration.isShorterThan(dtf.newDuration(true, 0, 0, 0, 0, 5, 0))
-                || duration.isLongerThan(dtf.newDuration(true, 0, 0, 30, 0, 0, 0)));
+                        || duration.isLongerThan(dtf.newDuration(true, 0, 0, 30, 0, 0, 0)));
     }
 }

@@ -28,10 +28,7 @@ public class HelpAction extends BaseEventBotAction {
             PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
             if (bridge.getConnection() != null
                             && con.getConnectionURI().equals(bridge.getConnection().getConnectionURI())) {
-                handleMerchant(bridge);
-            } else {
-                // TODO: defined and throw exception and add log msg
-                // Should not be possible
+                checkPaymentStatus(bridge);
             }
         }
     }
@@ -45,14 +42,13 @@ public class HelpAction extends BaseEventBotAction {
         getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
     }
 
-    // TODO: think about renaming this and maybe changing parameters
-    private void handleMerchant(PaymentBridge bridge) {
+    private void checkPaymentStatus(PaymentBridge bridge) {
         if (bridge.getStatus() == PaymentStatus.PAYMODEL_ACCEPTED) {
             makeTextMsg("Wait until the PayPal Payment is generated...", bridge.getConnection());
             // Wait until the pp is generated.
         } else if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED) {
             // Wait until the payment got executed
-            makeTextMsg("Wait until the payment is completerd...", bridge.getConnection());
+            makeTextMsg("Wait until the payment is completed...", bridge.getConnection());
         } else if (bridge.getStatus() == PaymentStatus.COMPLETED) {
             // Payment completed. close the con
             makeTextMsg("Payment completed. Close the connection!", bridge.getConnection());

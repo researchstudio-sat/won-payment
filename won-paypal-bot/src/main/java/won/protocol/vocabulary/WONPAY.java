@@ -23,10 +23,9 @@ public class WONPAY {
     public static final Resource PAYMENT_SUMMARY = m.createResource(MODEL_URI + "PaymentSummary");
     // PaymentFeePayer
     public static final Resource FEE_PAYER_SENDER = m.createResource(MODEL_URI + "Sender").addLiteral(RDFS.label,
-            "SENDER");
+                    "SENDER");
     public static final Resource FEE_PAYER_RECEIVER = m.createResource(MODEL_URI + "Receiver").addLiteral(RDFS.label,
-            "EACHRECEIVER");
-
+                    "EACHRECEIVER");
     // currently not used. may be useful or modelling payment requirements in the
     // future.
     // public static class CUR {

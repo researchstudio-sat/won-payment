@@ -86,11 +86,11 @@ public class ProposalRejectedAction extends BaseEventBotAction {
                         .listStatements(new ResourceImpl(acceptsMsgUri.toString()), WONAGR.accepts, (RDFNode) null)
                         .next().getObject().asResource().getURI();
         try {
-            Model cancelationModel = WonRdfUtils.MessageUtils.proposesToCancelMessage(new URI(proposalMsgUri));
-            // TODO: edit message
-            cancelationModel = WonRdfUtils.MessageUtils.addMessage(cancelationModel,
-                            "So would you like to edit the payment model?" + " Then accept this cancelation.");
-            ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, cancelationModel));
+            Model cancellationModel = WonRdfUtils.MessageUtils.proposesToCancelMessage(new URI(proposalMsgUri));
+            cancellationModel = WonRdfUtils.MessageUtils.addMessage(cancellationModel,
+                            "To edit the payment model, accept this message and retract the payment detail you sent. \n"
+                                            + " To keep the current payment model, decline this message.");
+            ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, cancellationModel));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

@@ -67,12 +67,10 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
             if (status == PaypalPaymentStatus.COMPLETED) {
                 bridge.setStatus(PaymentStatus.COMPLETED);
                 logger.info("Payment completed with payKey {}", payKey);
-                makeTextMsg("The payment was completed! You can now close this connection.",
-                                bridge.getConnection());
+                makeTextMsg("The payment was completed! You can now close this connection.", bridge.getConnection());
             } else if (status == PaypalPaymentStatus.EXPIRED) {
                 logger.info("Paypal Payment expired with payKey={}", payKey);
-                makeTextMsg("The payment link expired! Type 'accept' to generate a new one.",
-                                bridge.getConnection());
+                makeTextMsg("The payment link expired! Type 'accept' to generate a new one.", bridge.getConnection());
                 bridge.setStatus(PaymentStatus.EXPIRED);
             }
             PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getConnection().getAtomURI(), bridge);

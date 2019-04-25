@@ -14,7 +14,7 @@ import won.protocol.model.Connection;
 /**
  * When the counterpart has accepted the connection, this action will be
  * invoked. It changes the sate of the bridge and generates the payment and
- * sends the link to the buyer. TODO: can I delete this file completely?
+ * sends the link to the buyer.
  * 
  * @author schokobaer
  */
@@ -31,12 +31,12 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
             PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
             if (bridge.getConnection() != null
                             && con.getConnectionURI().equals(bridge.getConnection().getConnectionURI())) {
-                logger.info("merchant accepted the connection");
+                logger.info("Connection accepted by user for connection {}", con.toString());
                 bridge.setStatus(PaymentStatus.BUILDING);
                 PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
                 ctx.getEventBus().publish(new ConversationAnalyzationCommandEvent(con));
             } else {
-                logger.error("OpenFromOtherAtomEvent from not registered connection URI {}", con.toString());
+                logger.error("Unexpected OpenFromOtherAtomEvent from unregistered connection URI {}", con.toString());
             }
         }
     }

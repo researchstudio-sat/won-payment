@@ -52,13 +52,13 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             Connection con = proposalAcceptedEvent.getCon();
             PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
             if (bridge.getStatus() == PaymentStatus.BUILDING) {
-                // Merchant has accepted the paymodel proposal
+                // Proposed paymodel was accepted
                 generatePP(proposalAcceptedEvent);
             } else if (bridge.getStatus() == PaymentStatus.GENERATED) {
-                // Merchant has accepted the pp
-                // connectToBuyer(proposalAcceptedEvent);
+                // Generated Paypal payment was accepted
+                // TODO: offer to inject the link into another conversation
             } else if (bridge.getStatus() == PaymentStatus.PP_DENIED) {
-                // Merchant has accepted the cancellation of the paymodel
+                // Generated Paypal payment was accepted
                 // TODO: Implement
                 cancelPaymodel(proposalAcceptedEvent);
             }
@@ -67,7 +67,8 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
     /**
      * Sets bridge.status to building and retracts the payment summary message from
-     * the cancellation.
+     * the cancellation. TODO: make behaviour more intuitive by not requiring the
+     * user to retract earlier messages.
      * 
      * @context Merchant.
      * @param proposalAcceptedEvent
@@ -95,7 +96,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
         try {
             Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(new URI(paymentSummaryUri));
             retractResponse = WonRdfUtils.MessageUtils.addMessage(retractResponse,
-                            "You can now edit the paymodel again.");
+                            "To suggest a new paymodel, the message containing the old paymodel needs to be retracted.");
             getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -112,8 +113,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
     }
 
     /**
-     * Generates the PP, sends the link and paykey to the merchant and proposes this
-     * message.
+     * Generates the PP, sends the link and paykey, and proposes this message.
      * 
      * @context Merchant.
      * @param event the accepted paymodel event.
@@ -135,7 +135,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             bridge.setStatus(PaymentStatus.GENERATED);
             bridge.setPayKey(payKey);
             PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
-            // Print pay link to merchant; Propose it to him
+            // Send and propose payment link
             Model response = WonRdfUtils.MessageUtils.processingMessage("Generated PayPal payment: \n" + url);
             RdfUtils.findOrCreateBaseResource(response).addProperty(RSS.link, new ResourceImpl(url));
             RdfUtils.findOrCreateBaseResource(response).addProperty(WONPAY.HAS_PAYPAL_PAYKEY, payKey);
@@ -148,19 +148,20 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
                                     ConnectionMessageCommandResultEvent connectionMessageCommandResultEvent = (ConnectionMessageCommandResultEvent) event;
                                     if (connectionMessageCommandResultEvent.isSuccess()) {
                                         Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage(
-                                                        "Check the generated PayPal payment and accept it.");
+                                                        "Verify the generated payment and accept it before distributing the link.");
                                         WonRdfUtils.MessageUtils.addProposes(agreementMessage,
                                                         ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent)
                                                                         .getWonMessage().getMessageURI());
                                         ctx.getEventBus().publish(
                                                         new ConnectionMessageCommandEvent(con, agreementMessage));
                                     } else {
-                                        logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
+                                        logger.error("FAILURE RESPONSE EVENT FOR PROPOSAL PAYLOAD");
                                     }
                                 }
                             }));
             ctx.getEventBus().publish(connectionMessageCommandEvent);
         } catch (Exception e) {
+            // FIXME: catch should only handle a specific exception type
             logger.warn("Paypal payment could not be generated.", e);
             makeTextMsg("PayPal payment could not be generated: " + e.getMessage(), con);
             bridge.setStatus(PaymentStatus.FAILURE);

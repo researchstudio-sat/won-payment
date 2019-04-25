@@ -51,8 +51,9 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
             retractProposal(con);
             GoalInstantiationResult preconditionEventPayload = ((PreconditionEvent) event).getPayload();
             Model messageModel = WonRdfUtils.MessageUtils
-                            .processingMessage("Payment not possible yet. See containing SHACL report.");
-            String respondWith = "Payment not possible yet, missing necessary Values: \n";
+                            .processingMessage("To generate a payment link, send a message with a Payment detail.");
+            // FIXME: bot does not communicate what information is missing.
+            String respondWith = "SHACL report: Payment not possible yet, missing necessary Values: \n";
             for (ValidationResultWrapper validationResultWrapper : preconditionEventPayload.getShaclReportWrapper()
                             .getValidationResults()) {
                 if (validationResultWrapper.getResultPath() != null || validationResultWrapper.getFocusNode() != null) {
