@@ -47,9 +47,9 @@ public class ConnectionCloseAction extends BaseEventBotAction {
      */
     private void closeConnection(PaymentBridge bridge, Connection con) {
         // Merchant closure
-        if (bridge.getMerchantConnection() != null
-                        && bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
-            bridge.setMerchantConnection(null);
+        if (bridge.getConnection() != null
+                        && bridge.getConnection().getConnectionURI().equals(con.getConnectionURI())) {
+            bridge.setConnection(null);
             logger.debug("Merchant has closed the connection after completion in the Atom {}", con.getAtomURI());
         }
         PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getAtomURI(), bridge);
@@ -64,7 +64,7 @@ public class ConnectionCloseAction extends BaseEventBotAction {
      */
     private void closeAtom(PaymentBridge bridge, Connection con) {
         // Both closed
-        if (bridge.getMerchantConnection() == null /* && bridge.getBuyerConnection() == null */) {
+        if (bridge.getConnection() == null /* && bridge.getBuyerConnection() == null */) {
             PaypalBotContextWrapper.instance(getEventListenerContext()).removeOpenBridge(con.getAtomURI());
             getEventListenerContext().getEventBus().publish(new DeactivateAtomCommandEvent(con.getAtomURI()));
             logger.debug("Atom gets closed {}", con.getAtomURI());
@@ -81,12 +81,12 @@ public class ConnectionCloseAction extends BaseEventBotAction {
     private void unexpectedClosure(PaymentBridge bridge, Connection con) {
         // Fix here everything !!!
         bridge.setStatus(PaymentStatus.FAILURE);
-        if (bridge.getMerchantConnection() != null
-                        && bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
+        if (bridge.getConnection() != null
+                        && bridge.getConnection().getConnectionURI().equals(con.getConnectionURI())) {
             // Merchant closed
             logger.info("Unexpected closure from merchant with connection {} in the atom {}", con.toString(),
                             con.getAtomURI().toString());
-            bridge.setMerchantConnection(null);
+            bridge.setConnection(null);
         } else {
             // TODO: verify that this never happens
             // throw exception and write log msg

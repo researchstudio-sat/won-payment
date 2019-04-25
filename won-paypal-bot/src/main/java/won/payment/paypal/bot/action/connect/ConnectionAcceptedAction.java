@@ -29,8 +29,8 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
             EventListenerContext ctx = getEventListenerContext();
             Connection con = ((OpenFromOtherAtomEvent) event).getCon();
             PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
-            if (bridge.getMerchantConnection() != null
-                            && con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
+            if (bridge.getConnection() != null
+                            && con.getConnectionURI().equals(bridge.getConnection().getConnectionURI())) {
                 logger.info("merchant accepted the connection");
                 bridge.setStatus(PaymentStatus.BUILDING);
                 PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);

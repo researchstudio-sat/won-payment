@@ -109,7 +109,7 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
                                         Connection con = connectSuccessEvent.getCon();
                                         URI atomUri = connectSuccessEvent.getAtomURI();
                                         PaymentBridge bridge = new PaymentBridge();
-                                        bridge.setMerchantConnection(con);
+                                        bridge.setConnection(con);
                                         bridge.setStatus(PaymentStatus.NOWHERE);
                                         ((PaypalBotContextWrapper) getEventListenerContext().getBotContextWrapper())
                                                         .putOpenBridge(atomUri, bridge);

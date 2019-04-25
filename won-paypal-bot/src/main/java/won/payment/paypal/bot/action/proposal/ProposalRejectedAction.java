@@ -76,7 +76,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
         Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
         PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
         bridge.setStatus(PaymentStatus.PP_DENIED);
-        PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getAtomURI(), bridge);
+        PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
         // Cancelation for paymodel
         AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
                         getEventListenerContext().getLinkedDataSource());
@@ -108,7 +108,7 @@ public class ProposalRejectedAction extends BaseEventBotAction {
         Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
         PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
         bridge.setStatus(PaymentStatus.GENERATED);
-        PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getMerchantConnection().getAtomURI(), bridge);
+        PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
         // Find the last paykey message and propose it again
         AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
                         getEventListenerContext().getLinkedDataSource());

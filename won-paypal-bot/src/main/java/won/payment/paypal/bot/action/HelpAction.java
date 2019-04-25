@@ -26,8 +26,8 @@ public class HelpAction extends BaseEventBotAction {
             SimpleMessageReceivedEvent simpleMsgEvent = (SimpleMessageReceivedEvent) event;
             Connection con = simpleMsgEvent.getCon();
             PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
-            if (bridge.getMerchantConnection() != null
-                            && con.getConnectionURI().equals(bridge.getMerchantConnection().getConnectionURI())) {
+            if (bridge.getConnection() != null
+                            && con.getConnectionURI().equals(bridge.getConnection().getConnectionURI())) {
                 handleMerchant(bridge);
             } else {
                 // TODO: defined and throw exception and add log msg
@@ -48,20 +48,20 @@ public class HelpAction extends BaseEventBotAction {
     // TODO: think about renaming this and maybe changing parameters
     private void handleMerchant(PaymentBridge bridge) {
         if (bridge.getStatus() == PaymentStatus.PAYMODEL_ACCEPTED) {
-            makeTextMsg("Wait until the PayPal Payment is generated...", bridge.getMerchantConnection());
+            makeTextMsg("Wait until the PayPal Payment is generated...", bridge.getConnection());
             // Wait until the pp is generated.
         } else if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED) {
             // Wait until the payment got executed
-            makeTextMsg("Wait until the payment is completerd...", bridge.getMerchantConnection());
+            makeTextMsg("Wait until the payment is completerd...", bridge.getConnection());
         } else if (bridge.getStatus() == PaymentStatus.COMPLETED) {
             // Payment completed. close the con
-            makeTextMsg("Payment completed. Close the connection!", bridge.getMerchantConnection());
+            makeTextMsg("Payment completed. Close the connection!", bridge.getConnection());
         } else if (bridge.getStatus() == PaymentStatus.EXPIRED) {
             // Payment expired. close the con
-            makeTextMsg("Payment expired. Close the connection!", bridge.getMerchantConnection());
+            makeTextMsg("Payment expired. Close the connection!", bridge.getConnection());
         } else if (bridge.getStatus() == PaymentStatus.FAILURE) {
             // Payment failed. close the con
-            makeTextMsg("Payment failed. Close the connection!", bridge.getMerchantConnection());
+            makeTextMsg("Payment failed. Close the connection!", bridge.getConnection());
         }
     }
 }
