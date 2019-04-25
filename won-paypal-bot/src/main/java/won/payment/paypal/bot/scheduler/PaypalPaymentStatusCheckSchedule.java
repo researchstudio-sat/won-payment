@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import won.bot.framework.eventbot.EventListenerContext;
-import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
+import won.payment.paypal.bot.impl.PaypalBot;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
 import won.payment.paypal.bot.model.PaymentBridge;
 import won.payment.paypal.bot.model.PaymentStatus;
@@ -45,15 +45,6 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
         }
     }
 
-    // TODO: think about moving this to a public method somewhere
-    private void makeTextMsg(String msg, Connection con) {
-        if (con == null) {
-            return;
-        }
-        Model model = WonRdfUtils.MessageUtils.processingMessage(msg);
-        ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, model));
-    }
-
     /**
      * Makes the Paypal-API call to check the payment status.
      * 
@@ -67,10 +58,12 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
             if (status == PaypalPaymentStatus.COMPLETED) {
                 bridge.setStatus(PaymentStatus.COMPLETED);
                 logger.info("Payment completed with payKey {}", payKey);
-                makeTextMsg("The payment was completed! You can now close this connection.", bridge.getConnection());
+                ctx.getEventBus().publish(PaypalBot.makeProcessingMessage(
+                        "The payment was completed! You can now close this connection.", bridge.getConnection()));
             } else if (status == PaypalPaymentStatus.EXPIRED) {
                 logger.info("Paypal Payment expired with payKey={}", payKey);
-                makeTextMsg("The payment link expired! Type 'accept' to generate a new one.", bridge.getConnection());
+                ctx.getEventBus().publish(PaypalBot.makeProcessingMessage(
+                        "The payment link expired! Type 'accept' to generate a new one.", bridge.getConnection()));
                 bridge.setStatus(PaymentStatus.EXPIRED);
             }
             PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
