@@ -21,7 +21,7 @@ import won.bot.framework.eventbot.filter.impl.CommandResultFilter;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.validator.PaymentModelValidator;
@@ -50,9 +50,9 @@ public class PreconditionMetAction extends BaseEventBotAction {
         EventListenerContext ctx = getEventListenerContext();
         if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof PreconditionMetEvent) {
             Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
-                    .getOpenBridge(con.getAtomURI());
-            if (bridge.getStatus() != PaymentStatus.BUILDING) {
+            PaymentContext payCtx = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getPaymentContext(con.getAtomURI());
+            if (payCtx.getStatus() != PaymentStatus.BUILDING) {
                 return;
             }
             Model preconditionEventPayload = ((PreconditionEvent) event).getPayload().getInstanceModel();
@@ -94,9 +94,9 @@ public class PreconditionMetAction extends BaseEventBotAction {
                                             ((ConnectionMessageCommandSuccessEvent) connectionMessageCommandResultEvent)
                                                     .getWonMessage().getMessageURI());
                                     ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
-                                    bridge.setStatus(PaymentStatus.BUILDING);
+                                    payCtx.setStatus(PaymentStatus.BUILDING);
                                     ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
-                                            .putOpenBridge(con.getAtomURI(), bridge);
+                                            .setPaymentContext(con.getAtomURI(), payCtx);
                                 } else {
                                     logger.error("FAILURERESPONSEEVENT FOR PROPOSAL PAYLOAD");
                                 }

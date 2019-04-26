@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.payment.paypal.bot.impl.PaypalBot;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.service.impl.PaypalPaymentService;
 import won.payment.paypal.service.impl.PaypalPaymentStatus;
@@ -30,11 +30,11 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
 
     @Override
     public void run() {
-        Map<String, PaymentBridge> bridges = ((PaypalBotContextWrapper) ctx.getBotContextWrapper()).getOpenBridges();
-
-        bridges.values().stream().forEach(bridge -> {
-            if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED) {
-                checkPayment(bridge);
+        Map<String, PaymentContext> payContexts = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                .getPaymentContexts();
+        payContexts.values().stream().forEach(payCtx -> {
+            if (payCtx.getStatus() == PaymentStatus.PP_ACCEPTED) {
+                checkPayment(payCtx);
             }
         });
     }
@@ -42,35 +42,29 @@ public class PaypalPaymentStatusCheckSchedule extends TimerTask {
     /**
      * Makes the Paypal-API call to check the payment status.
      * 
-     * @param bridge The payment bridge of the payment.
+     * @param payCtx The payment context of the payment.
      */
-    private void checkPayment(PaymentBridge bridge) {
-
-        if (bridge == null || bridge.getPayKey() == null) {
+    private void checkPayment(PaymentContext payCtx) {
+        if (payCtx == null || payCtx.getPayKey() == null) {
             return;
         }
-        String payKey = bridge.getPayKey();
+        String payKey = payCtx.getPayKey();
         PaypalBotContextWrapper botCtx = (PaypalBotContextWrapper) ctx.getBotContextWrapper();
-
         try {
             PaypalPaymentService paypalService = botCtx.getPaypalService();
             PaypalPaymentStatus status = paypalService.validate(payKey);
-
             if (status == PaypalPaymentStatus.COMPLETED) {
-                bridge.setStatus(PaymentStatus.COMPLETED);
+                payCtx.setStatus(PaymentStatus.COMPLETED);
                 logger.info("Payment completed with payKey {}", payKey);
                 ctx.getEventBus().publish(PaypalBot.makeProcessingMessage(
-                        "The payment was completed! You can now close this connection.", bridge.getConnection()));
-
+                        "The payment was completed! You can now close this connection.", payCtx.getConnection()));
             } else if (status == PaypalPaymentStatus.EXPIRED) {
                 logger.info("Paypal Payment expired with payKey={}", payKey);
                 ctx.getEventBus().publish(PaypalBot.makeProcessingMessage(
-                        "The payment link expired! Type 'accept' to generate a new one.", bridge.getConnection()));
-                bridge.setStatus(PaymentStatus.EXPIRED);
+                        "The payment link expired! Type 'accept' to generate a new one.", payCtx.getConnection()));
+                payCtx.setStatus(PaymentStatus.EXPIRED);
             }
-
-            botCtx.putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
-
+            botCtx.setPaymentContext(payCtx.getConnection().getAtomURI(), payCtx);
         } catch (Exception e) {
             logger.warn("Paypal payment check failed.", e);
         }

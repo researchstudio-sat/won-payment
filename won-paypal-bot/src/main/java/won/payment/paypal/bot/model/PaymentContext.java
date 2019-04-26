@@ -10,7 +10,7 @@ import won.protocol.model.Connection;
  * 
  * @author schokobaer
  */
-public class PaymentBridge implements Serializable {
+public class PaymentContext implements Serializable {
     // TODO: add static final ID to prevent invalid id errors from different
     // compilers
     private Connection connection;

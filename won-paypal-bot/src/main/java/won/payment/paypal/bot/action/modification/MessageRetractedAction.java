@@ -20,7 +20,7 @@ import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.event.analyze.ConversationAnalyzationCommandEvent;
 import won.payment.paypal.bot.event.modification.MessageRetractedEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.agreement.ConversationMessage;
@@ -49,9 +49,9 @@ public class MessageRetractedAction extends BaseEventBotAction {
             logger.info("Message retracted");
             MessageRetractedEvent retractedEvent = (MessageRetractedEvent) event;
             Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
-                    .getOpenBridge(con.getAtomURI());
-            if (bridge.getStatus() != PaymentStatus.BUILDING) {
+            PaymentContext payCtx = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getPaymentContext(con.getAtomURI());
+            if (payCtx.getStatus() != PaymentStatus.BUILDING) {
                 return;
             }
             if (retractPayment(retractedEvent)) {

@@ -28,7 +28,7 @@ import won.bot.framework.eventbot.listener.EventListener;
 import won.bot.framework.eventbot.listener.impl.ActionOnFirstEventListener;
 import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.payment.paypal.bot.util.ResourceManager;
 import won.payment.paypal.bot.util.WonPayRdfUtils;
@@ -55,8 +55,8 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
     private static final URI STUB_SHAPES_URI = URI.create("http://example.com/shapes");
     // TODO: change opening msg
     private static final String OPENING_MSG = "Hello low-order creature! " + "I am the mighty Paypal Bot. "
-                    + "You awakened me from my sleep. " + "My destiny is to satisfy your commercial necessities. "
-                    + "So you want to receive some money from an other poor soul..?";
+            + "You awakened me from my sleep. " + "My destiny is to satisfy your commercial necessities. "
+            + "So you want to receive some money from an other poor soul..?";
     private static final String goalString;
     static {
         goalString = ResourceManager.getResourceAsString("/temp/goals.trig");
@@ -64,7 +64,7 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
 
     public CreateFactoryOfferAction(EventListenerContext eventListenerContext, URI... sockets) {
         super(eventListenerContext, (eventListenerContext.getBotContextWrapper()).getAtomCreateListName(), false, true,
-                        sockets);
+                sockets);
     }
 
     @Override
@@ -78,57 +78,55 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
         EventListenerContext ctx = getEventListenerContext();
         final URI wonNodeUri = ctx.getNodeURISource().getNodeURI();
         Model factoryOfferModel = createFactoryOfferFromTemplate(ctx, factoryHintEvent.getFactoryAtomURI(),
-                        factoryHintEvent.getRequesterURI());
+                factoryHintEvent.getRequesterURI());
         URI factoryOfferURI = WonRdfUtils.AtomUtils.getAtomURI(factoryOfferModel);
         logger.debug("creating shapes model with factory atom URI {}", factoryHintEvent.getFactoryAtomURI());
         Model shapesModel = createShapesModelFromTemplate(ctx, factoryHintEvent.getFactoryAtomURI());
         logger.debug("creating factoryoffer on won node {} with content {} ", wonNodeUri,
-                        StringUtils.abbreviate(RdfUtils.toString(factoryOfferModel), 150));
+                StringUtils.abbreviate(RdfUtils.toString(factoryOfferModel), 150));
         WonMessage createAtomMessage = createWonMessage(ctx.getWonNodeInformationService(), factoryOfferURI, wonNodeUri,
-                        factoryOfferModel, shapesModel);
+                factoryOfferModel, shapesModel);
         EventBotActionUtils.rememberInList(ctx, factoryOfferURI, uriListName);
         EventListener successCallback = successEvent -> {
             logger.debug("factoryoffer creation successful, new atom URI is {}", factoryOfferURI);
             // publish connect between the specific offer and the requester atom
             ((FactoryBotContextWrapper) ctx.getBotContextWrapper()).addFactoryAtomURIOfferRelation(factoryOfferURI,
-                            factoryHintEvent.getFactoryAtomURI());
+                    factoryHintEvent.getFactoryAtomURI());
             // TODO: WonPayRdfUtils.getPaymentModelUri(successEvent.con)
             String paymentUri = WonPayRdfUtils.getPaymentModelUri(factoryOfferURI);
             Model paymentModel = ModelFactory.createDefaultModel();
             paymentModel.createResource(paymentUri).addProperty(RDF.type, WONPAY.PAYMENT);
             logger.info("Created new payment resource {}", paymentUri);
             ComplexConnectCommandEvent connectCommandEvent = new ComplexConnectCommandEvent(factoryOfferURI,
-                            factoryHintEvent.getRequesterURI(), OPENING_MSG, paymentModel);
+                    factoryHintEvent.getRequesterURI(), OPENING_MSG, paymentModel);
             ctx.getEventBus().subscribe(ConnectCommandSuccessEvent.class, new ActionOnFirstEventListener(ctx,
-                            new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
-                                @Override
-                                protected void doRun(Event event, EventListener executingListener) throws Exception {
-                                    if (event instanceof ConnectCommandSuccessEvent) {
-                                        logger.info("Created successfully a connection to merchant");
-                                        ConnectCommandSuccessEvent connectSuccessEvent = (ConnectCommandSuccessEvent) event;
-                                        Connection con = connectSuccessEvent.getCon();
-                                        URI atomUri = connectSuccessEvent.getAtomURI();
-                                        PaymentBridge bridge = new PaymentBridge();
-                                        bridge.setConnection(con);
-                                        bridge.setStatus(PaymentStatus.NOWHERE);
-                                        ((PaypalBotContextWrapper) getEventListenerContext().getBotContextWrapper())
-                                                        .putOpenBridge(atomUri, bridge);
-                                    }
-                                }
-                            }));
+                    new CommandResultFilter(connectCommandEvent), new BaseEventBotAction(ctx) {
+                        @Override
+                        protected void doRun(Event event, EventListener executingListener) throws Exception {
+                            if (event instanceof ConnectCommandSuccessEvent) {
+                                logger.info("Created successfully a connection to merchant");
+                                ConnectCommandSuccessEvent connectSuccessEvent = (ConnectCommandSuccessEvent) event;
+                                Connection con = connectSuccessEvent.getCon();
+                                URI atomUri = connectSuccessEvent.getAtomURI();
+                                PaymentContext payCtx = new PaymentContext();
+                                payCtx.setConnection(con);
+                                payCtx.setStatus(PaymentStatus.NOWHERE);
+                                ((PaypalBotContextWrapper) ctx.getBotContextWrapper()).setPaymentContext(atomUri,
+                                        payCtx);
+                            }
+                        }
+                    }));
             bus.publish(connectCommandEvent);
         };
         EventListener failureCallback = failureEvent -> {
             String textMessage = WonRdfUtils.MessageUtils
-                            .getTextMessage(((FailureResponseEvent) failureEvent).getFailureMessage());
-            logger.debug("factoryoffer creation failed for atom URI {}, original message URI {}: {}",
-                            new Object[] { factoryOfferURI,
-                                            ((FailureResponseEvent) failureEvent).getOriginalMessageURI(),
-                                            textMessage });
+                    .getTextMessage(((FailureResponseEvent) failureEvent).getFailureMessage());
+            logger.debug("factoryoffer creation failed for atom URI {}, original message URI {}: {}", new Object[] {
+                    factoryOfferURI, ((FailureResponseEvent) failureEvent).getOriginalMessageURI(), textMessage });
             EventBotActionUtils.removeFromList(getEventListenerContext(), factoryOfferURI, uriListName);
         };
         EventBotActionUtils.makeAndSubscribeResponseListener(createAtomMessage, successCallback, failureCallback,
-                        getEventListenerContext());
+                getEventListenerContext());
         logger.debug("registered listeners for response to message URI {}", createAtomMessage.getMessageURI());
         getEventListenerContext().getWonMessageSender().sendWonMessage(createAtomMessage);
         logger.debug("factoryoffer creation message sent with message URI {}", createAtomMessage.getMessageURI());
@@ -170,14 +168,14 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
     private Model createShapesModelFromTemplate(EventListenerContext ctx, URI factoryAtomURI) {
         Dataset dataset = DatasetFactory.createGeneral();
         RDFDataMgr.read(dataset, new ByteArrayInputStream(goalString.getBytes(Charset.forName("UTF-8"))),
-                        RDFFormat.TRIG.getLang());
+                RDFFormat.TRIG.getLang());
         Model shapeModel = dataset.getUnionModel();
         shapeModel.setNsPrefix("pay", WONPAY.BASE_URI);
         return shapeModel;
     }
 
     private WonMessage createWonMessage(WonNodeInformationService wonNodeInformationService, URI atomURI,
-                    URI wonNodeURI, Model atomModel, Model shapesModel) throws WonMessageBuilderException {
+            URI wonNodeURI, Model atomModel, Model shapesModel) throws WonMessageBuilderException {
         AtomModelWrapper atomModelWrapper = new AtomModelWrapper(atomModel, null);
         atomModelWrapper.addFlag(WON.NoHintForMe);
         atomModelWrapper.addFlag(WON.NoHintForCounterpart);
@@ -186,6 +184,6 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
         contentDataset.addNamedModel(STUB_ATOM_URI.toString(), atomModel);
         contentDataset.addNamedModel(STUB_SHAPES_URI.toString(), shapesModel);
         return WonMessageBuilder.setMessagePropertiesForCreate(wonNodeInformationService.generateEventURI(wonNodeURI),
-                        atomURI, wonNodeURI).addContent(contentDataset).build();
+                atomURI, wonNodeURI).addContent(contentDataset).build();
     }
 }

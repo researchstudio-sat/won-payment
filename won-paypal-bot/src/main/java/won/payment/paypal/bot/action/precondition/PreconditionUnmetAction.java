@@ -18,7 +18,7 @@ import won.bot.framework.eventbot.event.impl.analyzation.precondition.Preconditi
 import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.agreement.AgreementProtocolState;
 import won.protocol.model.Connection;
@@ -43,9 +43,9 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
         EventListenerContext ctx = getEventListenerContext();
         if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof PreconditionUnmetEvent) {
             Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
-                    .getOpenBridge(con.getAtomURI());
-            if (bridge.getStatus() != PaymentStatus.BUILDING) {
+            PaymentContext payCtx = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getPaymentContext(con.getAtomURI());
+            if (payCtx.getStatus() != PaymentStatus.BUILDING) {
                 return;
             }
             logger.info("Precondition unmet");
@@ -54,7 +54,6 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
             // FIXME: bot does not communicate what information is missing.
             Model messageModel = WonRdfUtils.MessageUtils
                     .processingMessage("To generate a payment link, send a message with a Payment detail.");
-
             // RDF output with SHACL report:
             String respondWith = "SHACL report: Payment not possible yet, missing necessary Values: \n";
             for (ValidationResultWrapper validationResultWrapper : preconditionEventPayload.getShaclReportWrapper()

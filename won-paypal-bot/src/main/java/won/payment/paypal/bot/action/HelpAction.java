@@ -8,7 +8,7 @@ import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.event.SimpleMessageReceivedEvent;
 import won.payment.paypal.bot.impl.PaypalBot;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
 
@@ -20,24 +20,21 @@ public class HelpAction extends BaseEventBotAction {
     @Override
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         EventListenerContext ctx = getEventListenerContext();
-
         if (event instanceof SimpleMessageReceivedEvent) {
             SimpleMessageReceivedEvent simpleMsgEvent = (SimpleMessageReceivedEvent) event;
             Connection con = simpleMsgEvent.getCon();
-
-            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
-                    .getOpenBridge(con.getAtomURI());
-            if (bridge.getConnection() != null) {
-                checkPaymentStatus(bridge);
+            PaymentContext payCtx = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getPaymentContext(con.getAtomURI());
+            if (payCtx.getConnection() != null) {
+                checkPaymentStatus(payCtx);
             }
         }
     }
 
-    private void checkPaymentStatus(PaymentBridge bridge) {
+    private void checkPaymentStatus(PaymentContext payCtx) {
         EventBus bus = getEventListenerContext().getEventBus();
-        Connection con = bridge.getConnection();
-        PaymentStatus status = bridge.getStatus();
-
+        Connection con = payCtx.getConnection();
+        PaymentStatus status = payCtx.getStatus();
         if (status == PaymentStatus.PAYMODEL_ACCEPTED) {
             // Wait until the payment is generated.
             bus.publish(PaypalBot.makeProcessingMessage("Wait until the PayPal Payment is generated...", con));
