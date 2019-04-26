@@ -41,10 +41,13 @@ public class ProposalRejectedAction extends BaseEventBotAction {
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         EventListenerContext ctx = getEventListenerContext();
         if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof ProposalRejectedEvent) {
+
             logger.info("Proposal rejected");
             ProposalRejectedEvent rejectsEvent = (ProposalRejectedEvent) event;
             Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-            PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getOpenBridge(con.getAtomURI());
+
             if (bridge.getStatus() == PaymentStatus.BUILDING) {
                 paymodelRejected(rejectsEvent);
             } else if (bridge.getStatus() == PaymentStatus.GENERATED) {
@@ -74,29 +77,31 @@ public class ProposalRejectedAction extends BaseEventBotAction {
     private void ppDenied(ProposalRejectedEvent event) {
         EventListenerContext ctx = getEventListenerContext();
         Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-        PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+        PaypalBotContextWrapper botCtx = (PaypalBotContextWrapper) ctx.getBotContextWrapper();
+        PaymentBridge bridge = botCtx.getOpenBridge(con.getAtomURI());
+
         bridge.setStatus(PaymentStatus.PP_DENIED);
-        PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
-        // Cancelation for paymodel
+        botCtx.putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
+
+        // Cancellation for paymodel
         AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
-                        getEventListenerContext().getLinkedDataSource());
+                ctx.getLinkedDataSource());
         URI acceptsMsgUri = agreementProtocolState.getLatestAcceptsMessageSentByAtom(con.getTargetAtomURI());
         Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
         String proposalMsgUri = conversation
-                        .listStatements(new ResourceImpl(acceptsMsgUri.toString()), WONAGR.accepts, (RDFNode) null)
-                        .next().getObject().asResource().getURI();
+                .listStatements(new ResourceImpl(acceptsMsgUri.toString()), WONAGR.accepts, (RDFNode) null).next()
+                .getObject().asResource().getURI();
         try {
             Model cancellationModel = WonRdfUtils.MessageUtils.proposesToCancelMessage(new URI(proposalMsgUri));
             cancellationModel = WonRdfUtils.MessageUtils.addMessage(cancellationModel,
-                            "To edit the payment model, accept this message and retract the payment detail you sent. \n"
-                                            + " To keep the current payment model, decline this message.");
+                    "To edit the payment model, accept this message and retract the payment detail you sent. \n"
+                            + " To keep the current payment model, decline this message.");
             ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, cancellationModel));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
 
-    // TODO: refactor this method for better readability
     /**
      * Reproposes the unchanged payment model on cancellation of proposal
      * retraction.
@@ -106,18 +111,22 @@ public class ProposalRejectedAction extends BaseEventBotAction {
     private void cancelPaymodelDenied(ProposalRejectedEvent event) {
         EventListenerContext ctx = getEventListenerContext();
         Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-        PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+        PaypalBotContextWrapper botCtx = (PaypalBotContextWrapper) ctx.getBotContextWrapper();
+        PaymentBridge bridge = botCtx.getOpenBridge(con.getAtomURI());
+
         bridge.setStatus(PaymentStatus.GENERATED);
-        PaypalBotContextWrapper.instance(ctx).putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
+        botCtx.putOpenBridge(bridge.getConnection().getAtomURI(), bridge);
         // Find the last paykey message and propose it again
+
         AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
-                        getEventListenerContext().getLinkedDataSource());
+                ctx.getLinkedDataSource());
         Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
         String payKeyMsgUri = conversation.listStatements(null, WONPAY.HAS_PAYPAL_PAYKEY, bridge.getPayKey()).next()
-                        .getSubject().getURI();
+                .getSubject().getURI();
+
         try {
             Model agreementMessage = WonRdfUtils.MessageUtils.processingMessage("You did not change the "
-                            + "payment model, so i propose the same " + "PayPal-Payment to you again.");
+                    + "payment model, so i propose the same " + "PayPal-Payment to you again.");
             WonRdfUtils.MessageUtils.addProposes(agreementMessage, new URI(payKeyMsgUri));
             ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, agreementMessage));
         } catch (URISyntaxException e) {
@@ -127,9 +136,10 @@ public class ProposalRejectedAction extends BaseEventBotAction {
 
     // TODO: refactor for better readability
     private void retractPaymentSummary(Connection con, URI paymentSummaryUri) {
-        AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
-                        getEventListenerContext().getLinkedDataSource());
-        Model proposalModel = agreementProtocolState.getRejectedProposal(paymentSummaryUri);
+        EventListenerContext ctx = getEventListenerContext();
+
+        AgreementProtocolState state = AgreementProtocolState.of(con.getConnectionURI(), ctx.getLinkedDataSource());
+        Model proposalModel = state.getRejectedProposal(paymentSummaryUri);
         StmtIterator itr = proposalModel.listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY);
         if (!itr.hasNext()) {
             return;

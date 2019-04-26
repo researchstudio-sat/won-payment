@@ -49,7 +49,8 @@ public class MessageRetractedAction extends BaseEventBotAction {
             logger.info("Message retracted");
             MessageRetractedEvent retractedEvent = (MessageRetractedEvent) event;
             Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-            PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getOpenBridge(con.getAtomURI());
             if (bridge.getStatus() != PaymentStatus.BUILDING) {
                 return;
             }
@@ -72,10 +73,10 @@ public class MessageRetractedAction extends BaseEventBotAction {
         // Check if the retracted message has content of the current proposed payment ->
         // Retract Summary and Proposal
         AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(event.getConnectionURI(),
-                        getEventListenerContext().getLinkedDataSource());
+                getEventListenerContext().getLinkedDataSource());
         URI lastProposalUri = agreementProtocolState.getLatestPendingProposal();
         Model lastProposal = lastProposalUri != null ? agreementProtocolState.getPendingProposal(lastProposalUri)
-                        : null;
+                : null;
         if (lastProposal == null) {
             return true;
         }
@@ -97,9 +98,9 @@ public class MessageRetractedAction extends BaseEventBotAction {
         });
         try {
             Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(lastProposalUri,
-                            new URI(paymentSummaryUriBuilder.toString()));
+                    new URI(paymentSummaryUriBuilder.toString()));
             getEventListenerContext().getEventBus()
-                            .publish(new ConnectionMessageCommandEvent(event.getCon(), retractResponse));
+                    .publish(new ConnectionMessageCommandEvent(event.getCon(), retractResponse));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -108,10 +109,10 @@ public class MessageRetractedAction extends BaseEventBotAction {
 
     private Model getRetractedContent(MessageRetractedEvent event) {
         Dataset conversationDataset = WonLinkedDataUtils.getConversationAndAtomsDataset(event.getConnectionURI(),
-                        getEventListenerContext().getLinkedDataSource());
+                getEventListenerContext().getLinkedDataSource());
         conversationDataset.begin(ReadWrite.READ);
         Map<URI, ConversationMessage> conversationMessages = ConversationMessagesReader
-                        .readConversationMessages(conversationDataset);
+                .readConversationMessages(conversationDataset);
         if (!conversationMessages.containsKey(event.getRetractedMessageUri())) {
             logger.warn("Retracted URI not in conversation dataset");
             return null;

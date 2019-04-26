@@ -25,9 +25,9 @@ public class HelpAction extends BaseEventBotAction {
             SimpleMessageReceivedEvent simpleMsgEvent = (SimpleMessageReceivedEvent) event;
             Connection con = simpleMsgEvent.getCon();
 
-            PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
-            if (bridge.getConnection() != null
-                    && con.getConnectionURI().equals(bridge.getConnection().getConnectionURI())) {
+            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getOpenBridge(con.getAtomURI());
+            if (bridge.getConnection() != null) {
                 checkPaymentStatus(bridge);
             }
         }

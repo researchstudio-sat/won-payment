@@ -47,11 +47,14 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
 
     @Override
     protected void doRun(Event event, EventListener executingListener) throws Exception {
-        EventListenerContext ctx = getEventListenerContext();
+
         if (event instanceof ProposalAcceptedEvent) {
+            EventListenerContext ctx = getEventListenerContext();
             ProposalAcceptedEvent proposalAcceptedEvent = (ProposalAcceptedEvent) event;
             Connection con = proposalAcceptedEvent.getCon();
-            PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getOpenBridge(con.getAtomURI());
+
             if (bridge.getStatus() == PaymentStatus.BUILDING) {
                 // Proposed paymodel was accepted
                 generatePP(proposalAcceptedEvent);
@@ -78,28 +81,33 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
     private void cancelPaymodel(ProposalAcceptedEvent proposalAcceptedEvent) {
         Connection con = proposalAcceptedEvent.getCon();
         EventListenerContext ctx = getEventListenerContext();
-        PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
+        PaypalBotContextWrapper botCtx = (PaypalBotContextWrapper) ctx.getBotContextWrapper();
+        PaymentBridge bridge = botCtx.getOpenBridge(con.getAtomURI());
+
         bridge.setStatus(PaymentStatus.BUILDING);
-        PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
-        AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
-                getEventListenerContext().getLinkedDataSource());
-        Model conversation = agreementProtocolState.getConversationDataset().getUnionModel();
+        botCtx.putOpenBridge(con.getAtomURI(), bridge);
+
+        AgreementProtocolState state = AgreementProtocolState.of(con.getConnectionURI(), ctx.getLinkedDataSource());
+        Model conversation = state.getConversationDataset().getUnionModel();
         StmtIterator itr = conversation.listStatements(null, RDF.type, WONPAY.PAYMENT_SUMMARY);
         String paymentSummaryUri = null;
+
         while (itr.hasNext()) {
             Resource subj = itr.next().getSubject();
             if (!conversation.listStatements(null, WONMOD.retracts, subj).hasNext()) {
                 paymentSummaryUri = subj.getURI();
             }
         }
+
         if (paymentSummaryUri == null) {
             return;
         }
+
         try {
             Model retractResponse = MessageUtils.retractsMessage(new URI(paymentSummaryUri));
             retractResponse = MessageUtils.addMessage(retractResponse,
                     "To suggest a new paymodel, the message containing the old paymodel needs to be retracted.");
-            getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
+            ctx.getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -114,20 +122,23 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
     private void generatePP(ProposalAcceptedEvent event) {
         Connection con = event.getCon();
         EventListenerContext ctx = getEventListenerContext();
-        PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
+        PaypalBotContextWrapper botCtx = (PaypalBotContextWrapper) ctx.getBotContextWrapper();
+        PaymentBridge bridge = botCtx.getOpenBridge(con.getAtomURI());
+
         bridge.setStatus(PaymentStatus.PAYMODEL_ACCEPTED);
-        PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
-        // TODO: Send info, that a payment is getting generated rn
+        botCtx.putOpenBridge(con.getAtomURI(), bridge);
+
+        // TODO: Send info that a payment is getting generated rn
         PaymentModelWrapper paymodel = new PaymentModelWrapper(event.getPayload());
         try {
             PayRequest pay = paymodel.toPayRequest();
-            PaypalPaymentService paypalService = PaypalBotContextWrapper.instance(ctx).getPaypalService();
+            PaypalPaymentService paypalService = botCtx.getPaypalService();
             String payKey = paypalService.create(pay);
             logger.info("Paypal Payment generated with payKey={}", payKey);
             String url = paypalService.getPaymentUrl(payKey);
             bridge.setStatus(PaymentStatus.GENERATED);
             bridge.setPayKey(payKey);
-            PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
+            botCtx.putOpenBridge(con.getAtomURI(), bridge);
 
             // Send and propose payment link
             Model response = MessageUtils.processingMessage("Generated PayPal payment: \n" + url);
@@ -162,7 +173,7 @@ public class ProposalAcceptedAction extends BaseEventBotAction {
             ctx.getEventBus().publish(
                     PaypalBot.makeProcessingMessage("PayPal payment could not be generated: " + e.getMessage(), con));
             bridge.setStatus(PaymentStatus.FAILURE);
-            PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
+            botCtx.putOpenBridge(con.getAtomURI(), bridge);
         }
     }
 }

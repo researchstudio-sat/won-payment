@@ -43,19 +43,22 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
         EventListenerContext ctx = getEventListenerContext();
         if (ctx.getBotContextWrapper() instanceof PaypalBotContextWrapper && event instanceof PreconditionUnmetEvent) {
             Connection con = ((BaseAtomAndConnectionSpecificEvent) event).getCon();
-            PaymentBridge bridge = PaypalBotContextWrapper.paymentBridge(ctx, con);
+            PaymentBridge bridge = ((PaypalBotContextWrapper) ctx.getBotContextWrapper())
+                    .getOpenBridge(con.getAtomURI());
             if (bridge.getStatus() != PaymentStatus.BUILDING) {
                 return;
             }
             logger.info("Precondition unmet");
             retractProposal(con);
             GoalInstantiationResult preconditionEventPayload = ((PreconditionEvent) event).getPayload();
-            Model messageModel = WonRdfUtils.MessageUtils
-                            .processingMessage("To generate a payment link, send a message with a Payment detail.");
             // FIXME: bot does not communicate what information is missing.
+            Model messageModel = WonRdfUtils.MessageUtils
+                    .processingMessage("To generate a payment link, send a message with a Payment detail.");
+
+            // RDF output with SHACL report:
             String respondWith = "SHACL report: Payment not possible yet, missing necessary Values: \n";
             for (ValidationResultWrapper validationResultWrapper : preconditionEventPayload.getShaclReportWrapper()
-                            .getValidationResults()) {
+                    .getValidationResults()) {
                 if (validationResultWrapper.getResultPath() != null || validationResultWrapper.getFocusNode() != null) {
                     String path = validationResultWrapper.getResultPath().getLocalName();
                     if (path != null && !path.isEmpty()) {
@@ -100,7 +103,7 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
      */
     private void retractProposal(Connection con) {
         AgreementProtocolState agreementProtocolState = AgreementProtocolState.of(con.getConnectionURI(),
-                        getEventListenerContext().getLinkedDataSource());
+                getEventListenerContext().getLinkedDataSource());
         URI proposalUri = agreementProtocolState.getLatestPendingProposal();
         if (proposalUri == null) {
             return;
@@ -113,7 +116,7 @@ public class PreconditionUnmetAction extends BaseEventBotAction {
         Resource paymentSummary = itr.next().getSubject();
         try {
             Model retractResponse = WonRdfUtils.MessageUtils.retractsMessage(new URI(paymentSummary.getURI()),
-                            proposalUri);
+                    proposalUri);
             getEventListenerContext().getEventBus().publish(new ConnectionMessageCommandEvent(con, retractResponse));
         } catch (URISyntaxException e) {
             e.printStackTrace();

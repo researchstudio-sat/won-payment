@@ -13,7 +13,7 @@ import won.protocol.model.Connection;
 
 /**
  * When the counterpart has accepted the connection, this action will be
- * invoked. It changes the sate of the bridge and generates the payment and
+ * invoked. It changes the state of the bridge and generates the payment and
  * sends the link to the buyer.
  * 
  * @author schokobaer
@@ -26,15 +26,16 @@ public class ConnectionAcceptedAction extends BaseEventBotAction {
     @Override
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         if (event instanceof OpenFromOtherAtomEvent) {
-            EventListenerContext ctx = getEventListenerContext();
+            PaypalBotContextWrapper botCtx = (PaypalBotContextWrapper) getEventListenerContext().getBotContextWrapper();
             Connection con = ((OpenFromOtherAtomEvent) event).getCon();
-            PaymentBridge bridge = PaypalBotContextWrapper.instance(ctx).getOpenBridge(con.getAtomURI());
+            PaymentBridge bridge = botCtx.getOpenBridge(con.getAtomURI());
+
             if (bridge.getConnection() != null
-                            && con.getConnectionURI().equals(bridge.getConnection().getConnectionURI())) {
+                    && con.getConnectionURI().equals(bridge.getConnection().getConnectionURI())) {
                 logger.info("Connection accepted by user for connection {}", con.toString());
                 bridge.setStatus(PaymentStatus.BUILDING);
-                PaypalBotContextWrapper.instance(ctx).putOpenBridge(con.getAtomURI(), bridge);
-                ctx.getEventBus().publish(new ConversationAnalyzationCommandEvent(con));
+                botCtx.putOpenBridge(con.getAtomURI(), bridge);
+                getEventListenerContext().getEventBus().publish(new ConversationAnalyzationCommandEvent(con));
             } else {
                 logger.error("Unexpected OpenFromOtherAtomEvent from unregistered connection URI {}", con.toString());
             }
