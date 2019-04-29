@@ -40,12 +40,7 @@ pay:hasReceiver a rdf:Property ;
     rdfs:comment "Receiver of the payment" ;
     rdfs:domain pay:Payment .
 
-pay:hasSecret a rdf:Property ;
-    rdfs:label "secret" ;
-    rdfs:comment "Secret for the transaction" ;
-    rdfs:domain pay:Payment .
-
-pay:hasNeedCounerpart a rdf:Property ;
+pay:hasAtomCounerpart a rdf:Property ;
     rdfs:label "counterpart" ;
     rdfs:comment "The counterpart of the payment" ;
     rdfs:domain pay:Payment .

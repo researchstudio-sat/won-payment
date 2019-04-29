@@ -1,7 +1,5 @@
 package won.payment.paypal.bot.validator;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -11,27 +9,21 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
-import won.bot.framework.eventbot.EventListenerContext;
 import won.payment.paypal.bot.model.PaymentModelWrapper;
 import won.protocol.model.Connection;
 import won.protocol.vocabulary.WONPAY;
 
 /**
- * Validator for a paypal payment model.
+ * Validator for a paypal payment model. Should validate whether the payment
+ * model would be accepted by paypal. Validation for the bot is already done via
+ * SHACL constraints.
  * 
  * @author schokobaer
  */
 public class PaymentModelValidator {
-    // TODO: should be defined by the config, not hardcoded
-    private static final List<String> SUPPORTED_CURRENCIES = Arrays.asList(
-                    new String[] { "AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF", "ILS", "JPY", "MYR", "MXN",
-                                    "NOK", "NZD", "PHP", "PLN", "GBP", "SGD", "SEK", "CHF", "TWD", "THB", "USD" });
-    private EventListenerContext ctx;
     private ValidatorFactory factory;
 
-    // TODO: requires context as a parameter but never uses it?
-    public PaymentModelValidator(EventListenerContext ctx) {
-        this.ctx = ctx;
+    public PaymentModelValidator() {
         factory = Validation.buildDefaultValidatorFactory();
     }
 
@@ -42,14 +34,9 @@ public class PaymentModelValidator {
             throw new Exception(violations.iterator().next().getMessage());
         }
         // Leftovers:
-        // - Currency in CURRENCY-list
         // - Counterpart Accessible
         // - FeePayer is one of the Resources defined in WONPAY
         // - 5m < expiration < 30d
-        // Currency
-        if (!SUPPORTED_CURRENCIES.contains(payment.getCurrency())) {
-            throw new Exception("Not a supported currency");
-        }
         // Fee Payer
         if (!WONPAY.FEE_PAYER_SENDER.equals(payment.getFeePayer())
                         && !WONPAY.FEE_PAYER_RECEIVER.equals(payment.getFeePayer())) {

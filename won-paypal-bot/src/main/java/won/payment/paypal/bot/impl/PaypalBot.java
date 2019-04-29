@@ -11,6 +11,7 @@ import won.bot.framework.eventbot.event.impl.analyzation.agreement.ProposalAccep
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionMetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.precondition.PreconditionUnmetEvent;
 import won.bot.framework.eventbot.event.impl.analyzation.proposal.ProposalReceivedEvent;
+import won.bot.framework.eventbot.event.impl.command.connectionmessage.ConnectionMessageCommandEvent;
 import won.bot.framework.eventbot.event.impl.factory.FactoryHintEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
 import won.bot.framework.eventbot.event.impl.wonmessage.ConnectFromOtherAtomEvent;
@@ -37,6 +38,8 @@ import won.payment.paypal.bot.event.connect.ComplexConnectCommandEvent;
 import won.payment.paypal.bot.event.modification.MessageRetractedEvent;
 import won.payment.paypal.bot.event.proposal.ProposalRejectedEvent;
 import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
+import won.protocol.model.Connection;
+import won.protocol.util.WonRdfUtils;
 
 /**
  * The bot which subscribes for the Events.
@@ -45,6 +48,10 @@ import won.payment.paypal.bot.scheduler.PaypalPaymentStatusCheckSchedule;
  */
 public class PaypalBot extends FactoryBot {
     private Timer paymentCheckTimer;
+
+    public static ConnectionMessageCommandEvent makeProcessingMessage(String msg, Connection con) {
+        return new ConnectionMessageCommandEvent(con, WonRdfUtils.MessageUtils.processingMessage(msg));
+    }
 
     @Override
     protected void initializeFactoryEventListeners() {

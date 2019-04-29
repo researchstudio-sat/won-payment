@@ -7,17 +7,19 @@ import won.bot.framework.eventbot.event.impl.command.deactivate.DeactivateAtomCo
 import won.bot.framework.eventbot.event.impl.wonmessage.CloseFromOtherAtomEvent;
 import won.bot.framework.eventbot.listener.EventListener;
 import won.payment.paypal.bot.impl.PaypalBotContextWrapper;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
 
 /**
- * Eventhandler which will be invoked when a connection was closed by the
- * merchant or the buyer.
+ * Eventhandler which will be invoked when a connection was closed by the user.
  * 
  * @author schokobaer
  */
 public class ConnectionCloseAction extends BaseEventBotAction {
+    private EventListenerContext ctx;
+    private PaypalBotContextWrapper botCtx;
+
     public ConnectionCloseAction(EventListenerContext eventListenerContext) {
         super(eventListenerContext);
     }
@@ -25,123 +27,65 @@ public class ConnectionCloseAction extends BaseEventBotAction {
     @Override
     protected void doRun(Event event, EventListener executingListener) throws Exception {
         if (event instanceof CloseFromOtherAtomEvent) {
+            ctx = getEventListenerContext();
+            botCtx = (PaypalBotContextWrapper) ctx.getBotContextWrapper();
             CloseFromOtherAtomEvent closeEvent = (CloseFromOtherAtomEvent) event;
             Connection con = closeEvent.getCon();
-            PaymentBridge bridge = PaypalBotContextWrapper.instance(getEventListenerContext())
-                            .getOpenBridge(con.getAtomURI());
-            if (bridge.getStatus().ordinal() >= PaymentStatus.COMPLETED.ordinal()) {
-                closeConnection(bridge, con);
+            PaymentContext payCtx = botCtx.getPaymentContext(con.getAtomURI());
+            // Always close atom and connection (if existing) and set status accordingly.
+            if (payCtx.getStatus().ordinal() >= PaymentStatus.COMPLETED.ordinal()) {
+                // Connection closed after the payment was completed
+                closeConnection(payCtx, con);
             } else {
-                unexpectedClosure(bridge, con);
-                logger.debug("Unexpected closure in the Atom {}", con.getAtomURI());
+                if (payCtx.getStatus() == PaymentStatus.PP_ACCEPTED) {
+                    // Connection closed after the payment link was generated and published,
+                    // but before the payment was completed.
+                    logger.debug("Connection {} to Atom {} was closed by the user.", con.toString(), con.getAtomURI());
+                    payCtx.setStatus(PaymentStatus.COMPLETED);
+                } else {
+                    // Connection closed before the payment link was published.
+                    logger.debug("Connection {} to Atom {} was unexpectedly closed.", con.toString(), con.getAtomURI());
+                    payCtx.setStatus(PaymentStatus.FAILURE);
+                }
+                if (payCtx.getConnection() != null
+                        && payCtx.getConnection().getConnectionURI().equals(con.getConnectionURI())) {
+                    payCtx.setConnection(null);
+                }
+                botCtx.setPaymentContext(con.getAtomURI(), payCtx);
+                closeAtom(payCtx, con);
             }
         }
     }
 
     /**
-     * Simply removes the connection from the payment bridge. If both are closed the
-     * atom will be closed.
+     * Removes the connection from the payment context. If all connections are
+     * closed, the atom will be closed.
      * 
-     * @param bridge Bridge where to connections are.
-     * @param con Connection which was closed.
+     * @param payCtx Payment context which contains atom and connection URIs
+     * @param con    Connection which was closed.
      */
-    private void closeConnection(PaymentBridge bridge, Connection con) {
+    private void closeConnection(PaymentContext payCtx, Connection con) {
         // Merchant closure
-        if (bridge.getMerchantConnection() != null
-                        && bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
-            bridge.setMerchantConnection(null);
-            logger.debug("Merchant has closed the connection after completion in the Atom {}", con.getAtomURI());
+        if (payCtx.getConnection() != null
+                && payCtx.getConnection().getConnectionURI().equals(con.getConnectionURI())) {
+            payCtx.setConnection(null);
+            logger.debug("Connection to Atom {} was closed.", con.getAtomURI());
         }
-        PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getAtomURI(), bridge);
-        closeAtom(bridge, con);
+        botCtx.setPaymentContext(con.getAtomURI(), payCtx);
+        closeAtom(payCtx, con);
     }
 
     /**
-     * Closes the Atom if the payment bridge's connections are empty.
+     * Close the Atom if there are no active payment context connections.
      * 
-     * @param bridge PaymentBridge to check.
-     * @param con Connection which was closed.
+     * @param payCtx PaymentContext to check.
+     * @param con    Connection which was closed.
      */
-    private void closeAtom(PaymentBridge bridge, Connection con) {
-        // Both closed
-        if (bridge.getMerchantConnection() == null /* && bridge.getBuyerConnection() == null */) {
-            PaypalBotContextWrapper.instance(getEventListenerContext()).removeOpenBridge(con.getAtomURI());
-            getEventListenerContext().getEventBus().publish(new DeactivateAtomCommandEvent(con.getAtomURI()));
-            logger.debug("Atom gets closed {}", con.getAtomURI());
+    private void closeAtom(PaymentContext payCtx, Connection con) {
+        if (payCtx.getConnection() == null) {
+            botCtx.removePaymentContext(con.getAtomURI());
+            ctx.getEventBus().publish(new DeactivateAtomCommandEvent(con.getAtomURI()));
+            logger.debug("Closing Atom {}", con.getAtomURI());
         }
-    }
-
-    /**
-     * Informs the counterpart if the paypal payment is already generated or
-     * accepted.
-     * 
-     * @param bridge Bridge of the connection.
-     * @param con Connection which was closed.
-     */
-    private void unexpectedClosure(PaymentBridge bridge, Connection con) {
-        // Fix here everything !!!
-        bridge.setStatus(PaymentStatus.FAILURE);
-        if (bridge.getMerchantConnection() != null
-                        && bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI())) {
-            // Merchant closed
-            logger.info("Unexpected closure from merchant with connection {} in the atom {}", con.toString(),
-                            con.getAtomURI().toString());
-            bridge.setMerchantConnection(null);
-        } else {
-            // TODO: verify that this never happens
-            // throw exception and write log msg
-        }
-        PaypalBotContextWrapper.instance(getEventListenerContext()).putOpenBridge(con.getAtomURI(), bridge);
-        closeAtom(bridge, con);
-        // TODO: can this be deleted?
-        /*
-         * if (bridge.getStatus() == PaymentStatus.PP_ACCEPTED || bridge.getStatus() ==
-         * PaymentStatus.GENERATED) { if (bridge.getMerchantConnection() != null &&
-         * bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI
-         * ())) { bridge.setMerchantConnection(null);
-         * makeTextMsg("ATTENTION: THE MERCHANT HAS LEFT. DO NOT EXECUTE THE PAYMENT!",
-         * bridge.getBuyerConnection());
-         * logger.debug("Merchant has closed the connection in status {}" +
-         * " in the Atom {}", bridge.getStatus().name(), con.getAtomURI()); } if
-         * (bridge.getBuyerConnection() != null &&
-         * bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())
-         * ) { bridge.setBuyerConnection(null);
-         * makeTextMsg("The Buyer has left. Type 'payment check' for validating the payment or wait "
-         * + "until you get informed", bridge.getMerchantConnection());
-         * logger.debug("Buyer has closed the connection in status {}" +
-         * " in the Atom {}", bridge.getStatus().name(), con.getAtomURI()); } } else if
-         * (bridge.getStatus() == PaymentStatus.BUILDING) { // If the merchant left,
-         * tell the buyer not to do anything and leave the channel // If the buyer left
-         * just tell the merchant // If the buyer declines the connection just tell the
-         * merchant if (bridge.getMerchantConnection() != null &&
-         * bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI
-         * ())) { bridge.setMerchantConnection(null);
-         * makeTextMsg("ATTENTION: THE MERCHANT HAS LEFT. PLEASE CONTACT THE MERCHANT!",
-         * bridge.getBuyerConnection());
-         * logger.debug("Merchant has closed the connection in status {}" +
-         * " in the Atom {}", bridge.getStatus().name(), con.getAtomURI()); } else if
-         * (bridge.getBuyerConnection() != null &&
-         * bridge.getBuyerConnection().getConnectionURI().equals(con.getConnectionURI())
-         * ) { bridge.setBuyerConnection(null);
-         * makeTextMsg("The Buyer has left without accepting. Change the payment and validate it again."
-         * , bridge.getMerchantConnection());
-         * logger.debug("Buyer has closed the connection in status {}" +
-         * " in the Atom {}", bridge.getStatus().name(), con.getAtomURI()); } else if
-         * (bridge.getBuyerConnection() == null) {
-         * makeTextMsg("The buyer declined the connection. Change the payment and validate it again."
-         * , bridge.getMerchantConnection());
-         * bridge.setStatus(PaymentStatus.BUYER_DENIED);
-         * logger.debug("Buyer has closed the connection in status {}" +
-         * " in the Atom {}", bridge.getStatus().name(), con.getAtomURI()); } } else {
-         * // Can only be the merchant if (bridge.getMerchantConnection() != null &&
-         * bridge.getMerchantConnection().getConnectionURI().equals(con.getConnectionURI
-         * ())) { bridge.setMerchantConnection(null);
-         * logger.debug("Merchant has closed the connection in status {}" +
-         * " in the Atom {}", bridge.getStatus().name(), con.getAtomURI()); } else { //
-         * Error ?! OR status == Nothing
-         * logger.debug("Merchant has closed the connection in status {}" +
-         * " in the Atom {}", bridge.getStatus().name(), con.getAtomURI()); } }
-         * closeAtom(bridge, con);
-         */
     }
 }

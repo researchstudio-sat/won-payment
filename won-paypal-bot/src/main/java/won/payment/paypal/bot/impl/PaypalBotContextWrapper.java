@@ -1,25 +1,21 @@
 package won.payment.paypal.bot.impl;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import won.bot.framework.bot.context.BotContext;
 import won.bot.framework.bot.context.FactoryBotContextWrapper;
-import won.bot.framework.eventbot.EventListenerContext;
-import won.payment.paypal.bot.model.PaymentBridge;
+import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.service.impl.PaypalPaymentService;
-import won.protocol.model.Connection;
 
 /**
- * Simple BotContextWrapper, which manages the open payment bridges.
+ * Simple BotContextWrapper, which manages the open payment contexts.
  * 
  * @author schokobaer
  */
 public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
-    private static final String OPEN_PAYMENT_BRIDGES = ":openpaymentbridges";
+    private final String ACTIVE_PAYMENT_CONTEXTS = getBotName() + ":paymentcontexts";
     private PaypalPaymentService paypalService;
     private Long schedulingInterval;
 
@@ -27,33 +23,23 @@ public class PaypalBotContextWrapper extends FactoryBotContextWrapper {
         super(botContext, botName);
     }
 
-    public void putOpenBridge(URI atomUri, PaymentBridge bridge) {
-        this.getBotContext().saveToObjectMap(OPEN_PAYMENT_BRIDGES, atomUri.toString(), bridge);
+    public void setPaymentContext(URI atomUri, PaymentContext payCtx) {
+        this.getBotContext().saveToObjectMap(ACTIVE_PAYMENT_CONTEXTS, atomUri.toString(), payCtx);
     }
 
-    public PaymentBridge getOpenBridge(URI atomUri) {
-        return (PaymentBridge) this.getBotContext().loadFromObjectMap(OPEN_PAYMENT_BRIDGES, atomUri.toString());
+    public PaymentContext getPaymentContext(URI atomUri) {
+        return (PaymentContext) this.getBotContext().loadFromObjectMap(ACTIVE_PAYMENT_CONTEXTS, atomUri.toString());
     }
 
-    public Iterator<PaymentBridge> getOpenBridges() {
-        Map<String, Object> map = this.getBotContext().loadObjectMap(OPEN_PAYMENT_BRIDGES);
-        Collection<PaymentBridge> col = new LinkedList<>();
-        for (Object obj : map.values()) {
-            col.add((PaymentBridge) obj);
-        }
-        return col.iterator();
+    public Map<String, PaymentContext> getPaymentContexts() {
+        // Conversion from https://stackoverflow.com/a/34497492
+        return this.getBotContext().loadObjectMap(ACTIVE_PAYMENT_CONTEXTS).entrySet().stream()
+                .filter(e -> e.getValue() instanceof PaymentContext)
+                .collect(Collectors.toMap(e -> e.getKey(), e -> (PaymentContext) e.getValue()));
     }
 
-    public void removeOpenBridge(URI atomUri) {
-        this.getBotContext().removeFromObjectMap(OPEN_PAYMENT_BRIDGES, atomUri.toString());
-    }
-
-    public static PaypalBotContextWrapper instance(EventListenerContext ctx) {
-        return ((PaypalBotContextWrapper) ctx.getBotContextWrapper());
-    }
-
-    public static PaymentBridge paymentBridge(EventListenerContext ctx, Connection con) {
-        return instance(ctx).getOpenBridge(con.getAtomURI());
+    public void removePaymentContext(URI atomUri) {
+        this.getBotContext().removeFromObjectMap(ACTIVE_PAYMENT_CONTEXTS, atomUri.toString());
     }
 
     public void setPaypalService(PaypalPaymentService paypalService) {
