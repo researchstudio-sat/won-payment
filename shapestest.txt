@@ -4,7 +4,7 @@
 @prefix won:   <https://w3id.org/won/core#> .
 @prefix cur: <http://www.w3.org/2007/ont/currency#> .
 
-<this:eventuri> won:textMessage 'Money Money Money'. 
+<this:eventuri> con:text 'Money Money Money'. 
 
 <https://127.0.0.1:8443/won/resource/atom/g0e9yzyjcak3ddgchbmr/payment>
 	pay:hasAmount 2.34 ;
@@ -33,7 +33,7 @@
 @prefix ex2: <http://example.org/2/> .
 @prefix won:   <https://w3id.org/won/core#> .
 
-<this:eventuri> won:textMessage 'Init msg'. 
+<this:eventuri> con:text 'Init msg'. 
 
 ex2:myPayment a s:Invoice .
 
@@ -50,7 +50,7 @@ ex2:myPayment
 @prefix ex2: <http://example.org/2/> .
 @prefix won:   <https://w3id.org/won/core#> .
 
-<this:eventuri> won:textMessage 'Moneyless'. 
+<this:eventuri> con:text 'Moneyless'. 
 
 ex2:myPayment 
 	pay:hasAmount 1.0 .
@@ -61,7 +61,7 @@ ex2:myPayment
 @prefix ex2: <http://example.org/2/> .
 @prefix won:   <https://w3id.org/won/core#> .
 
-<this:eventuri> won:textMessage 'Set Money Amount'. 
+<this:eventuri> con:text 'Set Money Amount'. 
 
 ex2:myPayment 
 	pay:hasAmount 1.23 .

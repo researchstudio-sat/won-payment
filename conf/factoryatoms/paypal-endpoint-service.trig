@@ -1,3 +1,5 @@
+@prefix con: <https://w3id.org/won/content#> .
+@prefix match: <https://w3id.org/won/matching#> .
 @prefix msg:   <https://w3id.org/won/message#> .
 @prefix conn:  <https://localhost:8443/won/resource/connection/> .
 @prefix atom:  <https://localhost:8443/won/resource/atom/> .
@@ -21,10 +23,10 @@
 
  {
     olntest:paypalService1
-		won:flag   won:NoHintForCounterpart ;
-		a             won:Atom , won:ServiceBot ;
+		match:flag   match:NoHintForCounterpart ;
+		a             won:Atom , con:ServiceBot ;
 		s:title				"Paypal Payment Bot Factory Atom" ;
-		won:seeks [
-			a			won:PaymentServiceRequest;
+		match:seeks [
+			a			demo:PaymentServiceRequest;
 		].
 }

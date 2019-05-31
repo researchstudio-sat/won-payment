@@ -1,4 +1,5 @@
 package won.payment.paypal.bot.action.factory;
+import won.protocol.vocabulary.WONMATCH;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -154,8 +155,8 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
         DefaultAtomModelWrapper atomModelWrapper = new DefaultAtomModelWrapper(atomURI.toString());
         atomModelWrapper.setTitle(connectTitle);
         atomModelWrapper.setDescription("This is a automatically created atom by the PaypalBot");
-        atomModelWrapper.addFlag(WON.NoHintForCounterpart);
-        atomModelWrapper.addFlag(WON.NoHintForMe);
+        atomModelWrapper.addFlag(WONMATCH.NoHintForCounterpart);
+        atomModelWrapper.addFlag(WONMATCH.NoHintForMe);
         atomModelWrapper.setShapesGraphReference(STUB_SHAPES_URI);
         int i = 1;
         for (URI socket : sockets) {
@@ -177,8 +178,8 @@ public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
     private WonMessage createWonMessage(WonNodeInformationService wonNodeInformationService, URI atomURI,
             URI wonNodeURI, Model atomModel, Model shapesModel) throws WonMessageBuilderException {
         AtomModelWrapper atomModelWrapper = new AtomModelWrapper(atomModel, null);
-        atomModelWrapper.addFlag(WON.NoHintForMe);
-        atomModelWrapper.addFlag(WON.NoHintForCounterpart);
+        atomModelWrapper.addFlag(WONMATCH.NoHintForMe);
+        atomModelWrapper.addFlag(WONMATCH.NoHintForCounterpart);
         RdfUtils.replaceBaseURI(atomModel, atomURI.toString(), true);
         Dataset contentDataset = DatasetFactory.createGeneral();
         contentDataset.addNamedModel(STUB_ATOM_URI.toString(), atomModel);

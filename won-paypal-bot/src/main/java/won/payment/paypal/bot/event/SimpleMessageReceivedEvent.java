@@ -1,4 +1,5 @@
 package won.payment.paypal.bot.event;
+import won.protocol.vocabulary.WONCON;
 
 import org.apache.jena.rdf.model.RDFNode;
 
@@ -20,7 +21,7 @@ public class SimpleMessageReceivedEvent extends WonMessageReceivedOnConnectionEv
     public String getMessage() {
         try {
             return this.getWonMessage().getMessageContent().getUnionModel()
-                            .listStatements(null, WON.textMessage, (RDFNode) null).next().getObject().asLiteral()
+                            .listStatements(null, WONCON.text, (RDFNode) null).next().getObject().asLiteral()
                             .getString();
         } catch (Exception e) {
             return null;
