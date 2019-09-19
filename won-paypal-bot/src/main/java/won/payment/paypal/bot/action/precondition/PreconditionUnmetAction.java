@@ -1,5 +1,6 @@
 package won.payment.paypal.bot.action.precondition;
 
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -7,6 +8,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.vocabulary.RDF;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.topbraid.shacl.vocabulary.SH;
 
 import won.bot.framework.eventbot.EventListenerContext;
@@ -34,6 +37,7 @@ import won.utils.shacl.ValidationResultWrapper;
  * @author schokobaer
  */
 public class PreconditionUnmetAction extends BaseEventBotAction {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     public PreconditionUnmetAction(EventListenerContext eventListenerContext) {
         super(eventListenerContext);
     }

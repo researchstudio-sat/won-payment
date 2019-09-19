@@ -1,5 +1,7 @@
 package won.payment.paypal.bot.action.connect;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.event.Event;
@@ -11,6 +13,8 @@ import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
 
+import java.lang.invoke.MethodHandles;
+
 /**
  * When the counterpart has accepted the connection, this action will be
  * invoked. It changes the state of the paymentContext and generates the payment
@@ -19,6 +23,7 @@ import won.protocol.model.Connection;
  * @author schokobaer
  */
 public class ConnectionAcceptedAction extends BaseEventBotAction {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     public ConnectionAcceptedAction(EventListenerContext eventListenerContext) {
         super(eventListenerContext);
     }

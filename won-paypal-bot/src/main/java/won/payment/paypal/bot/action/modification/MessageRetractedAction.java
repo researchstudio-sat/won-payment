@@ -1,16 +1,19 @@
 package won.payment.paypal.bot.action.modification;
 
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
-import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.RDF;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
@@ -38,6 +41,7 @@ import won.protocol.vocabulary.WONPAY;
  * @author schokobaer
  */
 public class MessageRetractedAction extends BaseEventBotAction {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     public MessageRetractedAction(EventListenerContext eventListenerContext) {
         super(eventListenerContext);
     }

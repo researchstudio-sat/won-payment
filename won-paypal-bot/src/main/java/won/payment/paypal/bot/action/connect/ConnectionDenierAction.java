@@ -1,5 +1,7 @@
 package won.payment.paypal.bot.action.connect;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.bus.EventBus;
@@ -11,12 +13,15 @@ import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConn
 import won.bot.framework.eventbot.listener.EventListener;
 import won.protocol.model.Connection;
 
+import java.lang.invoke.MethodHandles;
+
 /**
  * Sends a message and then immediately closes the connection.
  * 
  * @author schokobaer
  */
 public class ConnectionDenierAction extends BaseEventBotAction {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     // private static final Long WAITING_TIME = 5000L;
     public ConnectionDenierAction(EventListenerContext eventListenerContext) {
         super(eventListenerContext);

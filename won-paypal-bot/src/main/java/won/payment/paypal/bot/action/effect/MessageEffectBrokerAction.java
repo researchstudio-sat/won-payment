@@ -3,7 +3,7 @@ package won.payment.paypal.bot.action.effect;
 import java.net.URI;
 import java.util.Set;
 
-import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.jena.rdf.model.Model;
 
 import won.bot.framework.eventbot.EventListenerContext;

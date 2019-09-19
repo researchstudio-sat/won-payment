@@ -1,7 +1,10 @@
 package won.payment.paypal.bot.action.factory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import won.protocol.vocabulary.WONMATCH;
 
 import java.io.ByteArrayInputStream;
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.nio.charset.Charset;
 
@@ -52,6 +55,7 @@ import won.protocol.vocabulary.WONPAY;
  * @author schokobaer
  */
 public class CreateFactoryOfferAction extends AbstractCreateAtomAction {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final URI STUB_ATOM_URI = URI.create("http://example.com/content");
     private static final URI STUB_SHAPES_URI = URI.create("http://example.com/shapes");
     // TODO: change opening msg

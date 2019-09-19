@@ -1,5 +1,6 @@
 package won.payment.paypal.bot.action.proposal;
 
+import java.lang.invoke.MethodHandles;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -10,6 +11,8 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDF;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.event.BaseAtomAndConnectionSpecificEvent;
@@ -33,6 +36,7 @@ import won.protocol.vocabulary.WONPAY;
  * @author schokobaer
  */
 public class ProposalRejectedAction extends BaseEventBotAction {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     public ProposalRejectedAction(EventListenerContext eventListenerContext) {
         super(eventListenerContext);
     }

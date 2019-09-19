@@ -1,7 +1,7 @@
 package won.payment.paypal.bot.app;
 
 import org.springframework.boot.SpringApplication;
-// import org.springframework.context.ConfigurableApplicationContext;
+import won.bot.framework.bot.utils.BotUtils;
 
 /**
  * Entry Point for the Bot.
@@ -9,8 +9,11 @@ import org.springframework.boot.SpringApplication;
  * @author schokobaer
  */
 public class PaypalBotApp {
-    public static void main(String[] args) throws Exception {
-        SpringApplication app = new SpringApplication(new Object[] { "classpath:/spring/app/paypalBotApp.xml" });
+    public static void main(String[] args) {
+        if(!BotUtils.isValidRunConfig()) {
+            System.exit(1);
+        }
+        SpringApplication app = new SpringApplication("classpath:/spring/app/botApp.xml");
         app.setWebEnvironment(false);
         app.run(args);
         // use for debugging purposes:

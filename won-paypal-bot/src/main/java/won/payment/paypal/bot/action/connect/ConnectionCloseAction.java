@@ -1,5 +1,7 @@
 package won.payment.paypal.bot.action.connect;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import won.bot.framework.eventbot.EventListenerContext;
 import won.bot.framework.eventbot.action.BaseEventBotAction;
 import won.bot.framework.eventbot.event.Event;
@@ -11,12 +13,15 @@ import won.payment.paypal.bot.model.PaymentContext;
 import won.payment.paypal.bot.model.PaymentStatus;
 import won.protocol.model.Connection;
 
+import java.lang.invoke.MethodHandles;
+
 /**
  * Eventhandler which will be invoked when a connection was closed by the user.
  * 
  * @author schokobaer
  */
 public class ConnectionCloseAction extends BaseEventBotAction {
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private EventListenerContext ctx;
     private PaypalBotContextWrapper botCtx;
 

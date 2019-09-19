@@ -7,7 +7,7 @@ import won.bot.framework.eventbot.event.impl.wonmessage.MessageFromOtherAtomEven
 import won.bot.framework.eventbot.event.impl.wonmessage.WonMessageReceivedOnConnectionEvent;
 import won.protocol.message.WonMessage;
 import won.protocol.model.Connection;
-import won.protocol.vocabulary.WON;
+
 
 public class SimpleMessageReceivedEvent extends WonMessageReceivedOnConnectionEvent {
     public SimpleMessageReceivedEvent(Connection con, WonMessage wonMessage) {
