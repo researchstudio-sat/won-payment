@@ -21,17 +21,17 @@
 			<dependency>
 				<groupId>at.researchstudio.sat</groupId>
 				<artifactId>won-bot</artifactId>
-				<version>0.5-SNAPSHOT</version>
+				<version>0.9</version>
 			</dependency>
 			<dependency>
 				<groupId>at.researchstudio.sat</groupId>
 				<artifactId>won-buildtools</artifactId>
-				<version>0.5-SNAPSHOT</version>
+				<version>0.9</version>
 			</dependency>
 			<dependency>
 				<groupId>at.researchstudio.sat</groupId>
 				<artifactId>won-utils-goals</artifactId>
-				<version>0.5-SNAPSHOT</version>
+				<version>0.9</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
